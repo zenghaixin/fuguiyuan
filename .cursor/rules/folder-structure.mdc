@@ -1,0 +1,46 @@
+---
+description: 富贵缘小程序目录职责划分；utils 只放通用工具
+alwaysApply: true
+---
+
+# 目录职责
+
+## 原则
+
+- **按职责拆分**，不要把业务、假数据、页面逻辑塞进 `utils`
+- 新增代码先想「这是通用能力还是领域能力」，再选目录
+
+## 各目录
+
+| 目录 | 职责 | 可以放 | 不要放 |
+|------|------|--------|--------|
+| `utils/` | 与业务无关的**通用工具** | 时间格式化、eventBus、纯函数 helper | 祝福/喜帖业务、mock 数据、读写某业务 storage |
+| `services/` | **领域服务**（业务读写与组装） | 祝福 CRUD、本地缓存封装、对接 API 前的领域方法 | UI、页面生命周期、通用 format |
+| `mock/` | **演示/联调假数据**与 mock 接口 | 种子祝福列表、接口 mock | 真实业务落库逻辑、通用工具 |
+| `api/` | HTTP 请求封装 | `request`、接口 path 聚合 | 页面、样式 |
+| `pages/` | 页面 | 页面 js/wxml/less/json | 可复用组件、跨页业务服务 |
+| `components/` | 可复用 UI 组件 | nav、card 等 | 页面级路由逻辑 |
+| `behaviors/` | 可复用 behavior | toast 等 | 完整业务模块 |
+| `custom-tab-bar/` | 自定义 tabBar | tab 配置与样式 | 业务接口 |
+| `config/` | 环境与开关 | `baseUrl`、`isMock` | 业务实体 |
+| `static/` | 静态资源 | 图片、图标 | 逻辑代码 |
+
+## `utils/` 硬规则
+
+```js
+// ❌ 错误：业务 + 假数据放在 utils
+// utils/blessing.js  — loadBlessings / DEFAULT_BLESSINGS / storage key
+
+// ✅ 正确
+// utils/util.js              — formatRelativeDateTime（通用）
+// services/blessing.js       — load/save/createBlessing（领域）
+// mock/blessing.js           — buildDefaultBlessings（演示数据）
+```
+
+- `utils` 内函数应可被任意业务复用，**不依赖某个业务的 storage key / 文案 / 实体结构**
+- 需要「祝福列表」→ 写 `services/`；需要「假留言」→ 写 `mock/`
+
+## 引用约定
+
+- 页面只依赖 `services` / `api` / `components`，不直接依赖 `mock`（由 service 在无数据时调用 mock）
+- 通用时间、字符串处理统一从 `utils/util` 引入

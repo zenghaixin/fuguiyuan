@@ -57,14 +57,14 @@
         <text>回到封面</text>
       </view>
 
-      <view
-        class="below__chrome"
-        catchtouchstart="onTouchStart"
-        catchtouchmove="onTouchMove"
-        catchtouchend="onTouchEnd"
-        catchtouchcancel="onTouchEnd"
-      >
-        <view class="below__head">
+      <view class="below__chrome">
+        <view
+          class="below__head"
+          bindtouchstart="onTouchStart"
+          bindtouchmove="onTouchMove"
+          bindtouchend="onTouchEnd"
+          bindtouchcancel="onTouchEnd"
+        >
           <view class="below__seal">福</view>
           <view class="below__title">亲友寄语 · 现场花絮</view>
           <view class="below__sub">每一句祝福，都是新婚最好的礼物</view>
@@ -74,67 +74,132 @@
           <view
             class="tabs__item {{activeTab === 'bless' ? 'tabs__item--on' : ''}}"
             data-tab="bless"
-            catchtap="onTabTap"
+            bindtap="onTabTap"
           >祝福板</view>
           <view
             class="tabs__item {{activeTab === 'stage' ? 'tabs__item--on' : ''}}"
             data-tab="stage"
-            catchtap="onTabTap"
+            bindtap="onTabTap"
           >婚礼现场</view>
         </view>
       </view>
 
-      <scroll-view
-        class="below__scroll"
-        scroll-y
-        enhanced
-        bounces="{{false}}"
-        show-scrollbar="{{false}}"
-        bindscroll="onListScroll"
-        bindtouchstart="onListTouchStart"
-        bindtouchmove="onListTouchMove"
-        bindtouchend="onTouchEnd"
-        bindtouchcancel="onTouchEnd"
-      >
-        <block wx:if="{{activeTab === 'bless'}}">
-          <view class="bless-list">
-            <view class="bless-card" wx:for="{{blessings}}" wx:key="id">
-              <view class="bless-card__avatar bless-card__avatar--{{item.tone}}">{{item.initial}}</view>
-              <view class="bless-card__main">
-                <view class="bless-card__row">
-                  <text class="bless-card__name">{{item.name}}</text>
-                  <text class="bless-card__time">{{item.time}}</text>
+      <view class="below__body">
+        <view
+          class="tab-slider {{tabAnimating ? 'tab-slider--anim' : ''}}"
+          style="width: {{tabSliderWidth}}px; transform: translate3d({{tabTranslateX}}px, 0, 0);"
+        >
+          <scroll-view
+            class="tab-pane"
+            style="width: {{windowWidth}}px;"
+            scroll-y
+            enhanced
+            bounces="{{false}}"
+            show-scrollbar="{{false}}"
+            bindscroll="onListScroll"
+            bindtouchstart="onContentTouchStart"
+            bindtouchmove="onContentTouchMove"
+            bindtouchend="onContentTouchEnd"
+            bindtouchcancel="onContentTouchEnd"
+          >
+            <view class="bless-empty" wx:if="{{!blessings.length}}">
+              <view class="bless-empty__title">还没有祝福</view>
+              <view class="bless-empty__desc">来写下第一条祝福吧</view>
+            </view>
+            <view class="bless-list" wx:else>
+              <view class="bless-card" wx:for="{{blessings}}" wx:key="id">
+                <view class="bless-card__avatar bless-card__avatar--{{item.tone}}">{{item.initial}}</view>
+                <view class="bless-card__main">
+                  <view class="bless-card__row">
+                    <text class="bless-card__name">{{item.name}}</text>
+                    <text class="bless-card__time">{{item.timeText}}</text>
+                  </view>
+                  <view class="bless-card__content">{{item.content}}</view>
                 </view>
-                <view class="bless-card__content">{{item.content}}</view>
               </view>
             </view>
-          </view>
-        </block>
+          </scroll-view>
 
-        <block wx:else>
-          <view class="stage-tip">搭建收工实拍，灯光与舞台都在这里</view>
-          <view class="stage-grid">
-            <view
-              class="stage-item {{item.tall ? 'stage-item--tall' : ''}}"
-              wx:for="{{stagePhotos}}"
-              wx:key="id"
-            >
-              <view class="stage-item__cover stage-item__cover--{{item.tone}}">
-                <text class="stage-item__play" wx:if="{{item.hasVideo}}">▶ 灯光秀</text>
-              </view>
-              <view class="stage-item__body">
-                <view class="stage-item__title">{{item.title}}</view>
-                <view class="stage-item__desc">{{item.desc}}</view>
+          <scroll-view
+            class="tab-pane"
+            style="width: {{windowWidth}}px;"
+            scroll-y
+            enhanced
+            bounces="{{false}}"
+            show-scrollbar="{{false}}"
+            bindscroll="onListScroll"
+            bindtouchstart="onContentTouchStart"
+            bindtouchmove="onContentTouchMove"
+            bindtouchend="onContentTouchEnd"
+            bindtouchcancel="onContentTouchEnd"
+          >
+            <view class="stage-tip">搭建收工实拍，灯光与舞台都在这里</view>
+            <view class="stage-grid">
+              <view
+                class="stage-item {{item.tall ? 'stage-item--tall' : ''}}"
+                wx:for="{{stagePhotos}}"
+                wx:key="id"
+              >
+                <view class="stage-item__cover stage-item__cover--{{item.tone}}">
+                  <text class="stage-item__play" wx:if="{{item.hasVideo}}">▶ 灯光秀</text>
+                </view>
+                <view class="stage-item__body">
+                  <view class="stage-item__title">{{item.title}}</view>
+                  <view class="stage-item__desc">{{item.desc}}</view>
+                </view>
               </view>
             </view>
-          </view>
-        </block>
-      </scroll-view>
+          </scroll-view>
+        </view>
+      </view>
 
-      <view class="below__footer">
+      <view class="below__footer" wx:if="{{activeTab === 'bless'}}">
         <t-button theme="primary" size="large" shape="round" block bindtap="onBless">
           写下祝福
         </t-button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 写下祝福弹层 -->
+  <view class="bless-sheet" wx:if="{{blessVisible}}">
+    <view class="bless-sheet__mask" catchtap="closeBlessSheet" catchtouchmove="noop"></view>
+    <view
+      class="bless-sheet__panel {{keyboardHeight > 0 ? 'bless-sheet__panel--kb' : ''}}"
+      style="bottom: {{keyboardHeight}}px;"
+      catchtouchmove="noop"
+    >
+      <view class="bless-sheet__bar"></view>
+      <view class="bless-sheet__title">写下祝福</view>
+
+      <view class="bless-sheet__field">
+        <textarea
+          class="bless-sheet__textarea"
+          maxlength="120"
+          placeholder="把想对新人说的话写在这里…"
+          value="{{blessContent}}"
+          focus="{{blessFocus}}"
+          fixed
+          disable-default-padding
+          show-confirm-bar="{{false}}"
+          cursor-spacing="32"
+          adjust-position="{{false}}"
+          hold-keyboard
+          bindinput="onBlessContentInput"
+          bindkeyboardheightchange="onKeyboardHeightChange"
+          confirm-type="send"
+          bindconfirm="onSubmitBless"
+        />
+        <view class="bless-sheet__count">{{blessContent.length}}/120</view>
+      </view>
+
+      <view class="bless-sheet__actions">
+        <view class="bless-sheet__btn">
+          <t-button theme="light" size="large" shape="round" block bindtap="closeBlessSheet">取消</t-button>
+        </view>
+        <view class="bless-sheet__btn">
+          <t-button theme="primary" size="large" shape="round" block bindtap="onSubmitBless">发送祝福</t-button>
+        </view>
       </view>
     </view>
   </view>

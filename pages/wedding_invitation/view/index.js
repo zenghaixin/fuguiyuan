@@ -1,9 +1,19 @@
-const SNAP_RATIO = 0.3;
+import {
+  loadBlessings,
+  saveBlessings,
+  getDisplayName,
+  createBlessing,
+  withTimeText,
+} from '~/services/blessing';
+
+const SNAP_RATIO = 0.2;
 
 Page({
   data: {
     statusBarHeight: 20,
     windowHeight: 667,
+    windowWidth: 375,
+    tabSliderWidth: 750,
     sliderHeight: 1334,
     panel: 0,
     translateY: 0,
@@ -11,6 +21,13 @@ Page({
     showDownHint: true,
     showBackHint: false,
     activeTab: 'bless',
+    tabIndex: 0,
+    tabTranslateX: 0,
+    tabAnimating: false,
+    blessVisible: false,
+    blessFocus: false,
+    blessContent: '',
+    keyboardHeight: 0,
     invite: {
       groom: '张晨',
       bride: '李婉',
@@ -19,56 +36,7 @@ Page({
       place: '张家大院 · 喜宴厅',
       coverTip: '谨订于喜日恭请您的光临',
     },
-    blessings: [
-      {
-        id: 1,
-        name: '王阿姨',
-        initial: '王',
-        tone: 'rose',
-        time: '昨天 21:16',
-        content: '晨晨长大了也要结婚啦！祝福你们白头偕老，甜甜蜜蜜，早生贵子！',
-      },
-      {
-        id: 2,
-        name: '小学同学·阿杰',
-        initial: '杰',
-        tone: 'gold',
-        time: '昨天 19:42',
-        content: '兄弟终于修成正果，新房我先订好位置了，红包准备好，人一定到！',
-      },
-      {
-        id: 3,
-        name: '婉儿闺蜜团',
-        initial: '婉',
-        tone: 'wine',
-        time: '昨天 18:05',
-        content: '我们的小公主出嫁啦～愿你们岁岁年年，眼里都是彼此。婚礼见！💐',
-      },
-      {
-        id: 4,
-        name: '堂哥大强',
-        initial: '强',
-        tone: 'ink',
-        time: '前天 22:31',
-        content: '门当户对，天作之合。台上风光我们都帮衬着，好好过日子最要紧。',
-      },
-      {
-        id: 5,
-        name: '邻居张婶',
-        initial: '婶',
-        tone: 'peach',
-        time: '前天 16:18',
-        content: '大院里又办喜事，热闹！祝福小两口和和美美，家宅平安。',
-      },
-      {
-        id: 6,
-        name: '发小阿峰',
-        initial: '峰',
-        tone: 'rose',
-        time: '3天前',
-        content: '从光屁股玩到娶媳妇，不容易。幸福就好，酒我多喝两杯！',
-      },
-    ],
+    blessings: [],
     stagePhotos: [
       {
         id: 1,
@@ -117,18 +85,35 @@ Page({
   },
 
   onLoad() {
-    const { statusBarHeight, windowHeight } = wx.getWindowInfo();
+    const { statusBarHeight, windowHeight, windowWidth } = wx.getWindowInfo();
     this.setData({
       statusBarHeight,
       windowHeight,
+      windowWidth,
+      tabSliderWidth: windowWidth * 2,
       sliderHeight: windowHeight * 2,
       translateY: 0,
+      tabTranslateX: 0,
+      blessings: loadBlessings(),
     });
     this._listScrollTop = 0;
     this._touching = false;
     this._pageDragging = false;
     this._startY = 0;
     this._baseY = 0;
+    this._contentTouching = false;
+    this._contentDir = '';
+    this._tabDragging = false;
+    this._startX = 0;
+    this._baseTabX = 0;
+    this._submitting = false;
+  },
+
+  onShow() {
+    // 每次进入刷新相对时间（今天/昨天等）
+    if (this.data.blessings && this.data.blessings.length) {
+      this.setData({ blessings: withTimeText(this.data.blessings) });
+    }
   },
 
   onShareAppMessage() {
@@ -144,7 +129,11 @@ Page({
     return Math.max(min, Math.min(0, y));
   },
 
-  /** 回到封面仅在往回滑时出现；下滑提示等完全进入留言页再藏 */
+  clampTabX(x) {
+    const min = -this.data.windowWidth;
+    return Math.max(min, Math.min(0, x));
+  },
+
   syncBackHint(translateY, dragging) {
     const h = this.data.windowHeight;
     const showBackHint = !!(dragging && translateY < -h * 0.55 && translateY > -h + 2);
@@ -166,6 +155,18 @@ Page({
     if (panel === 0) this._listScrollTop = 0;
   },
 
+  setTab(tabIndex) {
+    const w = this.data.windowWidth;
+    const activeTab = tabIndex === 1 ? 'stage' : 'bless';
+    this._listScrollTop = 0;
+    this.setData({
+      tabIndex,
+      activeTab,
+      tabTranslateX: -tabIndex * w,
+      tabAnimating: true,
+    });
+  },
+
   goToBelow() {
     this.setPanel(1);
   },
@@ -176,24 +177,27 @@ Page({
 
   onTouchStart(e) {
     this._touching = true;
-    this._pageDragging = true;
+    this._pageDragging = false;
     this._startY = e.touches[0].clientY;
     this._baseY = -this.data.panel * this.data.windowHeight;
-    this.setData({ animating: false });
   },
 
   onTouchMove(e) {
-    if (!this._pageDragging) return;
+    if (!this._touching) return;
     const dy = e.touches[0].clientY - this._startY;
+    if (!this._pageDragging && Math.abs(dy) < 8) return;
+    this._pageDragging = true;
     const translateY = this.clampY(this._baseY + dy);
-    this.setData({ translateY });
+    this.setData({ animating: false, translateY });
     this.syncBackHint(translateY, true);
   },
 
   onTouchEnd() {
-    if (!this._pageDragging && !this._touching) return;
+    if (!this._touching) return;
+    const wasDragging = this._pageDragging;
     this._touching = false;
     this._pageDragging = false;
+    if (!wasDragging) return;
 
     const h = this.data.windowHeight;
     const y = this.data.translateY;
@@ -210,7 +214,6 @@ Page({
       panel,
       translateY: -panel * h,
       animating: true,
-      // 只有完全落到留言页才隐藏下滑提示
       showDownHint: panel === 0,
       showBackHint: false,
     });
@@ -220,33 +223,46 @@ Page({
     this._listScrollTop = e.detail.scrollTop || 0;
   },
 
-  onListTouchStart(e) {
-    this._touching = true;
+  onContentTouchStart(e) {
+    this._contentTouching = true;
+    this._contentDir = '';
+    this._tabDragging = false;
+    this._pageDragging = false;
+    this._startX = e.touches[0].clientX;
     this._startY = e.touches[0].clientY;
+    this._baseTabX = -this.data.tabIndex * this.data.windowWidth;
     this._baseY = -this.data.panel * this.data.windowHeight;
-    this._pageDragging = this._listScrollTop <= 2;
-    if (this._pageDragging) {
-      this.setData({ animating: false });
-    }
   },
 
-  onListTouchMove(e) {
-    const dy = e.touches[0].clientY - this._startY;
+  onContentTouchMove(e) {
+    if (!this._contentTouching) return;
+    const x = e.touches[0].clientX;
+    const y = e.touches[0].clientY;
+    const dx = x - this._startX;
+    const dy = y - this._startY;
 
-    // 列表不在顶部：正常滚留言，不切屏，也不出「回到封面」
+    if (!this._contentDir) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      this._contentDir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    }
+
+    if (this._contentDir === 'h') {
+      this._tabDragging = true;
+      const tabTranslateX = this.clampTabX(this._baseTabX + dx);
+      this.setData({ tabAnimating: false, tabTranslateX });
+      return;
+    }
+
+    // 纵向：列表在顶部下拉回封面
     if (this._listScrollTop > 2 && !this._pageDragging) {
       if (this.data.showBackHint) this.setData({ showBackHint: false });
       return;
     }
 
-    // 在顶部且继续下拉：跟手切回封面，并显示「回到封面」
     if (dy > 0 && this._listScrollTop <= 2) {
       this._pageDragging = true;
       const translateY = this.clampY(this._baseY + dy);
-      this.setData({
-        animating: false,
-        translateY,
-      });
+      this.setData({ animating: false, translateY });
       this.syncBackHint(translateY, true);
     } else if (this._pageDragging && dy <= 0) {
       this._pageDragging = false;
@@ -258,13 +274,125 @@ Page({
     }
   },
 
-  onTabTap(e) {
-    this.setData({ activeTab: e.currentTarget.dataset.tab });
-    this._listScrollTop = 0;
+  onContentTouchEnd() {
+    if (!this._contentTouching) return;
+    const dir = this._contentDir;
+    const tabDragging = this._tabDragging;
+    const pageDragging = this._pageDragging;
+    this._contentTouching = false;
+    this._contentDir = '';
+    this._tabDragging = false;
+    this._pageDragging = false;
+
+    if (dir === 'h' && tabDragging) {
+      const w = this.data.windowWidth;
+      const x = this.data.tabTranslateX;
+      const threshold = w * SNAP_RATIO;
+      let tabIndex = this.data.tabIndex;
+
+      if (this.data.tabIndex === 0) {
+        // 左滑超过 20% → 婚礼现场
+        tabIndex = x < -threshold ? 1 : 0;
+      } else {
+        // 右滑超过 20% → 祝福板
+        tabIndex = x > -w + threshold ? 0 : 1;
+      }
+
+      this.setTab(tabIndex);
+      return;
+    }
+
+    if (pageDragging) {
+      const h = this.data.windowHeight;
+      const y = this.data.translateY;
+      const threshold = h * SNAP_RATIO;
+      const panel = y > -h + threshold ? 0 : 1;
+      this.setData({
+        panel,
+        translateY: -panel * h,
+        animating: true,
+        showDownHint: panel === 0,
+        showBackHint: false,
+      });
+    }
   },
 
+  onTabTap(e) {
+    const tab = e.currentTarget.dataset.tab;
+    if (!tab || tab === this.data.activeTab) return;
+    this._contentTouching = false;
+    this._tabDragging = false;
+    this.setTab(tab === 'stage' ? 1 : 0);
+  },
+
+  noop() {},
+
   onBless() {
-    wx.showToast({ title: '写下祝福（示意）', icon: 'none' });
+    this.setData({
+      blessVisible: true,
+      blessFocus: false,
+      blessContent: '',
+      keyboardHeight: 0,
+    });
+    // 等弹层出来再拉起键盘，避免焦点丢失
+    setTimeout(() => {
+      this.setData({ blessFocus: true });
+    }, 280);
+  },
+
+  closeBlessSheet() {
+    this.setData({
+      blessVisible: false,
+      blessFocus: false,
+      keyboardHeight: 0,
+    });
+  },
+
+  onKeyboardHeightChange(e) {
+    const height = e.detail.height || 0;
+    this.setData({ keyboardHeight: height });
+  },
+
+  onBlessContentInput(e) {
+    this.setData({ blessContent: e.detail.value });
+  },
+
+  onSubmitBless() {
+    if (this._submitting) return;
+
+    const content = (this.data.blessContent || '').trim();
+    if (!content) {
+      wx.showToast({ title: '请写下祝福内容', icon: 'none' });
+      return;
+    }
+    if (content.length < 2) {
+      wx.showToast({ title: '祝福再写长一点吧', icon: 'none' });
+      return;
+    }
+
+    this._submitting = true;
+    // 暂用本地模拟登录名；正式版改为微信昵称 / 用户备注
+    const item = createBlessing({ name: getDisplayName(), content });
+    const rawList = [item, ...this.data.blessings];
+    saveBlessings(rawList);
+    const blessings = withTimeText(rawList);
+
+    this.setData({
+      blessings,
+      blessVisible: false,
+      blessFocus: false,
+      blessContent: '',
+      keyboardHeight: 0,
+      activeTab: 'bless',
+      tabIndex: 0,
+      tabTranslateX: 0,
+      tabAnimating: true,
+    });
+
+    wx.showToast({ title: '祝福已送达', icon: 'success' });
+    setTimeout(() => {
+      this._submitting = false;
+    }, 400);
   },
 
   onNav() {

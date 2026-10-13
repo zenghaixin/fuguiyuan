@@ -54,7 +54,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.7.8",
-  "appid": "wx1abb5bf771c2b7fe",
+  "appid": "wx49247a374c6b1af2",
   "projectname": "fuguiyuan",
   "condition": {
     "miniprogram": {
@@ -110,5 +110,6 @@
     "tabIndent": "insertSpaces",
     "tabSize": 2
   },
-  "simulatorPluginLibVersion": {}
+  "simulatorPluginLibVersion": {},
+  "isGameTourist": false
 }

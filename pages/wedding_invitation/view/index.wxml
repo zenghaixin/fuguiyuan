@@ -1,0 +1,141 @@
+<view class="page" style="height: {{windowHeight}}px;">
+  <view
+    class="slider {{animating ? 'slider--anim' : ''}}"
+    style="transform: translate3d(0, {{translateY}}px, 0); height: {{sliderHeight}}px;"
+  >
+    <!-- 封面一屏 -->
+    <view
+      class="panel hero"
+      style="height: {{windowHeight}}px; padding-top: {{statusBarHeight}}px;"
+      catchtouchstart="onTouchStart"
+      catchtouchmove="onTouchMove"
+      catchtouchend="onTouchEnd"
+      catchtouchcancel="onTouchEnd"
+    >
+      <view class="hero__glow hero__glow--1"></view>
+      <view class="hero__glow hero__glow--2"></view>
+      <view class="hero__ornament">囍</view>
+
+      <view class="hero__body">
+        <view class="hero__eyebrow">婚礼请柬</view>
+        <view class="hero__names">
+          <text class="hero__name">{{invite.groom}}</text>
+          <text class="hero__amp">&</text>
+          <text class="hero__name">{{invite.bride}}</text>
+        </view>
+        <view class="hero__line"></view>
+        <view class="hero__tip">{{invite.coverTip}}</view>
+        <view class="hero__meta">
+          <view>{{invite.dateText}}</view>
+          <view>{{invite.timeText}}</view>
+          <view class="hero__place" catchtap="onNav">
+            <t-icon name="location" size="28rpx" color="#f3ead2" />
+            <text>{{invite.place}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="hero__hint {{showDownHint ? 'hero__hint--show' : 'hero__hint--hide'}}" catchtap="goToBelow">
+        <view class="hero__hint-text">下滑留下你们的祝福</view>
+        <view class="hero__hint-arrow">
+          <t-icon name="chevron-down" size="40rpx" color="rgba(255,255,255,0.85)" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 祝福/现场一屏 -->
+    <view
+      class="panel below"
+      style="height: {{windowHeight}}px; padding-top: {{statusBarHeight}}px;"
+    >
+      <view
+        class="below__back {{showBackHint ? 'below__back--show' : ''}}"
+        style="top: {{statusBarHeight}}px;"
+        catchtap="goToHero"
+      >
+        <t-icon name="chevron-up" size="32rpx" color="#b91c3a" />
+        <text>回到封面</text>
+      </view>
+
+      <view
+        class="below__chrome"
+        catchtouchstart="onTouchStart"
+        catchtouchmove="onTouchMove"
+        catchtouchend="onTouchEnd"
+        catchtouchcancel="onTouchEnd"
+      >
+        <view class="below__head">
+          <view class="below__seal">福</view>
+          <view class="below__title">亲友寄语 · 现场花絮</view>
+          <view class="below__sub">每一句祝福，都是新婚最好的礼物</view>
+        </view>
+
+        <view class="tabs">
+          <view
+            class="tabs__item {{activeTab === 'bless' ? 'tabs__item--on' : ''}}"
+            data-tab="bless"
+            catchtap="onTabTap"
+          >祝福板</view>
+          <view
+            class="tabs__item {{activeTab === 'stage' ? 'tabs__item--on' : ''}}"
+            data-tab="stage"
+            catchtap="onTabTap"
+          >婚礼现场</view>
+        </view>
+      </view>
+
+      <scroll-view
+        class="below__scroll"
+        scroll-y
+        enhanced
+        bounces="{{false}}"
+        show-scrollbar="{{false}}"
+        bindscroll="onListScroll"
+        bindtouchstart="onListTouchStart"
+        bindtouchmove="onListTouchMove"
+        bindtouchend="onTouchEnd"
+        bindtouchcancel="onTouchEnd"
+      >
+        <block wx:if="{{activeTab === 'bless'}}">
+          <view class="bless-list">
+            <view class="bless-card" wx:for="{{blessings}}" wx:key="id">
+              <view class="bless-card__avatar bless-card__avatar--{{item.tone}}">{{item.initial}}</view>
+              <view class="bless-card__main">
+                <view class="bless-card__row">
+                  <text class="bless-card__name">{{item.name}}</text>
+                  <text class="bless-card__time">{{item.time}}</text>
+                </view>
+                <view class="bless-card__content">{{item.content}}</view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <block wx:else>
+          <view class="stage-tip">搭建收工实拍，灯光与舞台都在这里</view>
+          <view class="stage-grid">
+            <view
+              class="stage-item {{item.tall ? 'stage-item--tall' : ''}}"
+              wx:for="{{stagePhotos}}"
+              wx:key="id"
+            >
+              <view class="stage-item__cover stage-item__cover--{{item.tone}}">
+                <text class="stage-item__play" wx:if="{{item.hasVideo}}">▶ 灯光秀</text>
+              </view>
+              <view class="stage-item__body">
+                <view class="stage-item__title">{{item.title}}</view>
+                <view class="stage-item__desc">{{item.desc}}</view>
+              </view>
+            </view>
+          </view>
+        </block>
+      </scroll-view>
+
+      <view class="below__footer">
+        <t-button theme="primary" size="large" shape="round" block bindtap="onBless">
+          写下祝福
+        </t-button>
+      </view>
+    </view>
+  </view>
+</view>

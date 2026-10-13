@@ -1,0 +1,4 @@
+<view class="edit-placeholder">
+  <view class="edit-placeholder__title">喜帖编辑器</view>
+  <view class="edit-placeholder__desc">编辑能力稍后在这里做，当前先完成访客可见页</view>
+</view>

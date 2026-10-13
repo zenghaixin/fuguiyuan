@@ -1,0 +1,76 @@
+<nav title-text="案例库" />
+
+<view class="cases">
+  <view class="filters">
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="filters-row">
+      <view
+        class="chip {{venueIndex === index ? 'chip--on' : ''}}"
+        wx:for="{{venueFilters}}"
+        wx:key="*this"
+        data-index="{{index}}"
+        data-type="venue"
+        bindtap="onFilter"
+      >{{item}}</view>
+    </scroll-view>
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="filters-row">
+      <view
+        class="chip chip--soft {{styleIndex === index ? 'chip--on' : ''}}"
+        wx:for="{{styleFilters}}"
+        wx:key="*this"
+        data-index="{{index}}"
+        data-type="style"
+        bindtap="onFilter"
+      >{{item}}</view>
+    </scroll-view>
+  </view>
+
+  <scroll-view class="waterfall" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="waterfall-cols">
+      <view class="waterfall-col">
+        <view
+          class="case-item"
+          wx:for="{{leftList}}"
+          wx:key="id"
+          data-title="{{item.title}}"
+          bindtap="onOpen"
+        >
+          <view class="case-item__cover case-item__cover--{{item.tone}}" style="height: {{item.height}}rpx;">
+            <text class="case-item__play" wx:if="{{item.hasVideo}}">▶ 灯光秀</text>
+          </view>
+          <view class="case-item__body">
+            <view class="case-item__title">{{item.title}}</view>
+            <view class="case-item__tags">
+              <text>{{item.venue}}</text>
+              <text>·</text>
+              <text>{{item.style}}</text>
+            </view>
+            <view class="case-item__price">{{item.budget}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="waterfall-col">
+        <view
+          class="case-item"
+          wx:for="{{rightList}}"
+          wx:key="id"
+          data-title="{{item.title}}"
+          bindtap="onOpen"
+        >
+          <view class="case-item__cover case-item__cover--{{item.tone}}" style="height: {{item.height}}rpx;">
+            <text class="case-item__play" wx:if="{{item.hasVideo}}">▶ 灯光秀</text>
+          </view>
+          <view class="case-item__body">
+            <view class="case-item__title">{{item.title}}</view>
+            <view class="case-item__tags">
+              <text>{{item.venue}}</text>
+              <text>·</text>
+              <text>{{item.style}}</text>
+            </view>
+            <view class="case-item__price">{{item.budget}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="safe-bottom"></view>
+  </scroll-view>
+</view>

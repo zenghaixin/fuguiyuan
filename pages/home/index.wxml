@@ -1,0 +1,61 @@
+<nav title-text="富贵缘婚礼" />
+
+<scroll-view class="home" scroll-y enhanced show-scrollbar="{{false}}">
+  <!-- 高光轮播 -->
+  <view class="hero">
+    <swiper class="hero-swiper" autoplay circular indicator-dots indicator-active-color="#b91c3a">
+      <swiper-item wx:for="{{banners}}" wx:key="id">
+        <view class="hero-slide hero-slide--{{item.tone}}">
+          <view class="hero-slide__badge">{{item.badge}}</view>
+          <view class="hero-slide__title">{{item.title}}</view>
+          <view class="hero-slide__desc">{{item.desc}}</view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+
+  <!-- 金刚区 -->
+  <view class="quick">
+    <view
+      class="quick-item"
+      wx:for="{{quickEntries}}"
+      wx:key="id"
+      data-name="{{item.name}}"
+      bindtap="onQuickTap"
+    >
+      <view class="quick-item__icon quick-item__icon--{{item.tone}}">
+        <t-icon name="{{item.icon}}" size="44rpx" color="#fff" />
+      </view>
+      <text class="quick-item__name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 精选案例 -->
+  <view class="section">
+    <view class="section-head">
+      <view class="section-head__title">精选案例</view>
+      <view class="section-head__more" bindtap="goCases">查看更多案例 ></view>
+    </view>
+
+    <view class="case-list">
+      <view
+        class="case-card"
+        wx:for="{{featuredCases}}"
+        wx:key="id"
+        data-title="{{item.title}}"
+        bindtap="onCaseTap"
+      >
+        <view class="case-card__cover case-card__cover--{{item.tone}}">
+          <t-tag class="case-card__tag" size="small" variant="light">{{item.style}}</t-tag>
+        </view>
+        <view class="case-card__body">
+          <view class="case-card__title">{{item.title}}</view>
+          <view class="case-card__meta">{{item.venue}} · {{item.budget}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="home-footer">以喜帖为入口 · 现场互动 · 实景交片</view>
+  <view class="safe-bottom"></view>
+</scroll-view>

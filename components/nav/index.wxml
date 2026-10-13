@@ -1,0 +1,13 @@
+<view class="home-navbar">
+  <t-navbar title="{{ navType === 'search' ? '' : titleText }}" left-arrow="{{false}}">
+    <view slot="left" wx:if="{{navType === 'search'}}">
+      <view class="home-navbar__left">
+        <t-search
+          shape="round"
+          placeholder="请搜索你想要的内容"
+          bindtap="searchTurn"
+        />
+      </view>
+    </view>
+  </t-navbar>
+</view>

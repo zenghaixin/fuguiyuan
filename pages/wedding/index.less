@@ -1,0 +1,155 @@
+@import '/variable.less';
+
+.wedding {
+  height: calc(100vh - @nav-bar-height - @tab-bar-height);
+  box-sizing: border-box;
+}
+
+.intro {
+  margin: 16rpx 24rpx 0;
+  padding: 36rpx 32rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #8b1028 0%, #b91c3a 50%, #c4a35a 140%);
+  color: #fff;
+
+  &__title {
+    font-size: 36rpx;
+    font-weight: 700;
+    margin-bottom: 12rpx;
+  }
+
+  &__desc {
+    font-size: 24rpx;
+    opacity: 0.9;
+    line-height: 1.5;
+  }
+}
+
+.block {
+  margin: 24rpx;
+  padding: 28rpx 24rpx 32rpx;
+  background: #fff;
+  border-radius: 24rpx;
+
+  &__title {
+    font-size: 32rpx;
+    font-weight: 700;
+    color: @gy1;
+    margin-bottom: 24rpx;
+  }
+}
+
+.pkg {
+  padding: 24rpx;
+  border-radius: 20rpx;
+  border: 2rpx solid @gray3;
+  margin-bottom: 16rpx;
+  background: #fff;
+
+  &--on {
+    border-color: @brand7-normal;
+    background: @brand-light;
+  }
+
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10rpx;
+  }
+
+  &__name {
+    font-size: 30rpx;
+    font-weight: 600;
+    color: @gy1;
+  }
+
+  &__price {
+    font-size: 28rpx;
+    color: @brand7-normal;
+    font-weight: 700;
+  }
+
+  &__desc {
+    font-size: 24rpx;
+    color: @gy2;
+    margin-bottom: 14rpx;
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10rpx;
+  }
+
+  &__tag {
+    --td-tag-light-bg-color: @accent-gold-soft;
+    --td-tag-light-color: #7a5c1e;
+  }
+}
+
+.step {
+  margin-bottom: 28rpx;
+
+  &__label {
+    font-size: 26rpx;
+    color: @gy1;
+    font-weight: 600;
+    margin-bottom: 16rpx;
+  }
+}
+
+.opts {
+  display: flex;
+  gap: 16rpx;
+
+  &--wrap {
+    flex-wrap: wrap;
+  }
+}
+
+.opt {
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background: @bg-color;
+  color: @gy2;
+  font-size: 24rpx;
+  border: 2rpx solid transparent;
+
+  &--on {
+    background: @brand-light;
+    color: @brand7-normal;
+    border-color: @brand7-normal;
+    font-weight: 600;
+  }
+}
+
+.estimate {
+  margin: 8rpx 0 28rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background: @accent-gold-soft;
+
+  &__label {
+    font-size: 22rpx;
+    color: @gy2;
+    margin-bottom: 8rpx;
+  }
+
+  &__value {
+    font-size: 40rpx;
+    font-weight: 700;
+    color: @brand7-normal;
+  }
+}
+
+.hint {
+  margin-top: 16rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: @gy3;
+}
+
+.safe-bottom {
+  height: 40rpx;
+}

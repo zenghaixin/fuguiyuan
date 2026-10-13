@@ -1,0 +1,89 @@
+<nav title-text="办婚礼" />
+
+<scroll-view class="wedding" scroll-y enhanced show-scrollbar="{{false}}">
+  <view class="intro">
+    <view class="intro__title">透明套餐 · 在线算预算</view>
+    <view class="intro__desc">选场地、选风格、勾选配项，提交后师傅联系精确报价</view>
+  </view>
+
+  <!-- 套餐 -->
+  <view class="block">
+    <view class="block__title">套餐选购</view>
+    <view
+      class="pkg {{pkgIndex === index ? 'pkg--on' : ''}}"
+      wx:for="{{packages}}"
+      wx:key="id"
+      data-index="{{index}}"
+      bindtap="onSelectPkg"
+    >
+      <view class="pkg__top">
+        <view class="pkg__name">{{item.name}}</view>
+        <view class="pkg__price">{{item.price}}</view>
+      </view>
+      <view class="pkg__desc">{{item.desc}}</view>
+      <view class="pkg__tags">
+        <t-tag wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" size="small" variant="light" class="pkg__tag">
+          {{tag}}
+        </t-tag>
+      </view>
+    </view>
+  </view>
+
+  <!-- 预算评估器 -->
+  <view class="block">
+    <view class="block__title">可视化预算评估</view>
+
+    <view class="step">
+      <view class="step__label">1. 场地类型</view>
+      <view class="opts">
+        <view
+          class="opt {{venue === item ? 'opt--on' : ''}}"
+          wx:for="{{venues}}"
+          wx:key="*this"
+          data-field="venue"
+          data-value="{{item}}"
+          bindtap="onPick"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="step">
+      <view class="step__label">2. 搭建风格</view>
+      <view class="opts">
+        <view
+          class="opt {{style === item ? 'opt--on' : ''}}"
+          wx:for="{{styles}}"
+          wx:key="*this"
+          data-field="style"
+          data-value="{{item}}"
+          bindtap="onPick"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="step">
+      <view class="step__label">3. 选配项</view>
+      <view class="opts opts--wrap">
+        <view
+          class="opt {{extrasSelected[item] ? 'opt--on' : ''}}"
+          wx:for="{{extras}}"
+          wx:key="*this"
+          data-value="{{item}}"
+          bindtap="onToggleExtra"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="estimate">
+      <view class="estimate__label">参考预算区间（非最终价）</view>
+      <view class="estimate__value">{{estimateText}}</view>
+    </view>
+
+    <t-button theme="primary" size="large" block shape="round" bindtap="onSubmit">
+      授权手机号并提交看场
+    </t-button>
+    <view class="hint">同一微信每天最多提交 2 次 · 不直接展示底价</view>
+  </view>
+
+  <view class="safe-bottom"></view>
+</scroll-view>

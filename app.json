@@ -1,0 +1,95 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/cases/index",
+    "pages/wedding/index",
+    "pages/my/index",
+    "pages/wedding_invitation/view/index",
+    "pages/wedding_invitation/edit/index"
+  ],
+  "usingComponents": {
+    "t-toast": "tdesign-miniprogram/toast/toast"
+  },
+  "subpackages": [
+    {
+      "root": "pages/search",
+      "name": "search",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/my/info-edit",
+      "name": "edit",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/chat",
+      "name": "chat",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/login",
+      "name": "login",
+      "pages": ["login"]
+    },
+    {
+      "root": "pages/loginCode",
+      "name": "loginCode",
+      "pages": ["loginCode"]
+    },
+    {
+      "root": "pages/dataCenter",
+      "name": "dataCenter",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/setting",
+      "name": "setting",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/release",
+      "name": "release",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/message",
+      "name": "message",
+      "pages": ["index"]
+    }
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#b91c3a",
+    "navigationBarTitleText": "富贵缘婚礼",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#faf6f4"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#8a7464",
+    "selectedColor": "#b91c3a",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/cases/index",
+        "text": "案例库"
+      },
+      {
+        "pagePath": "pages/wedding/index",
+        "text": "办婚礼"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "resolveAlias": {
+    "~/*": "/*"
+  },
+  "sitemapLocation": "sitemap.json"
+}

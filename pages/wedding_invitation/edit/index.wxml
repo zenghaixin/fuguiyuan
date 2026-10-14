@@ -1,4 +1,40 @@
-<view class="edit-placeholder">
-  <view class="edit-placeholder__title">喜帖编辑器</view>
-  <view class="edit-placeholder__desc">编辑能力稍后在这里做，当前先完成访客可见页</view>
+<view class="hub">
+  <view
+    class="hub-back"
+    style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+    catchtap="onBack"
+  >
+    <t-icon name="chevron-left" size="44rpx" color="#3d2914" />
+  </view>
+
+  <view class="hub__head" style="padding-top: {{statusBarHeight + 56}}px;">
+    <view class="hub__title">编辑电子请柬</view>
+    <view class="hub__sub">按模块分别编辑，不需要的可以跳过</view>
+  </view>
+
+  <view class="hub__list">
+    <view
+      class="hub-card hub-card--{{item.tone}}"
+      wx:for="{{modules}}"
+      wx:key="key"
+      data-path="{{item.path}}"
+      bindtap="onOpenModule"
+    >
+      <view class="hub-card__icon">
+        <t-icon name="{{item.icon}}" size="48rpx" color="#b91c3a" />
+      </view>
+      <view class="hub-card__main">
+        <view class="hub-card__title-row">
+          <text class="hub-card__title">{{item.title}}</text>
+          <text class="hub-card__tag" wx:if="{{item.optional}}">可选</text>
+        </view>
+        <view class="hub-card__desc">{{item.desc}}</view>
+      </view>
+      <t-icon name="chevron-right" size="40rpx" color="#b5a394" />
+    </view>
+  </view>
+
+  <view class="hub__foot">
+    <view class="hub__preview" bindtap="onPreview">预览请柬效果</view>
+  </view>
 </view>

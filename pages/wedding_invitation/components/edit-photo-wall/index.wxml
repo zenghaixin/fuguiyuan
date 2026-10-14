@@ -1,0 +1,24 @@
+<view class="edit-photo" style="height: {{windowHeight}}px;">
+  <view class="edit-photo__head" style="padding-top: {{statusBarHeight + 12}}px;">
+    <view class="edit-photo__title">编辑照片墙</view>
+    <view class="edit-photo__sub">添加你们的合影与瞬间</view>
+  </view>
+
+  <view class="edit-photo__body">
+    <!-- 未编辑：画板虚线空态 -->
+    <view class="edit-canvas" wx:if="{{!photos.length}}" bindtap="onAdd">
+      <view class="edit-canvas__frame">
+        <t-icon name="image" size="64rpx" color="#c4b5a5" />
+        <view class="edit-canvas__tip">点击添加照片</view>
+        <view class="edit-canvas__desc">支持多张，左右滑动预览</view>
+      </view>
+    </view>
+
+    <!-- 已有内容（后续接编辑） -->
+    <view class="edit-photo__list" wx:else>
+      <view class="edit-photo__item" wx:for="{{photos}}" wx:key="id">
+        <image class="edit-photo__img" src="{{item.src}}" mode="aspectFill" />
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,24 @@
+<view class="toolbox" catchtouchmove="noop">
+  <scroll-view class="toolbox__scroll" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="toolbox__row">
+      <view
+        class="toolbox__item {{activeKey === item.key ? 'toolbox__item--on' : ''}}"
+        wx:for="{{tools}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        catchtap="onTap"
+      >
+        <view class="toolbox__icon {{item.badge ? 'toolbox__icon--badge' : ''}}">
+          <text wx:if="{{item.badge}}" class="toolbox__badge">{{item.badge}}</text>
+          <t-icon
+            wx:else
+            name="{{item.icon}}"
+            size="40rpx"
+            color="{{activeKey === item.key ? '#b91c3a' : '#6b5a4c'}}"
+          />
+        </view>
+        <text class="toolbox__label">{{item.label}}</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

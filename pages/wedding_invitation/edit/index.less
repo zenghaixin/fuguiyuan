@@ -1,23 +1,119 @@
-.edit-placeholder {
+@import '/variable.less';
+
+.hub {
   min-height: 100vh;
+  box-sizing: border-box;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(185, 28, 58, 0.08), transparent 70%),
+    #f3efe9;
+  padding: 0 32rpx calc(48rpx + env(safe-area-inset-bottom));
+}
+
+.hub-back {
+  position: fixed;
+  left: 16px;
+  z-index: 100;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48rpx;
-  background: #faf6f4;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 4rpx 16rpx rgba(61, 41, 20, 0.08);
+}
+
+.hub__head {
+  padding-bottom: 40rpx;
   text-align: center;
+}
+
+.hub__title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: @gy1;
+  margin-bottom: 12rpx;
+}
+
+.hub__sub {
+  font-size: 24rpx;
+  color: @gy2;
+}
+
+.hub__list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.hub-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 28rpx 24rpx;
+  border-radius: 20rpx;
+  background: #fffcf8;
+  box-shadow: 0 8rpx 24rpx rgba(61, 41, 20, 0.06);
+
+  &__icon {
+    width: 88rpx;
+    height: 88rpx;
+    border-radius: 20rpx;
+    background: @brand-light;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &--gold &__icon {
+    background: @accent-gold-soft;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    margin-bottom: 8rpx;
+  }
 
   &__title {
-    font-size: 36rpx;
+    font-size: 30rpx;
     font-weight: 700;
-    color: #3d2914;
-    margin-bottom: 16rpx;
+    color: @gy1;
+  }
+
+  &__tag {
+    font-size: 20rpx;
+    color: #8a7464;
+    background: #f3efe9;
+    padding: 2rpx 12rpx;
+    border-radius: 8rpx;
   }
 
   &__desc {
-    font-size: 26rpx;
-    color: #8a7464;
-    line-height: 1.6;
+    font-size: 22rpx;
+    color: @gy2;
+    line-height: 1.4;
   }
+}
+
+.hub__foot {
+  margin-top: 48rpx;
+}
+
+.hub__preview {
+  height: 88rpx;
+  border-radius: 44rpx;
+  border: 2rpx solid rgba(185, 28, 58, 0.35);
+  color: @brand7-normal;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 252, 248, 0.9);
 }

@@ -1,0 +1,46 @@
+<view class="layer-sheet {{visible ? 'layer-sheet--on' : ''}}" catchtouchmove="noop">
+  <view class="layer-sheet__mask" wx:if="{{visible}}" catchtap="onMask" />
+  <view class="layer-sheet__panel" catchtap="noop">
+    <view class="layer-sheet__bar">
+      <view class="layer-sheet__title">图层</view>
+      <view class="layer-sheet__close" catchtap="onClose">
+        <t-icon name="close" size="40rpx" color="#6b5a4c" />
+      </view>
+    </view>
+    <view class="layer-sheet__hint">左右滑动查看；点卡片选中，点编辑改层级</view>
+
+    <scroll-view
+      wx:if="{{layers.length}}"
+      class="layer-sheet__scroll"
+      scroll-x
+      enhanced
+      show-scrollbar="{{false}}"
+    >
+      <view class="layer-sheet__row">
+        <view
+          class="layer-card {{activeId === item.id ? 'layer-card--on' : ''}}"
+          wx:for="{{layers}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          catchtap="onSelect"
+        >
+          <view class="layer-card__swatch" style="background: {{item.color || '#c4a35a'}};" />
+          <view class="layer-card__name">{{item.title}}</view>
+          <view class="layer-card__meta">
+            <text>层级 {{item.layer}}</text>
+            <view
+              class="layer-card__edit"
+              data-id="{{item.id}}"
+              data-layer="{{item.layer}}"
+              catchtap="onEditLayer"
+            >
+              <t-icon name="edit" size="28rpx" color="#b91c3a" />
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view wx:else class="layer-sheet__empty">暂无元素，先添加修饰或文案</view>
+  </view>
+</view>

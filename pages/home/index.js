@@ -24,7 +24,7 @@ Page({
       },
     ],
     quickEntries: [
-      { id: 1, name: '电子喜帖', icon: 'mail', tone: 'red' },
+      { id: 1, name: '编辑喜帖', icon: 'mail', tone: 'red' },
       { id: 2, name: '现场互动', icon: 'play-circle', tone: 'gold' },
       { id: 3, name: '免费看场', icon: 'location', tone: 'wine' },
     ],
@@ -76,8 +76,8 @@ Page({
       wx.switchTab({ url: '/pages/wedding/index' });
       return;
     }
-    if (name === '电子喜帖') {
-      wx.navigateTo({ url: '/pages/wedding_invitation/view/index' });
+    if (name === '编辑喜帖') {
+      wx.navigateTo({ url: '/pages/wedding_invitation/edit/index' });
       return;
     }
     wx.showToast({ title: `${name}（示意）`, icon: 'none' });

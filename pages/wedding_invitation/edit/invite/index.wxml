@@ -1,0 +1,50 @@
+<view class="page" style="height: {{windowHeight}}px;">
+  <view
+    class="page-back"
+    style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+    catchtap="onBack"
+  >
+    <t-icon name="chevron-left" size="44rpx" color="#3d2914" />
+  </view>
+
+  <edit-invite
+    pages="{{invitePages}}"
+    page-index="{{invitePageIndex}}"
+    active-element-id="{{activeElementId}}"
+    element-edit-mode="{{elementEditMode}}"
+    window-height="{{windowHeight}}"
+    status-bar-height="{{statusBarHeight}}"
+    bind:picktemplate="onPickTemplate"
+    bind:selectelement="onSelectElement"
+    bind:elementchange="onElementChange"
+  />
+
+  <edit-toolbox
+    tools="{{toolboxTools}}"
+    active-key="{{toolboxActive}}"
+    bind:select="onToolboxSelect"
+  />
+
+  <edit-decor-sheet
+    visible="{{decorSheetVisible}}"
+    assets="{{decorAssets}}"
+    bind:close="closeDecorSheet"
+    bind:select="onDecorSelect"
+  />
+
+  <edit-layer-panel
+    visible="{{layerPanelVisible}}"
+    layers="{{layerList}}"
+    active-id="{{activeElementId}}"
+    bind:close="closeLayerPanel"
+    bind:select="onLayerSelect"
+    bind:editlayer="onLayerEdit"
+  />
+
+  <edit-layer-picker
+    visible="{{layerPickerVisible}}"
+    value="{{layerPickerValue}}"
+    bind:close="closeLayerPicker"
+    bind:select="onLayerPick"
+  />
+</view>

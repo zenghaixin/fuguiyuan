@@ -1,0 +1,9 @@
+{
+  "navigationStyle": "custom",
+  "disableScroll": true,
+  "usingComponents": {
+    "edit-photo-wall": "/pages/wedding_invitation/components/edit-photo-wall/index",
+    "edit-toolbox": "/pages/wedding_invitation/components/edit-toolbox/index",
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
+}

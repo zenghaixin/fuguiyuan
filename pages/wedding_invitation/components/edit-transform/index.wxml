@@ -1,0 +1,96 @@
+<view
+  class="tf {{selected ? 'tf--on' : ''}} tf--{{editMode}}"
+  style="left: {{dx * 100}}%; top: {{dy * 100}}%; width: {{dw * 100}}%; height: {{dh * 100}}%; z-index: {{zIndex}}; pointer-events: {{locked && !selected ? 'none' : 'auto'}};"
+>
+  <!-- 内容 + 选框/大小手柄：一起跟随角度旋转 -->
+  <view
+    class="tf__spin"
+    style="transform: rotate({{drotate}}deg);"
+    catchtouchstart="onBodyStart"
+    catchtouchmove="onBodyMove"
+    catchtouchend="onBodyEnd"
+    catchtouchcancel="onBodyEnd"
+  >
+    <view class="tf__hit">
+      <slot />
+    </view>
+
+    <block wx:if="{{selected}}">
+      <view class="tf__frame" />
+
+      <block wx:if="{{editMode === 'size'}}">
+        <view
+          class="tf__handle tf__handle--nw"
+          data-corner="nw"
+          catchtouchstart="onResizeStart"
+          catchtouchmove="onResizeMove"
+          catchtouchend="onGestureEnd"
+          catchtouchcancel="onGestureEnd"
+        />
+        <view
+          class="tf__handle tf__handle--ne"
+          data-corner="ne"
+          catchtouchstart="onResizeStart"
+          catchtouchmove="onResizeMove"
+          catchtouchend="onGestureEnd"
+          catchtouchcancel="onGestureEnd"
+        />
+        <view
+          class="tf__handle tf__handle--sw"
+          data-corner="sw"
+          catchtouchstart="onResizeStart"
+          catchtouchmove="onResizeMove"
+          catchtouchend="onGestureEnd"
+          catchtouchcancel="onGestureEnd"
+        />
+        <view
+          class="tf__handle tf__handle--se"
+          data-corner="se"
+          catchtouchstart="onResizeStart"
+          catchtouchmove="onResizeMove"
+          catchtouchend="onGestureEnd"
+          catchtouchcancel="onGestureEnd"
+        />
+      </block>
+    </block>
+  </view>
+
+  <!-- 角度：有宽度的圆环，刻度与当前角度标识都在环带内 -->
+  <view
+    wx:if="{{selected && editMode === 'angle'}}"
+    class="tf__angle"
+    style="width: {{ringW}}%; height: {{ringH}}%;"
+    catchtouchstart="onRotateStart"
+    catchtouchmove="onRotateMove"
+    catchtouchend="onGestureEnd"
+    catchtouchcancel="onGestureEnd"
+  >
+    <!-- 环带本体 -->
+    <view class="tf__angle-band" />
+
+    <!-- 环内刻度 -->
+    <view
+      class="tf__tick {{item.major ? 'tf__tick--major' : ''}}"
+      wx:for="{{angleTicks}}"
+      wx:key="deg"
+      style="transform: rotate({{item.deg}}deg);"
+    >
+      <view class="tf__tick-line" />
+      <text
+        class="tf__tick-label"
+        wx:if="{{item.label}}"
+        style="transform: translate(-50%, -50%) rotate({{ -item.deg }}deg);"
+      >{{item.label}}</text>
+    </view>
+
+    <!-- 环内当前角度标识（读数保持正向） -->
+    <view class="tf__marker" style="transform: rotate({{drotate}}deg);">
+      <view
+        class="tf__marker-badge {{angleHudVisible ? 'tf__marker-badge--on' : ''}}"
+        style="transform: translate(-50%, -50%) rotate({{ -drotate }}deg);"
+      >
+        <text>{{angleText}}</text>
+      </view>
+    </view>
+  </view>
+</view>

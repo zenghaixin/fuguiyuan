@@ -1,0 +1,26 @@
+<view class="decor-sheet {{visible ? 'decor-sheet--on' : ''}}" catchtouchmove="noop">
+  <view class="decor-sheet__mask" wx:if="{{visible}}" catchtap="onMask" />
+  <view class="decor-sheet__panel" catchtap="noop">
+    <view class="decor-sheet__bar">
+      <view class="decor-sheet__title">选择修饰</view>
+      <view class="decor-sheet__close" catchtap="onClose">
+        <t-icon name="close" size="40rpx" color="#6b5a4c" />
+      </view>
+    </view>
+    <view class="decor-sheet__hint">色块为占位素材，选中后放到画布正中</view>
+    <scroll-view scroll-y class="decor-sheet__scroll" enhanced show-scrollbar="{{false}}">
+      <view class="decor-sheet__grid">
+        <view
+          class="decor-sheet__item"
+          wx:for="{{assets}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          catchtap="onPick"
+        >
+          <view class="decor-sheet__swatch" style="background: {{item.color}};" />
+          <text class="decor-sheet__name">{{item.label}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

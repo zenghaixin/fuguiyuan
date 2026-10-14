@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "编辑喜帖",
-  "usingComponents": {}
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
 }

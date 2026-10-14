@@ -1,0 +1,64 @@
+<view class="edit-invite" style="height: {{windowHeight}}px;">
+  <view class="edit-invite__head" style="padding-top: {{statusBarHeight + 12}}px;">
+    <view class="edit-invite__title">编辑请帖</view>
+    <view class="edit-invite__sub">{{pages.length ? (activeElementId ? '已锁定当前元素，点「完成」取消锁定' : '点选元素后可调整；虚线内为保存可见区') : '从模板开始制作电子请柬'}}</view>
+  </view>
+
+  <view class="edit-invite__body">
+    <view class="edit-canvas" wx:if="{{!pages.length}}" bindtap="onPickTemplate">
+      <view class="edit-canvas__frame">
+        <t-icon name="file" size="64rpx" color="#c4b5a5" />
+        <view class="edit-canvas__tip">点击选择请帖模板</view>
+        <view class="edit-canvas__desc">选择模板后可再改背景、字体与文案</view>
+      </view>
+    </view>
+
+    <view class="stage" wx:else>
+      <view class="stage__frost" />
+
+      <view class="stage__safe">
+        <view
+          class="stage__page"
+          style="background: {{pages[pageIndex].bgColor || '#f7f0ea'}};"
+          catchtouchstart="onPageTouchStart"
+          catchtouchmove="onPageTouchMove"
+          catchtouchend="onPageTouchEnd"
+          catchtouchcancel="onPageTouchEnd"
+          catchtap="onPageTap"
+        >
+          <image
+            wx:if="{{pages[pageIndex].bgSrc}}"
+            class="stage__bg"
+            src="{{pages[pageIndex].bgSrc}}"
+            mode="aspectFill"
+          />
+          <edit-transform
+            wx:for="{{pages[pageIndex].elements}}"
+            wx:key="id"
+            el-id="{{item.id}}"
+            x="{{item.x}}"
+            y="{{item.y}}"
+            w="{{item.w}}"
+            h="{{item.h}}"
+            rotate="{{item.rotate}}"
+            selected="{{activeElementId === item.id}}"
+            edit-mode="{{activeElementId === item.id ? elementEditMode : 'position'}}"
+            locked="{{!!activeElementId}}"
+            z-index="{{activeElementId === item.id ? (item.layer || 1) + 10000 : (item.layer || 1)}}"
+            canvas-width="{{canvasWidth}}"
+            canvas-height="{{canvasHeight}}"
+            canvas-left="{{canvasLeft}}"
+            canvas-top="{{canvasTop}}"
+            bind:select="onSelectElement"
+            bind:change="onElementChange"
+          >
+            <view class="stage__el-body" style="background: {{item.color}};">
+              <text class="stage__el-label" wx:if="{{item.label}}">{{item.label}}</text>
+            </view>
+          </edit-transform>
+        </view>
+        <view class="stage__frame" />
+      </view>
+    </view>
+  </view>
+</view>

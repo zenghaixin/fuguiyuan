@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "edit-transform": "/pages/wedding_invitation/components/edit-transform/index"
+  }
+}

@@ -5,7 +5,9 @@
     "pages/wedding/index",
     "pages/my/index",
     "pages/wedding_invitation/view/index",
-    "pages/wedding_invitation/edit/index"
+    "pages/wedding_invitation/edit/index",
+    "pages/wedding_invitation/edit/invite/index",
+    "pages/wedding_invitation/edit/photo-wall/index"
   ],
   "usingComponents": {
     "t-toast": "tdesign-miniprogram/toast/toast"

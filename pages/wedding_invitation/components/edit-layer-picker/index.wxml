@@ -1,0 +1,21 @@
+<view class="layer-picker {{visible ? 'layer-picker--on' : ''}}" catchtouchmove="noop">
+  <view class="layer-picker__mask" wx:if="{{visible}}" catchtap="onMask" />
+  <view class="layer-picker__panel" catchtap="noop">
+    <view class="layer-picker__bar">
+      <view class="layer-picker__title">选择层级</view>
+      <view class="layer-picker__close" catchtap="onClose">
+        <t-icon name="close" size="40rpx" color="#6b5a4c" />
+      </view>
+    </view>
+    <view class="layer-picker__hint">数字越大越靠上，可盖住较低层级</view>
+    <view class="layer-picker__grid">
+      <view
+        class="layer-picker__cell {{value === item ? 'layer-picker__cell--on' : ''}}"
+        wx:for="{{levels}}"
+        wx:key="*this"
+        data-level="{{item}}"
+        catchtap="onPick"
+      >{{item}}</view>
+    </view>
+  </view>
+</view>

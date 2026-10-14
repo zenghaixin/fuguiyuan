@@ -1,0 +1,22 @@
+<view class="page" style="height: {{windowHeight}}px;">
+  <view
+    class="page-back"
+    style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+    catchtap="onBack"
+  >
+    <t-icon name="chevron-left" size="44rpx" color="#3d2914" />
+  </view>
+
+  <edit-photo-wall
+    photos="{{photoWall}}"
+    window-height="{{windowHeight}}"
+    status-bar-height="{{statusBarHeight}}"
+    bind:add="onAddPhoto"
+  />
+
+  <edit-toolbox
+    tools="{{toolboxTools}}"
+    active-key="{{toolboxActive}}"
+    bind:select="onToolboxSelect"
+  />
+</view>

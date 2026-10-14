@@ -39,7 +39,10 @@
         wx:for-index="index"
       />
     </view>
-    <view class="photo-wall__hint {{hintBack ? 'photo-wall__hint--back' : ''}}">
+    <view
+      class="photo-wall__hint {{hintBack ? 'photo-wall__hint--back' : ''}}"
+      wx:if="{{hintVisible}}"
+    >
       <t-icon
         wx:if="{{hintBack}}"
         name="chevron-up"

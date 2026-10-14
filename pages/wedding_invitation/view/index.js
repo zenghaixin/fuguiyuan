@@ -5,9 +5,13 @@ import {
   createBlessing,
   withTimeText,
 } from '~/services/blessing';
-import { invitePages, photoWall, stagePhotos } from './mock';
+import { resolveInviteViewModel } from '~/services/invite-preview';
+import {
+  invitePages as mockInvitePages,
+  photoWall as mockPhotoWall,
+  stagePhotos as mockStagePhotos,
+} from './mock';
 
-const MODULE_COUNT = 3;
 const SNAP_RATIO = 0.1;
 
 Page({
@@ -21,6 +25,13 @@ Page({
     moduleTranslateY: 0,
     moduleTrackHeight: 2001,
     moduleAnimating: true,
+    moduleCount: 1,
+    showPhotoWall: false,
+    showGuestModules: false,
+    photoModuleIndex: -1,
+    blessModuleIndex: -1,
+    hasNextAfterCover: false,
+    hasNextAfterPhoto: false,
     blessVisible: false,
     blessFocus: false,
     blessContent: '',
@@ -29,26 +40,68 @@ Page({
       groom: '张晨',
       bride: '李婉',
     },
-    invitePages,
-    photoWall,
-    stagePhotos,
+    invitePages: mockInvitePages,
+    photoWall: [],
+    stagePhotos: [],
     blessings: [],
   },
 
-  onLoad() {
+  onLoad(query) {
     const { statusBarHeight, windowHeight, windowWidth } = wx.getWindowInfo();
     const menu = wx.getMenuButtonBoundingClientRect();
     const backSize = menu.height || 32;
     const backTop = menu.top || statusBarHeight + 6;
+
+    // 编辑预览显式 mode=draft；直接打开 / 分享默认正式请帖（暂用 mock）
+    const mode = (query && query.mode) || 'published';
+    const model = resolveInviteViewModel({
+      mode,
+      inviteId: (query && (query.id || query.inviteId)) || '',
+    });
+
+    let invitePages = model.invitePages;
+    let photoWall = model.photoWall || [];
+    let showPhotoWall = model.showPhotoWall;
+    let showGuestModules = model.showGuestModules;
+    let moduleCount = model.moduleCount;
+    let photoModuleIndex = model.photoModuleIndex;
+    let blessModuleIndex = model.blessModuleIndex;
+    let stagePhotos = [];
+    let blessings = [];
+
+    // 正式请帖暂无接口：用本页 mock（含留言/现场）
+    if (mode !== 'draft' || invitePages == null) {
+      invitePages = mockInvitePages;
+      photoWall = mockPhotoWall;
+      stagePhotos = mockStagePhotos;
+      showPhotoWall = mockPhotoWall.length > 0;
+      showGuestModules = true;
+      moduleCount = 1 + (showPhotoWall ? 1 : 0) + 1;
+      photoModuleIndex = showPhotoWall ? 1 : -1;
+      blessModuleIndex = showPhotoWall ? 2 : 1;
+      blessings = loadBlessings();
+    }
+
     this.setData({
       statusBarHeight,
       windowHeight,
       windowWidth,
       backTop,
       backSize,
-      moduleTrackHeight: windowHeight * MODULE_COUNT,
+      invitePages,
+      photoWall,
+      stagePhotos,
+      blessings,
+      showPhotoWall,
+      showGuestModules,
+      moduleCount,
+      photoModuleIndex,
+      blessModuleIndex,
+      hasNextAfterCover: moduleCount > 1,
+      hasNextAfterPhoto: showGuestModules,
+      moduleTrackHeight: windowHeight * moduleCount,
       moduleTranslateY: 0,
-      blessings: loadBlessings(),
+      moduleIndex: 0,
     });
     this._submitting = false;
     this._moduleDragBase = 0;
@@ -64,7 +117,7 @@ Page({
   },
 
   onShow() {
-    if (this.data.blessings && this.data.blessings.length) {
+    if (this.data.showGuestModules && this.data.blessings && this.data.blessings.length) {
       this.setData({ blessings: withTimeText(this.data.blessings) });
     }
   },
@@ -73,17 +126,17 @@ Page({
     const { groom, bride } = this.data.invite;
     return {
       title: `${groom} & ${bride} 的婚礼请柬`,
-      path: '/pages/wedding_invitation/view/index',
+      path: '/pages/wedding_invitation/view/index?mode=published',
     };
   },
 
   clampModuleY(y) {
-    const min = -(MODULE_COUNT - 1) * this.data.windowHeight;
+    const min = -(this.data.moduleCount - 1) * this.data.windowHeight;
     return Math.max(min, Math.min(0, y));
   },
 
   setModule(index) {
-    const max = MODULE_COUNT - 1;
+    const max = Math.max(this.data.moduleCount - 1, 0);
     const moduleIndex = Math.max(0, Math.min(max, index));
     const h = this.data.windowHeight;
     this.setData({
@@ -93,7 +146,7 @@ Page({
     });
   },
 
-  /** 子组件纵向拖动：跟手切换三大模块 */
+  /** 子组件纵向拖动：跟手切换模块 */
   onModuleDrag(e) {
     const { phase, dy = 0 } = e.detail || {};
     const h = this.data.windowHeight;
@@ -129,6 +182,7 @@ Page({
   noop() {},
 
   onBless() {
+    if (!this.data.showGuestModules) return;
     this.setData({
       blessVisible: true,
       blessFocus: false,
@@ -157,7 +211,7 @@ Page({
   },
 
   onSubmitBless() {
-    if (this._submitting) return;
+    if (!this.data.showGuestModules || this._submitting) return;
 
     const content = (this.data.blessContent || '').trim();
     if (!content) {

@@ -36,5 +36,6 @@
 
   <view class="hub__foot">
     <view class="hub__preview" bindtap="onPreview">预览请柬效果</view>
+    <view class="hub__demo" bindtap="onPreviewDemo">预览 Demo</view>
   </view>
 </view>

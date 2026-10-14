@@ -10,6 +10,11 @@ import {
   listLayers,
   getMaxLayer,
 } from '../canvas-model';
+import {
+  saveInviteDraft,
+  loadInviteDraft,
+  TEMP_INVITE_ID,
+} from '~/services/invite-draft';
 
 Page({
   data: {
@@ -17,6 +22,7 @@ Page({
     windowHeight: 667,
     backTop: 48,
     backSize: 32,
+    inviteId: TEMP_INVITE_ID,
     invitePages: [],
     invitePageIndex: 0,
     activeElementId: '',
@@ -35,16 +41,38 @@ Page({
   onLoad() {
     const { statusBarHeight, windowHeight } = wx.getWindowInfo();
     const menu = wx.getMenuButtonBoundingClientRect();
+    const draft = loadInviteDraft(TEMP_INVITE_ID);
     this.setData({
       statusBarHeight,
       windowHeight,
       backTop: menu.top || statusBarHeight + 6,
       backSize: menu.height || 32,
+      inviteId: TEMP_INVITE_ID,
+      invitePages: (draft && draft.pages) || [],
+      invitePageIndex: (draft && draft.pageIndex) || 0,
     });
   },
 
+  onHide() {
+    this.persistDraft();
+  },
+
+  onUnload() {
+    this.persistDraft();
+  },
+
   onBack() {
+    this.persistDraft();
     wx.navigateBack({ delta: 1 });
+  },
+
+  persistDraft() {
+    return saveInviteDraft({
+      inviteId: this.data.inviteId || TEMP_INVITE_ID,
+      pages: this.data.invitePages,
+      pageIndex: this.data.invitePageIndex,
+      meta: { source: 'edit/invite' },
+    });
   },
 
   refreshLayerList() {
@@ -179,7 +207,7 @@ Page({
     this.setData({ toolboxActive: key });
 
     if (key === 'preview') {
-      wx.navigateTo({ url: '/pages/wedding_invitation/view/index' });
+      this.openPreview();
       return;
     }
     if (key === 'template') {
@@ -194,10 +222,31 @@ Page({
       this.openDecorSheet();
       return;
     }
+    if (key === 'save') {
+      this.onSave();
+      return;
+    }
 
     wx.showToast({
       title: `${(tool && tool.label) || key}（稍后接）`,
       icon: 'none',
+    });
+  },
+
+  /** 预览：写入缓存后打开浏览页（草稿模式，无留言/现场） */
+  openPreview() {
+    this.setData({ toolboxActive: '' });
+    this.persistDraft().then(() => {
+      const id = this.data.inviteId || TEMP_INVITE_ID;
+      wx.navigateTo({
+        url: `/pages/wedding_invitation/view/index?mode=draft&id=${id}`,
+      });
+    });
+  },
+
+  onSave() {
+    this.persistDraft().then(() => {
+      wx.showToast({ title: '已保存到本地', icon: 'success' });
     });
   },
 

@@ -10,6 +10,7 @@ export const INVITE_TOOLS = [
   { key: 'copy', label: '文案', icon: 'edit' },
   { key: 'music', label: '音乐', icon: 'sound' },
   { key: 'effect', label: '开屏', icon: 'play-circle' },
+  { key: 'save', label: '保存', icon: 'save' },
   { key: 'preview', label: '预览', icon: 'browse' },
 ];
 

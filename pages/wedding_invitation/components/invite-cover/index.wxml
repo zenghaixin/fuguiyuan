@@ -15,9 +15,27 @@
       wx:for="{{pages}}"
       wx:key="id"
       wx:for-index="idx"
-      style="height: {{windowHeight}}px;"
+      style="height: {{windowHeight}}px; background: {{item.bgColor || '#1a0c10'}};"
     >
-      <image class="invite-cover__img" src="{{item.src}}" mode="aspectFill" />
+      <!-- 整页底图（mock 或模板 bgSrc） -->
+      <image
+        wx:if="{{item.src || item.bgSrc}}"
+        class="invite-cover__img"
+        src="{{item.src || item.bgSrc}}"
+        mode="aspectFill"
+      />
+
+      <!-- 编辑导入的画布元素（相对坐标 0~1） -->
+      <view
+        class="invite-cover__el"
+        wx:for="{{item.elements}}"
+        wx:for-item="el"
+        wx:key="id"
+        style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; z-index: {{el.layer || 1}}; transform: rotate({{el.rotate || 0}}deg); background: {{el.color}};"
+      >
+        <text class="invite-cover__el-label" wx:if="{{el.label}}">{{el.label}}</text>
+      </view>
+
       <view
         class="invite-cover__hint {{pageHints[idx].back ? 'invite-cover__hint--back' : ''}}"
         wx:if="{{pageHints[idx]}}"

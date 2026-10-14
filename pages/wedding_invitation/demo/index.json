@@ -1,0 +1,11 @@
+{
+  "navigationStyle": "custom",
+  "disableScroll": true,
+  "usingComponents": {
+    "invite-cover": "/pages/wedding_invitation/components/invite-cover/index",
+    "photo-wall": "/pages/wedding_invitation/components/photo-wall/index",
+    "bless-board": "/pages/wedding_invitation/components/bless-board/index",
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
+}

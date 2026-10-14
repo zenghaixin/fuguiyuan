@@ -1,4 +1,5 @@
 import { EDIT_MODULES } from './modules';
+import { TEMP_INVITE_ID } from '~/services/invite-draft';
 
 Page({
   data: {
@@ -33,7 +34,17 @@ Page({
     wx.navigateTo({ url: path });
   },
 
+  /** 正式预览：读本地草稿，不展示留言/婚礼现场 */
   onPreview() {
-    wx.navigateTo({ url: '/pages/wedding_invitation/view/index' });
+    wx.navigateTo({
+      url: `/pages/wedding_invitation/view/index?mode=draft&id=${TEMP_INVITE_ID}`,
+    });
+  },
+
+  /** 静态 Demo：此前做好的完整请柬浏览版 */
+  onPreviewDemo() {
+    wx.navigateTo({
+      url: '/pages/wedding_invitation/demo/index',
+    });
   },
 });

@@ -1,0 +1,88 @@
+<view class="page" style="height: {{windowHeight}}px;">
+  <view
+    class="page-back"
+    style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+    catchtap="onBack"
+  >
+    <t-icon name="chevron-left" size="44rpx" color="#fff" />
+  </view>
+
+  <view
+    class="module-slider {{moduleAnimating ? 'module-slider--anim' : ''}}"
+    style="height: {{moduleTrackHeight}}px; transform: translate3d(0, {{moduleTranslateY}}px, 0);"
+  >
+    <invite-cover
+      pages="{{invitePages}}"
+      window-height="{{windowHeight}}"
+      active="{{moduleIndex === 0}}"
+      left-behind="{{moduleIndex > 0}}"
+      has-next-module="{{true}}"
+      bind:moduledrag="onModuleDrag"
+    />
+
+    <photo-wall
+      photos="{{photoWall}}"
+      window-height="{{windowHeight}}"
+      window-width="{{windowWidth}}"
+      status-bar-height="{{statusBarHeight}}"
+      active="{{moduleIndex === 1}}"
+      left-behind="{{moduleIndex > 1}}"
+      has-next-module="{{true}}"
+      bind:moduledrag="onModuleDrag"
+    />
+
+    <bless-board
+      id="blessBoard"
+      blessings="{{blessings}}"
+      stage-photos="{{stagePhotos}}"
+      window-height="{{windowHeight}}"
+      window-width="{{windowWidth}}"
+      status-bar-height="{{statusBarHeight}}"
+      active="{{moduleIndex === 2}}"
+      bind:moduledrag="onModuleDrag"
+      bind:write="onBless"
+    />
+  </view>
+</view>
+
+<view class="bless-sheet" wx:if="{{blessVisible}}">
+  <view class="bless-sheet__mask" catchtap="closeBlessSheet" catchtouchmove="noop"></view>
+  <view
+    class="bless-sheet__panel {{keyboardHeight > 0 ? 'bless-sheet__panel--kb' : ''}}"
+    style="bottom: {{keyboardHeight}}px;"
+    catchtouchmove="noop"
+  >
+    <view class="bless-sheet__bar"></view>
+    <view class="bless-sheet__title">写下祝福</view>
+
+    <view class="bless-sheet__field">
+      <textarea
+        class="bless-sheet__textarea"
+        maxlength="120"
+        placeholder="把想对新人说的话写在这里…"
+        value="{{blessContent}}"
+        focus="{{blessFocus}}"
+        fixed
+        disable-default-padding
+        show-confirm-bar="{{false}}"
+        cursor-spacing="32"
+        adjust-position="{{false}}"
+        hold-keyboard
+        bindinput="onBlessContentInput"
+        bindkeyboardheightchange="onKeyboardHeightChange"
+        confirm-type="send"
+        bindconfirm="onSubmitBless"
+      />
+      <view class="bless-sheet__count">{{blessContent.length}}/120</view>
+    </view>
+
+    <view class="bless-sheet__actions">
+      <view class="bless-sheet__btn">
+        <t-button theme="light" size="large" shape="round" block bindtap="closeBlessSheet">取消</t-button>
+      </view>
+      <view class="bless-sheet__btn">
+        <t-button theme="primary" size="large" shape="round" block bindtap="onSubmitBless">发送祝福</t-button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -11,6 +11,8 @@ Component({
     active: { type: Boolean, value: false },
     /** 已离开照片墙（在祝福板）→ 提示改为下滑返回 */
     leftBehind: { type: Boolean, value: false },
+    /** 下方是否还有留言等模块 */
+    hasNextModule: { type: Boolean, value: true },
   },
 
   data: {
@@ -21,6 +23,7 @@ Component({
     animating: false,
     hintText: HINT_NEXT,
     hintBack: false,
+    hintVisible: true,
   },
 
   observers: {
@@ -36,7 +39,7 @@ Component({
         translateX: -current * w,
       });
     },
-    leftBehind() {
+    'leftBehind, hasNextModule': function () {
       this.syncHint();
     },
   },
@@ -60,12 +63,22 @@ Component({
       this._lastDy = 0;
     },
 
-    /** 在这一页上滑；不在了下滑 */
+    /** 在这一页上滑；不在了下滑；已是整份末页则隐藏提示 */
     syncHint() {
       if (this.data.leftBehind) {
-        this.setData({ hintText: HINT_BACK, hintBack: true });
+        this.setData({
+          hintVisible: true,
+          hintText: HINT_BACK,
+          hintBack: true,
+        });
+      } else if (this.data.hasNextModule) {
+        this.setData({
+          hintVisible: true,
+          hintText: HINT_NEXT,
+          hintBack: false,
+        });
       } else {
-        this.setData({ hintText: HINT_NEXT, hintBack: false });
+        this.setData({ hintVisible: false, hintText: '', hintBack: false });
       }
     },
 
@@ -127,11 +140,18 @@ Component({
       }
 
       this._lastDy = dy;
+      // 无下一模块时禁止上滑切走，仍允许下滑回请帖
+      if (dy < 0 && !this.data.hasNextModule) {
+        if (this._moduleDragging) {
+          this._moduleDragging = false;
+          this.emitModuleDrag('cancel', 0);
+        }
+        return;
+      }
       if (!this._moduleDragging) {
         this._moduleDragging = true;
         this.emitModuleDrag('start', 0);
       }
-      // 拖动过程中仍在本页：保持上滑提示
       this.emitModuleDrag('move', dy);
     },
 

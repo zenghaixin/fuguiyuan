@@ -1,0 +1,33 @@
+<view wx:if="{{visible}}" class="preview preview--on" catchtouchmove="noop">
+  <view class="preview__mask" catchtap="onClose" />
+  <view class="preview__stage" catchtap="noop">
+    <view
+      class="preview__page"
+      style="background: {{page.bgColor || '#f7f0ea'}};"
+    >
+      <image
+        wx:if="{{page.bgSrc}}"
+        class="preview__bg"
+        src="{{page.bgSrc}}"
+        mode="aspectFill"
+      />
+      <view
+        class="preview__el"
+        wx:for="{{elements}}"
+        wx:key="id"
+        style="left: {{item.x * 100}}%; top: {{item.y * 100}}%; width: {{item.w * 100}}%; height: {{item.h * 100}}%; z-index: {{item.layer || 1}}; transform: rotate({{item.rotate || 0}}deg); background: {{item.color}};"
+      >
+        <text class="preview__el-label" wx:if="{{item.label}}">{{item.label}}</text>
+      </view>
+      <view wx:if="{{!elements.length}}" class="preview__empty">暂无内容</view>
+    </view>
+  </view>
+  <view
+    class="preview__close"
+    style="top: {{statusBarHeight + 12}}px;"
+    catchtap="onClose"
+  >
+    <t-icon name="close" size="40rpx" color="#3d2914" />
+    <text class="preview__close-txt">关闭预览</text>
+  </view>
+</view>

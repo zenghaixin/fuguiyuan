@@ -8,6 +8,8 @@ Component({
     active: { type: Boolean, value: false },
     /** 已离开封面模块（在照片墙/祝福板）→ 封面各页提示统一下滑 */
     leftBehind: { type: Boolean, value: false },
+    /** 下方是否还有模块（无则末页上滑不切模块） */
+    hasNextModule: { type: Boolean, value: true },
   },
 
   data: {
@@ -19,7 +21,7 @@ Component({
   },
 
   observers: {
-    'pages, windowHeight, pageIndex, leftBehind': function () {
+    'pages, windowHeight, pageIndex, leftBehind, hasNextModule': function () {
       const h = this.data.windowHeight || 667;
       const pages = this.data.pages || [];
       this.setData({
@@ -60,9 +62,15 @@ Component({
             back: true,
           };
         }
+        // 整份最后一页（下方无模块）：不显示底部提示
+        if (i >= last && !this.data.hasNextModule) {
+          return null;
+        }
         // 当前页（及未到达的页）：上滑
         let text = item.hint || '上滑继续';
-        if (i >= last) text = item.hint || '上滑查看照片墙';
+        if (i >= last) {
+          text = item.hint || '上滑查看照片墙';
+        }
         return { text, back: false };
       });
     },
@@ -105,7 +113,14 @@ Component({
       const pageIndex = this.data.pageIndex;
       const minY = -max * h;
 
-      if ((pageIndex >= max && dy < 0) || (pageIndex <= 0 && dy > 0)) {
+      const atLastUp = pageIndex >= max && dy < 0;
+      const atFirstDown = pageIndex <= 0 && dy > 0;
+      if (atLastUp || atFirstDown) {
+        // 末页上滑且无下一模块：橡皮筋，不切模块
+        if (atLastUp && !this.data.hasNextModule) {
+          this.setData({ translateY: minY + dy * 0.35 });
+          return;
+        }
         this.setData({ translateY: pageIndex >= max ? minY : 0 });
         if (!this._moduleDragging) {
           this._moduleDragging = true;

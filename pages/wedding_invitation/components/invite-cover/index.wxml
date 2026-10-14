@@ -1,0 +1,41 @@
+<view
+  class="invite-cover"
+  style="height: {{windowHeight}}px;"
+  catchtouchstart="onTouchStart"
+  catchtouchmove="onTouchMove"
+  catchtouchend="onTouchEnd"
+  catchtouchcancel="onTouchEnd"
+>
+  <view
+    class="invite-cover__track {{animating ? 'invite-cover__track--anim' : ''}}"
+    style="height: {{trackHeight}}px; transform: translate3d(0, {{translateY}}px, 0);"
+  >
+    <view
+      class="invite-cover__page"
+      wx:for="{{pages}}"
+      wx:key="id"
+      wx:for-index="idx"
+      style="height: {{windowHeight}}px;"
+    >
+      <image class="invite-cover__img" src="{{item.src}}" mode="aspectFill" />
+      <view
+        class="invite-cover__hint {{pageHints[idx].back ? 'invite-cover__hint--back' : ''}}"
+        wx:if="{{pageHints[idx]}}"
+      >
+        <t-icon
+          wx:if="{{pageHints[idx].back}}"
+          name="chevron-up"
+          size="36rpx"
+          color="rgba(255,255,255,0.9)"
+        />
+        <text>{{pageHints[idx].text}}</text>
+        <t-icon
+          wx:if="{{!pageHints[idx].back}}"
+          name="chevron-down"
+          size="36rpx"
+          color="rgba(255,255,255,0.9)"
+        />
+      </view>
+    </view>
+  </view>
+</view>

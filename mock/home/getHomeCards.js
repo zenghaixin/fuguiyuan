@@ -5,7 +5,7 @@ export default {
     message: '请求成功',
     data: [
       {
-        url: '/static/home/card0.png',
+        url: '',
         desc: '少年,星空与梦想',
         tags: [
           {
@@ -19,7 +19,7 @@ export default {
         ],
       },
       {
-        url: '/static/home/card1.png',
+        url: '',
         desc: '仰望星空的少女',
         tags: [
           {
@@ -33,7 +33,7 @@ export default {
         ],
       },
       {
-        url: '/static/home/card3.png',
+        url: '',
         desc: '仰望星空的少年',
         tags: [
           {
@@ -47,7 +47,7 @@ export default {
         ],
       },
       {
-        url: '/static/home/card2.png',
+        url: '',
         desc: '少年,星空与梦想',
         tags: [
           {
@@ -61,7 +61,7 @@ export default {
         ],
       },
       {
-        url: '/static/home/card4.png',
+        url: '',
         desc: '多彩的天空',
         tags: [
           {

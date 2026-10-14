@@ -1,0 +1,106 @@
+<view
+  class="bless-board"
+  style="height: {{windowHeight}}px; padding-top: {{statusBarHeight}}px;"
+>
+  <view class="bless-board__chrome">
+    <view
+      class="bless-board__head"
+      catchtouchstart="onChromeTouchStart"
+      catchtouchmove="onChromeTouchMove"
+      catchtouchend="onChromeTouchEnd"
+      catchtouchcancel="onChromeTouchEnd"
+    >
+      <view class="bless-board__seal">福</view>
+      <view class="bless-board__title">亲友寄语 · 现场花絮</view>
+      <view class="bless-board__sub">每一句祝福，都是新婚最好的礼物</view>
+    </view>
+
+    <view class="tabs">
+      <view
+        class="tabs__item {{activeTab === 'bless' ? 'tabs__item--on' : ''}}"
+        data-tab="bless"
+        catchtap="onTabTap"
+      >祝福板</view>
+      <view
+        class="tabs__item {{activeTab === 'stage' ? 'tabs__item--on' : ''}}"
+        data-tab="stage"
+        catchtap="onTabTap"
+      >婚礼现场</view>
+    </view>
+  </view>
+
+  <view class="bless-board__body">
+    <view
+      class="tab-slider {{tabAnimating ? 'tab-slider--anim' : ''}}"
+      style="width: {{tabSliderWidth}}px; transform: translate3d({{tabTranslateX}}px, 0, 0);"
+    >
+      <scroll-view
+        class="tab-pane"
+        style="width: {{windowWidth}}px;"
+        scroll-y
+        enhanced
+        bounces="{{false}}"
+        show-scrollbar="{{false}}"
+        bindscroll="onListScroll"
+        bindtouchstart="onContentTouchStart"
+        bindtouchmove="onContentTouchMove"
+        bindtouchend="onContentTouchEnd"
+        bindtouchcancel="onContentTouchEnd"
+      >
+        <view class="bless-empty" wx:if="{{!blessings.length}}">
+          <view class="bless-empty__title">还没有祝福</view>
+          <view class="bless-empty__desc">来写下第一条祝福吧</view>
+        </view>
+        <view class="bless-list" wx:else>
+          <view class="bless-card" wx:for="{{blessings}}" wx:key="id">
+            <view class="bless-card__avatar bless-card__avatar--{{item.tone}}">{{item.initial}}</view>
+            <view class="bless-card__main">
+              <view class="bless-card__row">
+                <text class="bless-card__name">{{item.name}}</text>
+                <text class="bless-card__time">{{item.timeText}}</text>
+              </view>
+              <view class="bless-card__content">{{item.content}}</view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <scroll-view
+        class="tab-pane"
+        style="width: {{windowWidth}}px;"
+        scroll-y
+        enhanced
+        bounces="{{false}}"
+        show-scrollbar="{{false}}"
+        bindscroll="onListScroll"
+        bindtouchstart="onContentTouchStart"
+        bindtouchmove="onContentTouchMove"
+        bindtouchend="onContentTouchEnd"
+        bindtouchcancel="onContentTouchEnd"
+      >
+        <view class="stage-tip">搭建收工实拍，灯光与舞台都在这里</view>
+        <view class="stage-grid">
+          <view
+            class="stage-item {{item.tall ? 'stage-item--tall' : ''}}"
+            wx:for="{{stagePhotos}}"
+            wx:key="id"
+          >
+            <view class="stage-item__cover stage-item__cover--{{item.tone}}">
+              <text class="stage-item__play" wx:if="{{item.hasVideo}}">▶ 灯光秀</text>
+            </view>
+            <view class="stage-item__body">
+              <view class="stage-item__title">{{item.title}}</view>
+              <view class="stage-item__desc">{{item.desc}}</view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view class="bless-board__footer" wx:if="{{activeTab === 'bless'}}">
+    <t-button theme="primary" size="large" shape="round" block bindtap="onWrite">
+      写下祝福
+    </t-button>
+  </view>
+</view>

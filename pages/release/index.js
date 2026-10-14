@@ -5,18 +5,7 @@ Page({
    * 页面的初始数据
    */
   data: {
-    originFiles: [
-      {
-        url: '/static/image1.png',
-        name: 'uploaded1.png',
-        type: 'image',
-      },
-      {
-        url: '/static/image2.png',
-        name: 'uploaded2.png',
-        type: 'image',
-      },
-    ],
+    originFiles: [],
     gridConfig: {
       column: 4,
       width: 160,

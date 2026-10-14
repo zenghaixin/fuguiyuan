@@ -1,5 +1,5 @@
 ---
-description: 富贵缘小程序目录职责划分；utils 只放通用工具
+description: 富贵缘小程序目录职责划分；组件按模块归属；utils 只放通用工具
 alwaysApply: true
 ---
 
@@ -10,16 +10,39 @@ alwaysApply: true
 - **按职责拆分**，不要把业务、假数据、页面逻辑塞进 `utils`
 - 新增代码先想「这是通用能力还是领域能力」，再选目录
 
+## 组件归属（硬规则）
+
+- **当前模块专用的组件** → 放在该模块目录下的 `components/`，跟模块一起走，方便分包  
+  例：`pages/wedding_invitation/components/invite-cover`
+- **多个模块都会用到的组件** → 才放全局 `components/`  
+  例：`components/nav`、`components/card`
+- 判断标准：若组件只服务一个业务包/模块，**禁止**放进根目录 `components/`
+- 新模块按同样约定建：`pages/<module>/components/`
+
+```text
+✅ pages/wedding_invitation/components/photo-wall
+✅ components/nav                    （首页/案例/我的等多处使用）
+
+❌ components/invite-cover           （仅喜帖用，应跟喜帖模块）
+❌ components/bless-board
+```
+
+页面引用模块内组件用绝对路径，例如：
+
+`/pages/wedding_invitation/components/invite-cover/index`
+
 ## 各目录
 
 | 目录 | 职责 | 可以放 | 不要放 |
 |------|------|--------|--------|
 | `utils/` | 与业务无关的**通用工具** | 时间格式化、eventBus、纯函数 helper | 祝福/喜帖业务、mock 数据、读写某业务 storage |
 | `services/` | **领域服务**（业务读写与组装） | 祝福 CRUD、本地缓存封装、对接 API 前的领域方法 | UI、页面生命周期、通用 format |
-| `mock/` | **演示/联调假数据**与 mock 接口 | 种子祝福列表、接口 mock | 真实业务落库逻辑、通用工具 |
+| `mock/` | **全局接口 mock**（登录/首页等） | 接口 path 级 mock | 页面私有示意数据 |
+| `pages/**/mock.js` | **跟页走的示意数据** | 该页喜帖图、照片墙 demo | 跨页复用业务服务 |
 | `api/` | HTTP 请求封装 | `request`、接口 path 聚合 | 页面、样式 |
-| `pages/` | 页面 | 页面 js/wxml/less/json | 可复用组件、跨页业务服务 |
-| `components/` | 可复用 UI 组件 | nav、card 等 | 页面级路由逻辑 |
+| `pages/` | 页面 | 页面 js/wxml/less/json | 跨业务全局组件、跨页业务服务 |
+| `pages/<module>/components/` | **模块内组件**（跟模块/分包） | 该模块专用 UI | 多模块共用组件 |
+| `components/` | **跨模块**可复用 UI | nav、card 等 | 单模块专用组件 |
 | `behaviors/` | 可复用 behavior | toast 等 | 完整业务模块 |
 | `custom-tab-bar/` | 自定义 tabBar | tab 配置与样式 | 业务接口 |
 | `config/` | 环境与开关 | `baseUrl`、`isMock` | 业务实体 |

@@ -109,3 +109,7 @@ miniprogram_npm
 .idea
 
 project.private.config.json
+
+# 本地压图工具与原图备份（勿进包）
+tmp-imgtools/
+_backup/

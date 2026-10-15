@@ -4,9 +4,9 @@ export const EDIT_MODULES = [
   {
     key: 'invite',
     title: '喜帖',
-    desc: '封面、内页与修饰文案',
+    desc: '多页喜帖与修饰',
     optional: false,
-    path: '/pages/wedding_invitation/edit/invite/index',
+    path: '/pages/wedding_invitation/edit/invite-works/index',
     icon: 'mail',
     tone: 'red',
   },

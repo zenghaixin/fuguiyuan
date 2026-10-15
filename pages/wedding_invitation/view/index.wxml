@@ -1,4 +1,4 @@
-<view class="page" style="height: {{windowHeight}}px;">
+<view class="page">
   <view
     class="page-back"
     style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
@@ -15,9 +15,11 @@
     <invite-cover
       pages="{{invitePages}}"
       window-height="{{windowHeight}}"
+      window-width="{{windowWidth}}"
       active="{{moduleIndex === 0}}"
       left-behind="{{moduleIndex > 0}}"
       has-next-module="{{hasNextAfterCover}}"
+      start-page-index="{{coverStartPage}}"
       bind:moduledrag="onModuleDrag"
     />
 
@@ -48,6 +50,13 @@
       bind:write="onBless"
     />
   </view>
+
+  <!-- 安全区虚线浮层（独立于预览组件，仅草稿预览） -->
+  <safe-guide-overlay
+    visible="{{enableSafeGuide && moduleIndex === 0}}"
+    window-width="{{windowWidth}}"
+    window-height="{{windowHeight}}"
+  />
 </view>
 
 <view class="bless-sheet" wx:if="{{showGuestModules && blessVisible}}">

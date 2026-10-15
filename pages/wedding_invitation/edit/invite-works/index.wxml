@@ -1,0 +1,95 @@
+<view class="works">
+  <view
+    class="works__back"
+    style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+    catchtap="onBack"
+  >
+    <t-icon name="chevron-left" size="44rpx" color="#3d2914" />
+  </view>
+
+  <view class="works__head" style="padding-top: {{backTop}}px;">
+    <view class="works__nav" style="height: {{backSize}}px;">
+      <view class="works__title">我的喜帖</view>
+    </view>
+    <view class="works__sub">选择一份继续编辑，或新建喜帖</view>
+  </view>
+
+  <scroll-view class="works__scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="works__list" wx:if="{{works.length}}">
+      <view
+        class="work-card"
+        wx:for="{{works}}"
+        wx:key="inviteId"
+        data-id="{{item.inviteId}}"
+        bindtap="onOpenWork"
+      >
+        <view
+          class="work-card__cover"
+          style="background: {{item.coverBgColor}};"
+        >
+          <image
+            wx:if="{{item.coverBgSrc}}"
+            class="work-card__bg"
+            src="{{item.coverBgSrc}}"
+            mode="aspectFill"
+          />
+          <view
+            wx:for="{{item.coverElements}}"
+            wx:for-item="el"
+            wx:key="id"
+            class="work-card__el"
+            style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; background: {{el.color}}; transform: rotate({{el.rotate || 0}}deg); z-index: {{el.layer || 1}};"
+          />
+        </view>
+        <view class="work-card__main">
+          <view class="work-card__name">{{item.title}}</view>
+          <view class="work-card__meta">
+            {{item.pageCount}} 页
+            <text wx:if="{{item.photoCount}}"> · 照片墙 {{item.photoCount}}</text>
+          </view>
+        </view>
+        <view class="work-card__actions" catchtap="noop">
+          <view
+            class="work-card__btn"
+            data-id="{{item.inviteId}}"
+            data-title="{{item.title}}"
+            catchtap="onRenameWork"
+          >
+            <t-icon name="edit" size="32rpx" color="#6b5a4c" />
+          </view>
+          <view
+            class="work-card__btn"
+            data-id="{{item.inviteId}}"
+            data-title="{{item.title}}"
+            catchtap="onDeleteWork"
+          >
+            <t-icon name="delete" size="32rpx" color="#b91c3a" />
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="works__empty" wx:else>
+      <view class="works__empty-tip">还没有喜帖</view>
+      <view class="works__empty-desc">新建后可选择模板或自定义</view>
+    </view>
+  </scroll-view>
+
+  <view class="works__foot">
+    <view class="works__create" bindtap="onCreate">新建喜帖</view>
+  </view>
+
+  <edit-dialog
+    visible="{{dialog.visible}}"
+    mode="{{dialog.mode}}"
+    title="{{dialog.title}}"
+    content="{{dialog.content}}"
+    value="{{dialog.value}}"
+    placeholder="{{dialog.placeholder}}"
+    confirm-text="{{dialog.confirmText}}"
+    danger="{{dialog.danger}}"
+    bind:cancel="onDialogCancel"
+    bind:confirm="onDialogConfirm"
+  />
+</view>
+

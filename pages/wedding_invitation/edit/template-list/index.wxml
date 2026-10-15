@@ -1,0 +1,41 @@
+<view class="tpl-list">
+  <view
+    class="tpl-list__back"
+    style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+    catchtap="onBack"
+  >
+    <t-icon name="chevron-left" size="44rpx" color="#3d2914" />
+  </view>
+
+  <view class="tpl-list__head" style="padding-top: {{backTop}}px;">
+    <view class="tpl-list__nav" style="height: {{backSize}}px;">
+      <view class="tpl-list__title">选择模板</view>
+    </view>
+    <view class="tpl-list__sub">点击模板预览效果，确认后再使用</view>
+  </view>
+
+  <scroll-view class="tpl-list__scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="tpl-list__grid">
+      <view
+        class="tpl-card"
+        wx:for="{{templates}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onOpenPreview"
+      >
+        <view class="tpl-card__cover" style="background: {{item.coverColor}};">
+          <view
+            wx:for="{{item.pages[0].elements}}"
+            wx:for-item="el"
+            wx:key="id"
+            class="tpl-card__el"
+            style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; background: {{el.color}}; transform: rotate({{el.rotate || 0}}deg);"
+          />
+          <view class="tpl-card__tag" wx:if="{{item.tag}}">{{item.tag}}</view>
+        </view>
+        <view class="tpl-card__name">{{item.name}}</view>
+        <view class="tpl-card__desc">{{item.desc}}</view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,33 @@
+<view class="tpl-preview" style="height: {{windowHeight}}px;">
+  <view
+    class="tpl-preview__back"
+    style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+    catchtap="onBack"
+  >
+    <t-icon name="chevron-left" size="44rpx" color="#fff" />
+  </view>
+
+  <view
+    class="tpl-preview__badge"
+    style="top: {{backTop}}px; height: {{backSize}}px;"
+  >
+    <text>{{templateName}}</text>
+  </view>
+
+  <invite-cover
+    wx:if="{{pages.length}}"
+    pages="{{pages}}"
+    window-height="{{windowHeight}}"
+    window-width="{{windowWidth}}"
+    active="{{true}}"
+    left-behind="{{false}}"
+    has-next-module="{{false}}"
+    start-page-index="{{0}}"
+  />
+
+  <view class="tpl-preview__hint">上下滑动预览各页</view>
+
+  <view class="tpl-preview__fab" catchtap="onUseTemplate">
+    使用模板
+  </view>
+</view>

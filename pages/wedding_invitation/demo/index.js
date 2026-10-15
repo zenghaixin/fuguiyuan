@@ -10,6 +10,11 @@ import {
   withTimeText,
 } from '~/services/blessing';
 import { invitePages, photoWall, stagePhotos } from '../view/mock';
+import {
+  readWindowViewport,
+  bindWindowResize,
+  unbindWindowResize,
+} from '~/services/window-viewport';
 
 const MODULE_COUNT = 3;
 const SNAP_RATIO = 0.1;
@@ -40,20 +45,26 @@ Page({
   },
 
   onLoad() {
-    const { statusBarHeight, windowHeight, windowWidth } = wx.getWindowInfo();
-    const menu = wx.getMenuButtonBoundingClientRect();
+    const viewport = readWindowViewport();
     this.setData({
-      statusBarHeight,
-      windowHeight,
-      windowWidth,
-      backTop: menu.top || statusBarHeight + 6,
-      backSize: menu.height || 32,
-      moduleTrackHeight: windowHeight * MODULE_COUNT,
+      ...viewport,
+      moduleTrackHeight: viewport.windowHeight * MODULE_COUNT,
       moduleTranslateY: 0,
       blessings: loadBlessings(),
     });
     this._submitting = false;
     this._moduleDragBase = 0;
+    bindWindowResize(this, (next) => {
+      this.setData({
+        ...next,
+        moduleTrackHeight: next.windowHeight * MODULE_COUNT,
+        moduleTranslateY: -this.data.moduleIndex * next.windowHeight,
+      });
+    });
+  },
+
+  onUnload() {
+    unbindWindowResize(this);
   },
 
   onBack() {
@@ -62,7 +73,9 @@ Page({
       wx.navigateBack({ delta: 1 });
       return;
     }
-    wx.navigateTo({ url: '/pages/wedding_invitation/edit/index' });
+    wx.navigateTo({
+      url: '/pages/wedding_invitation/edit/invite-works/index',
+    });
   },
 
   onShow() {

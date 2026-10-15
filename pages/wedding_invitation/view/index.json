@@ -5,6 +5,7 @@
     "invite-cover": "/pages/wedding_invitation/components/invite-cover/index",
     "photo-wall": "/pages/wedding_invitation/components/photo-wall/index",
     "bless-board": "/pages/wedding_invitation/components/bless-board/index",
+    "safe-guide-overlay": "/pages/wedding_invitation/components/safe-guide-overlay/index",
     "t-button": "tdesign-miniprogram/button/button",
     "t-icon": "tdesign-miniprogram/icon/icon"
   }

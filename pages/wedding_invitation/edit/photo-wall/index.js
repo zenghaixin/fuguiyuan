@@ -4,6 +4,12 @@ import {
   loadInviteDraft,
   TEMP_INVITE_ID,
 } from '~/services/invite-draft';
+import {
+  chooseAndPersistPhotos,
+  removeLocalImage,
+  MAX_PHOTO_WALL,
+  DEFAULT_PHOTO_LAYOUT,
+} from '~/services/invite-photo-local';
 
 Page({
   data: {
@@ -13,21 +19,35 @@ Page({
     backSize: 32,
     inviteId: TEMP_INVITE_ID,
     photoWall: [],
+    photoWallLayout: DEFAULT_PHOTO_LAYOUT,
     toolboxTools: PHOTO_TOOLS,
     toolboxActive: '',
+    uploading: false,
   },
 
-  onLoad() {
+  onLoad(query) {
     const { statusBarHeight, windowHeight } = wx.getWindowInfo();
     const menu = wx.getMenuButtonBoundingClientRect();
-    const draft = loadInviteDraft(TEMP_INVITE_ID);
+    const inviteId = (query && query.id) || TEMP_INVITE_ID;
+    const draft = loadInviteDraft(inviteId);
     this.setData({
       statusBarHeight,
       windowHeight,
       backTop: menu.top || statusBarHeight + 6,
       backSize: menu.height || 32,
-      inviteId: TEMP_INVITE_ID,
+      inviteId,
       photoWall: (draft && draft.photoWall) || [],
+      photoWallLayout:
+        (draft && draft.photoWallLayout) || DEFAULT_PHOTO_LAYOUT,
+    });
+  },
+
+  onShow() {
+    const draft = loadInviteDraft(this.data.inviteId);
+    if (!draft) return;
+    this.setData({
+      photoWall: draft.photoWall || [],
+      photoWallLayout: draft.photoWallLayout || DEFAULT_PHOTO_LAYOUT,
     });
   },
 
@@ -39,6 +59,7 @@ Page({
     this.persistDraft();
   },
 
+  /** 从页列表进 → 回上一页 */
   onBack() {
     this.persistDraft();
     wx.navigateBack({ delta: 1 });
@@ -48,6 +69,7 @@ Page({
     return saveInviteDraft({
       inviteId: this.data.inviteId || TEMP_INVITE_ID,
       photoWall: this.data.photoWall,
+      photoWallLayout: this.data.photoWallLayout || DEFAULT_PHOTO_LAYOUT,
       meta: { source: 'edit/photo-wall' },
     });
   },
@@ -63,6 +85,10 @@ Page({
     }
     if (key === 'upload') {
       this.onAddPhoto();
+      return;
+    }
+    if (key === 'layout') {
+      wx.showToast({ title: '排版稍后接，当前为左右滑动', icon: 'none' });
       return;
     }
 
@@ -83,7 +109,47 @@ Page({
   },
 
   onAddPhoto() {
+    if (this.data.uploading) return;
     this.setData({ toolboxActive: 'upload' });
-    wx.showToast({ title: '照片上传稍后接', icon: 'none' });
+    const cur = this.data.photoWall || [];
+    const remain = MAX_PHOTO_WALL - cur.length;
+    if (remain <= 0) {
+      wx.showToast({ title: `最多 ${MAX_PHOTO_WALL} 张`, icon: 'none' });
+      return;
+    }
+
+    this.setData({ uploading: true });
+    chooseAndPersistPhotos({ count: Math.min(9, remain) })
+      .then((added) => {
+        if (!added.length) return;
+        const photoWall = cur.concat(added);
+        this.setData({
+          photoWall,
+          photoWallLayout:
+            this.data.photoWallLayout || DEFAULT_PHOTO_LAYOUT,
+        });
+        return this.persistDraft().then(() => {
+          wx.showToast({ title: `已添加 ${added.length} 张`, icon: 'success' });
+        });
+      })
+      .catch(() => {
+        wx.showToast({ title: '添加失败', icon: 'none' });
+      })
+      .then(() => {
+        this.setData({ uploading: false, toolboxActive: '' });
+      });
+  },
+
+  onDeletePhoto(e) {
+    const id = e.detail && e.detail.id;
+    if (!id) return;
+    const cur = this.data.photoWall || [];
+    const target = cur.find((p) => p.id === id);
+    const photoWall = cur.filter((p) => p.id !== id);
+    this.setData({ photoWall });
+    this.persistDraft();
+    if (target && target.src) {
+      removeLocalImage(target.src);
+    }
   },
 });

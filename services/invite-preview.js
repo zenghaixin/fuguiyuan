@@ -18,10 +18,9 @@ export function editPagesToCoverPages(editPages, options = {}) {
     let hint = page.hint;
     if (!hint) {
       if (i >= last) {
-        // 无照片墙时末页不写提示文案（封面组件会隐藏）
         hint = hasPhotoWall ? '上滑查看我们的照片' : '';
       } else {
-        hint = '上滑继续阅读请柬';
+        hint = '上滑继续阅读喜帖';
       }
     }
     return {
@@ -50,23 +49,11 @@ function blankCoverPage() {
 
 /**
  * @param {{ inviteId?: string, mode?: 'draft' | 'published' }} query
- * @returns {{
- *   inviteId: string,
- *   mode: string,
- *   invitePages: Array,
- *   photoWall: Array,
- *   showPhotoWall: boolean,
- *   showGuestModules: boolean,
- *   moduleCount: number,
- *   photoModuleIndex: number,
- *   blessModuleIndex: number,
- * }}
  */
 export function resolveInviteViewModel(query = {}) {
   const inviteId = query.inviteId || query.id || TEMP_INVITE_ID;
   const mode = query.mode === 'published' ? 'published' : 'draft';
 
-  // —— 编辑/草稿预览：读缓存，不展示留言与婚礼现场 ——
   if (mode === 'draft') {
     const draft = loadInviteDraft(inviteId);
     const photoWall = (draft && draft.photoWall) || [];
@@ -86,10 +73,10 @@ export function resolveInviteViewModel(query = {}) {
       moduleCount,
       photoModuleIndex: showPhotoWall ? 1 : -1,
       blessModuleIndex: -1,
+      designAspect: (draft && draft.designAspect) || 0,
     };
   }
 
-  // —— 正式请帖：后续接接口；暂无 null 交由页面走 mock ——
   return {
     inviteId,
     mode: 'published',
@@ -100,5 +87,6 @@ export function resolveInviteViewModel(query = {}) {
     moduleCount: 3,
     photoModuleIndex: 1,
     blessModuleIndex: 2,
+    designAspect: 0,
   };
 }

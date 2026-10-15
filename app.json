@@ -6,6 +6,11 @@
     "pages/my/index",
     "pages/wedding_invitation/view/index",
     "pages/wedding_invitation/edit/index",
+    "pages/wedding_invitation/edit/invite-works/index",
+    "pages/wedding_invitation/edit/invite-start/index",
+    "pages/wedding_invitation/edit/template-list/index",
+    "pages/wedding_invitation/edit/template-preview/index",
+    "pages/wedding_invitation/edit/invite-pages/index",
     "pages/wedding_invitation/edit/invite/index",
     "pages/wedding_invitation/edit/photo-wall/index",
     "pages/wedding_invitation/demo/index"

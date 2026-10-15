@@ -1,3 +1,10 @@
+import {
+  previewDesignFrame,
+  fitDesignFrame,
+  PREVIEW_INSET,
+  DESIGN_ASPECT,
+} from '~/services/invite-canvas';
+
 const SNAP_RATIO = 0.1;
 const HINT_BACK = '下滑返回';
 
@@ -5,11 +12,16 @@ Component({
   properties: {
     pages: { type: Array, value: [] },
     windowHeight: { type: Number, value: 667 },
+    windowWidth: { type: Number, value: 375 },
     active: { type: Boolean, value: false },
     /** 已离开封面模块（在照片墙/祝福板）→ 封面各页提示统一下滑 */
     leftBehind: { type: Boolean, value: false },
     /** 下方是否还有模块（无则末页上滑不切模块） */
     hasNextModule: { type: Boolean, value: true },
+    /** 初始停留页（编辑预览从当前页进入） */
+    startPageIndex: { type: Number, value: 0 },
+    /** 全铺无白边（demo / 正式浏览）；编辑预览仍用内缩 */
+    fullBleed: { type: Boolean, value: false },
   },
 
   data: {
@@ -18,10 +30,18 @@ Component({
     trackHeight: 667,
     animating: false,
     pageHints: [],
+    frameW: 0,
+    frameH: 0,
+    frameL: 0,
+    frameT: 0,
+    bleedInset: PREVIEW_INSET,
   },
 
   observers: {
-    'pages, windowHeight, pageIndex, leftBehind, hasNextModule': function () {
+    'pages, windowHeight, windowWidth, pageIndex, leftBehind, hasNextModule, fullBleed': function () {
+      const fullBleed = !!this.data.fullBleed;
+      this.setData({ bleedInset: fullBleed ? 0 : PREVIEW_INSET });
+      this.syncFrame();
       const h = this.data.windowHeight || 667;
       const pages = this.data.pages || [];
       this.setData({
@@ -29,6 +49,15 @@ Component({
         translateY: -this.data.pageIndex * h,
         pageHints: this.buildPageHints(),
       });
+    },
+
+    startPageIndex(idx) {
+      const pages = this.data.pages || [];
+      const max = Math.max(pages.length - 1, 0);
+      const next = Math.max(0, Math.min(max, Number(idx) || 0));
+      if (next !== this.data.pageIndex) {
+        this.setPage(next);
+      }
     },
   },
 
@@ -40,11 +69,82 @@ Component({
       this._startY = 0;
       this._baseY = 0;
       this._lastDy = 0;
+      const pages = this.data.pages || [];
+      const max = Math.max(pages.length - 1, 0);
+      const start = Math.max(0, Math.min(max, Number(this.data.startPageIndex) || 0));
+      this.setData({ pageIndex: start });
+      this.syncFrame();
+      this.startFrameWatch();
       this.setData({ pageHints: this.buildPageHints() });
+    },
+    detached() {
+      this.stopFrameWatch();
+    },
+  },
+
+  pageLifetimes: {
+    show() {
+      this.startFrameWatch();
+      this.syncFrame();
+    },
+    hide() {
+      this.stopFrameWatch();
     },
   },
 
   methods: {
+    startFrameWatch() {
+      this.stopFrameWatch();
+      this._frameWatch = setInterval(() => this.syncFrame(true), 320);
+    },
+
+    stopFrameWatch() {
+      if (this._frameWatch) {
+        clearInterval(this._frameWatch);
+        this._frameWatch = null;
+      }
+    },
+
+    /** 按封面容器真实宽高计算 9:19.5，避免 PC 拖拽后 window* 不准 */
+    syncFrame(fromWatch) {
+      this.createSelectorQuery()
+        .select('.invite-cover')
+        .boundingClientRect((rect) => {
+          let w = this.data.windowWidth || 375;
+          let h = this.data.windowHeight || 667;
+          if (rect && rect.width && rect.height) {
+            w = rect.width;
+            h = rect.height;
+          }
+          const sizeKey = `${Math.round(w)}x${Math.round(h)}`;
+          if (fromWatch && sizeKey === this._frameSizeKey) return;
+
+          const fullBleed = !!this.data.fullBleed;
+          const frame = fullBleed
+            ? {
+                ...fitDesignFrame(w, h, 0, DESIGN_ASPECT),
+                mode: 'contain',
+                aspect: DESIGN_ASPECT,
+                inset: 0,
+              }
+            : previewDesignFrame(w, h);
+          const frameKey = `${fullBleed ? 'f' : 'p'}_${Math.round(frame.width)}x${Math.round(frame.height)}x${Math.round(frame.left)}x${Math.round(frame.top)}`;
+          if (frameKey === this._frameKey && sizeKey === this._frameSizeKey) return;
+
+          this._frameSizeKey = sizeKey;
+          this._frameKey = frameKey;
+          this.setData({
+            frameW: frame.width,
+            frameH: frame.height,
+            frameL: frame.left,
+            frameT: frame.top,
+            bleedInset: fullBleed ? 0 : PREVIEW_INSET,
+          });
+        })
+        .exec();
+    },
+
+
     /**
      * 在这一页 → 上滑；不在这一页了 → 下滑返回
      * （已离开整块封面时，所有页都显示下滑）

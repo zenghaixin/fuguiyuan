@@ -1,4 +1,4 @@
-<view class="page" style="height: {{windowHeight}}px;">
+<view class="page">
   <view
     class="page-back"
     style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
@@ -14,11 +14,14 @@
     <invite-cover
       pages="{{invitePages}}"
       window-height="{{windowHeight}}"
+      window-width="{{windowWidth}}"
       active="{{moduleIndex === 0}}"
       left-behind="{{moduleIndex > 0}}"
       has-next-module="{{true}}"
+      full-bleed="{{true}}"
       bind:moduledrag="onModuleDrag"
     />
+
 
     <photo-wall
       photos="{{photoWall}}"

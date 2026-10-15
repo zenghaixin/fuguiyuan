@@ -1,11 +1,8 @@
 @import '/variable.less';
 
-/* 安全区相对舞台的边距：外侧为毛玻璃对照区 */
-@stage-inset-x: 40rpx;
-@stage-inset-y: 36rpx;
-
 .edit-invite {
   width: 100%;
+  height: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -15,44 +12,74 @@
   &__head {
     flex-shrink: 0;
     text-align: center;
-    padding: 0 32rpx 16rpx;
+    padding: 0 32rpx 8rpx;
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   &__title {
     font-size: 34rpx;
     font-weight: 700;
     color: @gy1;
-    margin-bottom: 8rpx;
+    line-height: 1.2;
   }
 
   &__sub {
+    margin-top: 8rpx;
+    height: 32rpx; /* 固定一行，切换文案不顶动画布 */
     font-size: 22rpx;
+    line-height: 32rpx;
     color: @gy2;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
-  /* 标题以下铺满；底部只留工具箱高度 */
+  /* 标题以下铺满；工具栏在页面流式布局中，此处不再预留假高度 */
   &__body {
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
     padding: 0;
-    padding-bottom: calc(148rpx + env(safe-area-inset-bottom));
     box-sizing: border-box;
   }
 }
 
-/* 编辑画布：虚线内 = 保存可见；虚线外 = 毛玻璃对照 */
+/* 编辑画布：背景全铺 + 虚线内 9:19.5 内容区 */
 .stage {
   position: relative;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
   border-radius: 0;
   background: #e8e0d8;
 
+  &__bleed {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  &__bleed-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
   /*
-   * 挖空毛玻璃：整层 + content 挖洞（无拼接缝）
-   * 颜色/模糊对齐原先四边拼接版：rgba(.48) + blur(14px)
+   * 安全区外半透明白遮罩（挖洞）；不再用 backdrop-filter
+   * padding 由 JS 按内容区写入
    */
   &__frost {
     position: absolute;
@@ -60,10 +87,7 @@
     z-index: 20;
     pointer-events: none;
     box-sizing: border-box;
-    padding: @stage-inset-y @stage-inset-x;
-    background: rgba(243, 239, 233, 0.48);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.3);
     -webkit-mask-image: linear-gradient(#000, #000), linear-gradient(#000, #000);
     -webkit-mask-clip: content-box, border-box;
     -webkit-mask-composite: destination-out;
@@ -72,28 +96,28 @@
     mask-composite: subtract;
   }
 
+  /* 9:19.5 内容区：允许溢出，区外内容在遮罩下仍可见 */
   &__safe {
     position: absolute;
-    left: @stage-inset-x;
-    right: @stage-inset-x;
-    top: @stage-inset-y;
-    bottom: @stage-inset-y;
     z-index: 1;
+    overflow: visible;
+    transform: translateZ(0);
   }
 
   &__page {
     position: absolute;
     inset: 0;
     overflow: visible;
-    background: #f7f0ea;
+    background: transparent;
+    transform: translateZ(0);
   }
 
-  &__bg {
+  &__clip {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
+    z-index: 1;
+    overflow: visible;
+    transform: translateZ(0);
   }
 
   &__frame {
@@ -103,7 +127,7 @@
     pointer-events: none;
     box-sizing: border-box;
     border: 3rpx dashed rgba(185, 28, 58, 0.65);
-    border-radius: 4rpx;
+    border-radius: 20rpx;
     box-shadow: 0 0 0 1rpx rgba(255, 255, 255, 0.35);
   }
 
@@ -127,9 +151,11 @@
   }
 }
 
+
 /* 画板空态：虚线边框 */
 .edit-canvas {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   box-sizing: border-box;
   padding: 0 24rpx 24rpx;

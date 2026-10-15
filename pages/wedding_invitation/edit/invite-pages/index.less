@@ -1,0 +1,234 @@
+@import '/variable.less';
+
+.pages-hub {
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(185, 28, 58, 0.08), transparent 70%),
+    #f3efe9;
+}
+
+.pages-hub__back {
+  position: fixed;
+  left: 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 4rpx 16rpx rgba(61, 41, 20, 0.08);
+}
+
+.pages-hub__head {
+  flex-shrink: 0;
+  padding: 0 28rpx 20rpx;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(185, 28, 58, 0.08), transparent 70%),
+    #f3efe9;
+}
+
+.pages-hub__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pages-hub__title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  max-width: 70%;
+}
+
+.pages-hub__title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: @gy1;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pages-hub__sub {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: @gy2;
+}
+
+.pages-hub__scroll {
+  flex: 1;
+  min-height: 0;
+  height: 0;
+  padding: 0 28rpx;
+  box-sizing: border-box;
+}
+
+.pages-hub__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx 24rpx;
+  /* 给右上角删除钮留出空间，避免被标题区/滚动裁切挡住 */
+  padding: 16rpx 12rpx 24rpx 0;
+}
+
+.page-card {
+  position: relative;
+  width: calc((100% - 24rpx) / 2);
+
+  &__media {
+    position: relative;
+  }
+
+  &__thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 19.5;
+    border-radius: 16rpx;
+    overflow: hidden;
+    background: #f7f0ea;
+    box-shadow: 0 8rpx 24rpx rgba(61, 41, 20, 0.08);
+    border: 2rpx solid rgba(201, 184, 168, 0.35);
+
+    &--add {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12rpx;
+      background: #fffcf8;
+      border-style: dashed;
+    }
+  }
+
+  &__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  &__el {
+    position: absolute;
+    border-radius: 4rpx;
+    box-sizing: border-box;
+    transform-origin: center center;
+  }
+
+  &__empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22rpx;
+    color: #b5a394;
+  }
+
+  &__order {
+    position: absolute;
+    left: 12rpx;
+    bottom: 12rpx;
+    z-index: 30;
+    padding: 4rpx 12rpx;
+    border-radius: 8rpx;
+    background: rgba(61, 41, 20, 0.72);
+    color: #fff;
+    font-size: 20rpx;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  &__add-text {
+    font-size: 22rpx;
+    color: #8a7464;
+    font-weight: 500;
+  }
+
+  &__del {
+    position: absolute;
+    top: -8rpx;
+    right: -8rpx;
+    z-index: 31;
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: 50%;
+    background: #fffcf8;
+    box-shadow: 0 4rpx 12rpx rgba(61, 41, 20, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &--add &__del,
+  &--add &__order {
+    display: none;
+  }
+}
+
+
+.pages-hub__empty {
+  padding: 48rpx 0;
+}
+
+.pages-hub__empty-card {
+  height: 360rpx;
+  border-radius: 20rpx;
+  border: 3rpx dashed #c9b8a8;
+  background: #fffcf8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.pages-hub__empty-tip {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #8a7464;
+}
+
+.pages-hub__empty-desc {
+  font-size: 22rpx;
+  color: #b5a394;
+}
+
+.pages-hub__foot {
+  flex-shrink: 0;
+  padding: 16rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  background: #f3efe9;
+}
+
+.pages-hub__actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.pages-hub__photo,
+.pages-hub__preview {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pages-hub__photo {
+  border: 2rpx solid rgba(185, 28, 58, 0.35);
+  color: @brand7-normal;
+  background: rgba(255, 252, 248, 0.9);
+}
+
+.pages-hub__preview {
+  background: @brand7-normal;
+  color: #fff;
+}

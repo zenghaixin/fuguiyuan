@@ -315,6 +315,7 @@ Component({
     },
 
     onResizeStart(e) {
+      if (this.data.editMode !== 'size') return;
       const t = e.touches[0];
       if (!t) return;
       this._freezeCanvas();

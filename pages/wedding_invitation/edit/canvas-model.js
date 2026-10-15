@@ -6,14 +6,53 @@ function uid(prefix) {
   return `${prefix}_${Date.now()}_${_seq}`;
 }
 
-/** 空白占位页（对接模板后只换 bgSrc / bgColor） */
-export function createBlankPage() {
+/** 请帖最多页数 */
+export const MAX_INVITE_PAGES = 8;
+
+/**
+ * 空白占位页（对接模板后只换 bgSrc / bgColor）
+ * @param {{ title?: string, bgColor?: string }} [opts]
+ */
+export function createBlankPage(opts = {}) {
   return {
     id: uid('page'),
-    bgColor: '#f7f0ea',
+    title: opts.title || '第1页',
+    bgColor: opts.bgColor || '#f7f0ea',
     bgSrc: '',
     elements: [],
   };
+}
+
+/** 末尾追加空白页；已满则原样返回 */
+export function appendBlankPage(pages) {
+  const list = Array.isArray(pages) ? pages.slice() : [];
+  if (list.length >= MAX_INVITE_PAGES) return list;
+  const n = list.length;
+  list.push(
+    createBlankPage({
+      title: `第${n + 1}页`,
+    })
+  );
+  return list;
+}
+
+/** 简易模板：多页占位 */
+export function createTemplatePages() {
+  return [
+    createBlankPage({ title: '第1页', bgColor: '#f7f0ea' }),
+    createBlankPage({ title: '第2页', bgColor: '#f3ebe3' }),
+    createBlankPage({ title: '第3页', bgColor: '#efe6dc' }),
+  ];
+}
+
+
+/** 删除指定页；越界则原样返回 */
+export function removePageAt(pages, index) {
+  const list = Array.isArray(pages) ? pages.slice() : [];
+  const i = Math.round(Number(index));
+  if (i < 0 || i >= list.length) return list;
+  list.splice(i, 1);
+  return list;
 }
 
 /** 当前页最大层级（无元素则为 0） */
@@ -48,6 +87,18 @@ export function createDecorElement(asset, size = {}) {
     rotate: 0,
     layer,
   };
+}
+
+/** 更新当前页背景（全铺，不受内容区虚线限制） */
+export function updatePageBackground(pages, pageIndex, patch) {
+  const list = pages.slice();
+  const page = { ...(list[pageIndex] || {}) };
+  list[pageIndex] = {
+    ...page,
+    ...patch,
+    elements: page.elements || [],
+  };
+  return list;
 }
 
 /** 更新指定元素（不可变） */

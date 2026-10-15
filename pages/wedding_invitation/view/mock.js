@@ -5,7 +5,7 @@ export const invitePages = [
   {
     id: 'p1',
     src: '/static/invite/cn-red-01/page1-cover.jpg',
-    hint: '上滑继续阅读请柬',
+    hint: '上滑继续阅读喜帖',
     backHint: '下滑返回',
   },
   {

@@ -77,7 +77,9 @@ Page({
       return;
     }
     if (name === '编辑喜帖') {
-      wx.navigateTo({ url: '/pages/wedding_invitation/edit/index' });
+      wx.navigateTo({
+        url: '/pages/wedding_invitation/edit/invite-works/index',
+      });
       return;
     }
     wx.showToast({ title: `${name}（示意）`, icon: 'none' });

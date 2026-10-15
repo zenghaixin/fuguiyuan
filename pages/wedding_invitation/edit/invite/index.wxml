@@ -1,4 +1,4 @@
-<view class="page" style="height: {{windowHeight}}px;">
+<view class="page">
   <view
     class="page-back"
     style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
@@ -13,7 +13,10 @@
     active-element-id="{{activeElementId}}"
     element-edit-mode="{{elementEditMode}}"
     window-height="{{windowHeight}}"
+    window-width="{{windowWidth}}"
     status-bar-height="{{statusBarHeight}}"
+    back-top="{{backTop}}"
+    back-size="{{backSize}}"
     bind:picktemplate="onPickTemplate"
     bind:selectelement="onSelectElement"
     bind:elementchange="onElementChange"
@@ -28,8 +31,19 @@
   <edit-decor-sheet
     visible="{{decorSheetVisible}}"
     assets="{{decorAssets}}"
+    title="选择修饰"
+    hint="色块为占位素材，选中后放到内容区正中"
     bind:close="closeDecorSheet"
     bind:select="onDecorSelect"
+  />
+
+  <edit-decor-sheet
+    visible="{{bgSheetVisible}}"
+    assets="{{bgAssets}}"
+    title="选择背景"
+    hint="浅色占位；背景全屏铺开，不受虚线限制"
+    bind:close="closeBgSheet"
+    bind:select="onBgSelect"
   />
 
   <edit-layer-panel

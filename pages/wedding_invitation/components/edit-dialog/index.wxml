@@ -1,0 +1,29 @@
+<view class="edit-dialog" wx:if="{{visible}}" catchtouchmove="noop">
+  <view class="edit-dialog__mask" catchtap="onCancel" />
+  <view class="edit-dialog__panel">
+    <view class="edit-dialog__title">{{title}}</view>
+    <view class="edit-dialog__body" wx:if="{{mode === 'prompt'}}">
+      <input
+        class="edit-dialog__input"
+        value="{{innerValue}}"
+        maxlength="{{maxlength}}"
+        placeholder="{{placeholder}}"
+        placeholder-class="edit-dialog__ph"
+        focus="{{visible}}"
+        bindinput="onInput"
+        bindconfirm="onConfirm"
+        confirm-type="done"
+      />
+    </view>
+    <view class="edit-dialog__body" wx:elif="{{content}}">
+      <text class="edit-dialog__content">{{content}}</text>
+    </view>
+    <view class="edit-dialog__actions">
+      <view class="edit-dialog__btn edit-dialog__btn--cancel" catchtap="onCancel">{{cancelText}}</view>
+      <view
+        class="edit-dialog__btn edit-dialog__btn--ok {{danger ? 'edit-dialog__btn--danger' : ''}}"
+        catchtap="onConfirm"
+      >{{confirmText}}</view>
+    </view>
+  </view>
+</view>

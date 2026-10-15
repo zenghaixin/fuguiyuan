@@ -1,8 +1,17 @@
+/* 跟随窗口真实高度，避免 PC 拖拽后仍锁死旧 windowHeight */
+page {
+  height: 100%;
+}
+
 .page {
   width: 100%;
+  height: 100%;
   overflow: hidden;
   background: #f3efe9;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .page-back {
@@ -19,5 +28,14 @@
 
 edit-invite {
   display: block;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 0; /* 配合 flex:1，避免子组件按 windowHeight 撑破 */
+}
+
+edit-toolbox {
+  display: block;
+  flex-shrink: 0;
   width: 100%;
 }

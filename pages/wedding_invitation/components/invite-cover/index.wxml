@@ -1,5 +1,5 @@
 <view
-  class="invite-cover"
+  class="invite-cover {{fullBleed ? 'invite-cover--bleed' : ''}}"
   style="height: {{windowHeight}}px;"
   catchtouchstart="onTouchStart"
   catchtouchmove="onTouchMove"
@@ -15,25 +15,33 @@
       wx:for="{{pages}}"
       wx:key="id"
       wx:for-index="idx"
-      style="height: {{windowHeight}}px; background: {{item.bgColor || '#1a0c10'}};"
+      style="height: {{windowHeight}}px;"
     >
-      <!-- 整页底图（mock 或模板 bgSrc） -->
-      <image
-        wx:if="{{item.src || item.bgSrc}}"
-        class="invite-cover__img"
-        src="{{item.src || item.bgSrc}}"
-        mode="aspectFill"
-      />
-
-      <!-- 编辑导入的画布元素（相对坐标 0~1） -->
       <view
-        class="invite-cover__el"
-        wx:for="{{item.elements}}"
-        wx:for-item="el"
-        wx:key="id"
-        style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; z-index: {{el.layer || 1}}; transform: rotate({{el.rotate || 0}}deg); background: {{el.color}};"
+        class="invite-cover__bleed"
+        style="inset: {{bleedInset}}px; background: {{item.bgColor || '#f7f0ea'}};"
       >
-        <text class="invite-cover__el-label" wx:if="{{el.label}}">{{el.label}}</text>
+        <image
+          wx:if="{{item.bgSrc || item.src}}"
+          class="invite-cover__bleed-img"
+          src="{{item.bgSrc || item.src}}"
+          mode="aspectFill"
+        />
+      </view>
+
+      <view
+        class="invite-cover__board"
+        style="width: {{frameW}}px; height: {{frameH}}px; left: {{frameL}}px; top: {{frameT}}px;"
+      >
+        <view
+          class="invite-cover__el"
+          wx:for="{{item.elements}}"
+          wx:for-item="el"
+          wx:key="id"
+          style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; z-index: {{el.layer || 1}}; transform: rotate({{el.rotate || 0}}deg); background: {{el.color}};"
+        >
+          <text class="invite-cover__el-label" wx:if="{{el.label}}">{{el.label}}</text>
+        </view>
       </view>
 
       <view

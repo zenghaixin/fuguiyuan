@@ -1,0 +1,110 @@
+@import '/variable.less';
+
+.tpl-list {
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(185, 28, 58, 0.08), transparent 70%),
+    #f3efe9;
+}
+
+.tpl-list__back {
+  position: fixed;
+  left: 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 4rpx 16rpx rgba(61, 41, 20, 0.08);
+}
+
+.tpl-list__head {
+  flex-shrink: 0;
+  padding: 0 28rpx 20rpx;
+  text-align: center;
+}
+
+.tpl-list__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tpl-list__title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: @gy1;
+  line-height: 1.2;
+}
+
+.tpl-list__sub {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: @gy2;
+}
+
+.tpl-list__scroll {
+  flex: 1;
+  min-height: 0;
+  height: 0;
+  padding: 0 28rpx;
+  box-sizing: border-box;
+}
+
+.tpl-list__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.tpl-card {
+  width: calc((100% - 24rpx) / 2);
+
+  &__cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 19.5;
+    border-radius: 16rpx;
+    overflow: hidden;
+    box-shadow: 0 8rpx 24rpx rgba(61, 41, 20, 0.08);
+    border: 2rpx solid rgba(201, 184, 168, 0.35);
+  }
+
+  &__el {
+    position: absolute;
+    border-radius: 4rpx;
+    box-sizing: border-box;
+  }
+
+  &__tag {
+    position: absolute;
+    left: 12rpx;
+    top: 12rpx;
+    padding: 4rpx 12rpx;
+    border-radius: 8rpx;
+    background: rgba(185, 28, 58, 0.88);
+    color: #fff;
+    font-size: 20rpx;
+    font-weight: 600;
+  }
+
+  &__name {
+    margin-top: 12rpx;
+    font-size: 26rpx;
+    font-weight: 700;
+    color: @gy1;
+  }
+
+  &__desc {
+    margin-top: 4rpx;
+    font-size: 20rpx;
+    color: @gy2;
+    line-height: 1.35;
+  }
+}

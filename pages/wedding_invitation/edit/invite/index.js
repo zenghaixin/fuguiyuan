@@ -1,10 +1,12 @@
 import { INVITE_TOOLS, buildElementTools } from '../toolbox';
 import { DECOR_ASSETS } from '../decor-assets';
+import { BG_ASSETS } from '../bg-assets';
 import {
   ensureEditablePage,
   createDecorElement,
   appendElement,
   updateElement,
+  updatePageBackground,
   removeElement,
   setElementLayer,
   listLayers,
@@ -15,11 +17,18 @@ import {
   loadInviteDraft,
   TEMP_INVITE_ID,
 } from '~/services/invite-draft';
+import { DESIGN_ASPECT } from '~/services/invite-canvas';
+import {
+  readWindowViewport,
+  bindWindowResize,
+  unbindWindowResize,
+} from '~/services/window-viewport';
 
 Page({
   data: {
     statusBarHeight: 20,
     windowHeight: 667,
+    windowWidth: 375,
     backTop: 48,
     backSize: 32,
     inviteId: TEMP_INVITE_ID,
@@ -31,6 +40,8 @@ Page({
     toolboxActive: '',
     decorSheetVisible: false,
     decorAssets: DECOR_ASSETS,
+    bgSheetVisible: false,
+    bgAssets: BG_ASSETS,
     layerPanelVisible: false,
     layerList: [],
     layerPickerVisible: false,
@@ -38,18 +49,25 @@ Page({
     layerPickerTargetId: '',
   },
 
-  onLoad() {
-    const { statusBarHeight, windowHeight } = wx.getWindowInfo();
-    const menu = wx.getMenuButtonBoundingClientRect();
-    const draft = loadInviteDraft(TEMP_INVITE_ID);
+  onLoad(query) {
+    const viewport = readWindowViewport();
+    const inviteId = (query && query.id) || TEMP_INVITE_ID;
+    const draft = loadInviteDraft(inviteId);
+    const pages = (draft && draft.pages) || [];
+    const fromQuery = query && query.page != null ? Number(query.page) : NaN;
+    const draftIndex = draft && draft.pageIndex != null ? draft.pageIndex : 0;
+    const rawIndex = Number.isFinite(fromQuery) ? fromQuery : draftIndex;
+    const invitePageIndex = pages.length
+      ? Math.max(0, Math.min(pages.length - 1, rawIndex))
+      : 0;
     this.setData({
-      statusBarHeight,
-      windowHeight,
-      backTop: menu.top || statusBarHeight + 6,
-      backSize: menu.height || 32,
-      inviteId: TEMP_INVITE_ID,
-      invitePages: (draft && draft.pages) || [],
-      invitePageIndex: (draft && draft.pageIndex) || 0,
+      ...viewport,
+      inviteId,
+      invitePages: pages,
+      invitePageIndex,
+    });
+    bindWindowResize(this, (next) => {
+      this.setData(next);
     });
   },
 
@@ -58,19 +76,42 @@ Page({
   },
 
   onUnload() {
+    unbindWindowResize(this);
     this.persistDraft();
   },
 
+  onShow() {
+    const inviteId = this.data.inviteId || TEMP_INVITE_ID;
+    const draft = loadInviteDraft(inviteId);
+    if (!draft) return;
+    const pages = draft.pages || [];
+    const rawIndex = draft.pageIndex != null ? draft.pageIndex : 0;
+    const invitePageIndex = pages.length
+      ? Math.max(0, Math.min(pages.length - 1, rawIndex))
+      : 0;
+    this.setData({
+      invitePages: pages,
+      invitePageIndex,
+      activeElementId: '',
+      elementEditMode: 'position',
+      toolboxActive: '',
+    });
+  },
+
+  /** 多入口可能扩展；当前从页列表进 → 回上一页即可 */
   onBack() {
     this.persistDraft();
     wx.navigateBack({ delta: 1 });
   },
+
+
 
   persistDraft() {
     return saveInviteDraft({
       inviteId: this.data.inviteId || TEMP_INVITE_ID,
       pages: this.data.invitePages,
       pageIndex: this.data.invitePageIndex,
+      designAspect: DESIGN_ASPECT,
       meta: { source: 'edit/invite' },
     });
   },
@@ -222,6 +263,10 @@ Page({
       this.openDecorSheet();
       return;
     }
+    if (key === 'background') {
+      this.openBgSheet();
+      return;
+    }
     if (key === 'save') {
       this.onSave();
       return;
@@ -238,8 +283,9 @@ Page({
     this.setData({ toolboxActive: '' });
     this.persistDraft().then(() => {
       const id = this.data.inviteId || TEMP_INVITE_ID;
+      const page = this.data.invitePageIndex || 0;
       wx.navigateTo({
-        url: `/pages/wedding_invitation/view/index?mode=draft&id=${id}`,
+        url: `/pages/wedding_invitation/view/index?mode=draft&id=${id}&page=${page}`,
       });
     });
   },
@@ -252,14 +298,51 @@ Page({
 
   onPickTemplate() {
     this.setData({ toolboxActive: 'template' });
-    wx.showToast({ title: '模板选择稍后接', icon: 'none' });
+    const id = this.data.inviteId || TEMP_INVITE_ID;
+    wx.navigateTo({
+      url: `/pages/wedding_invitation/edit/template-list/index?from=edit&id=${id}`,
+    });
   },
+
 
   openDecorSheet() {
     this.setData({
       toolboxActive: 'decor',
       decorSheetVisible: true,
+      bgSheetVisible: false,
       layerPanelVisible: false,
+    });
+  },
+
+  openBgSheet() {
+    this.setData({
+      toolboxActive: 'background',
+      bgSheetVisible: true,
+      decorSheetVisible: false,
+      layerPanelVisible: false,
+    });
+  },
+
+  closeBgSheet() {
+    this.setData({ bgSheetVisible: false });
+  },
+
+  onBgSelect(e) {
+    const { asset } = e.detail || {};
+    if (!asset || !asset.color) return;
+    const { pages, pageIndex } = ensureEditablePage(
+      this.data.invitePages,
+      this.data.invitePageIndex
+    );
+    const invitePages = updatePageBackground(pages, pageIndex, {
+      bgColor: asset.color,
+      bgSrc: '',
+    });
+    this.setData({
+      invitePages,
+      invitePageIndex: pageIndex,
+      bgSheetVisible: false,
+      toolboxActive: '',
     });
   },
 
@@ -273,6 +356,7 @@ Page({
       toolboxActive: 'layers',
       layerPanelVisible: true,
       decorSheetVisible: false,
+      bgSheetVisible: false,
     });
   },
 

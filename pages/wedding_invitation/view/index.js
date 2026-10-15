@@ -7,6 +7,11 @@ import {
 } from '~/services/blessing';
 import { resolveInviteViewModel } from '~/services/invite-preview';
 import {
+  readWindowViewport,
+  bindWindowResize,
+  unbindWindowResize,
+} from '~/services/window-viewport';
+import {
   invitePages as mockInvitePages,
   photoWall as mockPhotoWall,
   stagePhotos as mockStagePhotos,
@@ -32,6 +37,8 @@ Page({
     blessModuleIndex: -1,
     hasNextAfterCover: false,
     hasNextAfterPhoto: false,
+    /** 草稿预览显示安全区虚线开关 */
+    enableSafeGuide: false,
     blessVisible: false,
     blessFocus: false,
     blessContent: '',
@@ -44,13 +51,11 @@ Page({
     photoWall: [],
     stagePhotos: [],
     blessings: [],
+    coverStartPage: 0,
   },
 
   onLoad(query) {
-    const { statusBarHeight, windowHeight, windowWidth } = wx.getWindowInfo();
-    const menu = wx.getMenuButtonBoundingClientRect();
-    const backSize = menu.height || 32;
-    const backTop = menu.top || statusBarHeight + 6;
+    const viewport = readWindowViewport();
 
     // 编辑预览显式 mode=draft；直接打开 / 分享默认正式请帖（暂用 mock）
     const mode = (query && query.mode) || 'published';
@@ -68,6 +73,7 @@ Page({
     let blessModuleIndex = model.blessModuleIndex;
     let stagePhotos = [];
     let blessings = [];
+    let enableSafeGuide = mode === 'draft';
 
     // 正式请帖暂无接口：用本页 mock（含留言/现场）
     if (mode !== 'draft' || invitePages == null) {
@@ -80,14 +86,19 @@ Page({
       photoModuleIndex = showPhotoWall ? 1 : -1;
       blessModuleIndex = showPhotoWall ? 2 : 1;
       blessings = loadBlessings();
+      enableSafeGuide = false;
     }
 
+    const coverStartPage = Math.max(
+      0,
+      Math.min(
+        Math.max((invitePages || []).length - 1, 0),
+        Number(query && query.page) || 0
+      )
+    );
+
     this.setData({
-      statusBarHeight,
-      windowHeight,
-      windowWidth,
-      backTop,
-      backSize,
+      ...viewport,
       invitePages,
       photoWall,
       stagePhotos,
@@ -97,14 +108,27 @@ Page({
       moduleCount,
       photoModuleIndex,
       blessModuleIndex,
+      enableSafeGuide,
       hasNextAfterCover: moduleCount > 1,
       hasNextAfterPhoto: showGuestModules,
-      moduleTrackHeight: windowHeight * moduleCount,
+      moduleTrackHeight: viewport.windowHeight * moduleCount,
       moduleTranslateY: 0,
       moduleIndex: 0,
+      coverStartPage,
     });
     this._submitting = false;
     this._moduleDragBase = 0;
+    bindWindowResize(this, (next) => {
+      const patch = { ...next };
+      patch.moduleTrackHeight = next.windowHeight * this.data.moduleCount;
+      // 保持当前模块对齐
+      patch.moduleTranslateY = -this.data.moduleIndex * next.windowHeight;
+      this.setData(patch);
+    });
+  },
+
+  onUnload() {
+    unbindWindowResize(this);
   },
 
   onBack() {

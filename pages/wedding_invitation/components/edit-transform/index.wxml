@@ -17,41 +17,39 @@
 
     <block wx:if="{{selected}}">
       <view class="tf__frame" />
-
-      <block wx:if="{{editMode === 'size'}}">
-        <view
-          class="tf__handle tf__handle--nw"
-          data-corner="nw"
-          catchtouchstart="onResizeStart"
-          catchtouchmove="onResizeMove"
-          catchtouchend="onGestureEnd"
-          catchtouchcancel="onGestureEnd"
-        />
-        <view
-          class="tf__handle tf__handle--ne"
-          data-corner="ne"
-          catchtouchstart="onResizeStart"
-          catchtouchmove="onResizeMove"
-          catchtouchend="onGestureEnd"
-          catchtouchcancel="onGestureEnd"
-        />
-        <view
-          class="tf__handle tf__handle--sw"
-          data-corner="sw"
-          catchtouchstart="onResizeStart"
-          catchtouchmove="onResizeMove"
-          catchtouchend="onGestureEnd"
-          catchtouchcancel="onGestureEnd"
-        />
-        <view
-          class="tf__handle tf__handle--se"
-          data-corner="se"
-          catchtouchstart="onResizeStart"
-          catchtouchmove="onResizeMove"
-          catchtouchend="onGestureEnd"
-          catchtouchcancel="onGestureEnd"
-        />
-      </block>
+      <!-- 四角标记：选中即显示；大小模式可拖 -->
+      <view
+        class="tf__handle tf__handle--nw {{editMode === 'size' ? 'tf__handle--active' : ''}}"
+        data-corner="nw"
+        catchtouchstart="onResizeStart"
+        catchtouchmove="onResizeMove"
+        catchtouchend="onGestureEnd"
+        catchtouchcancel="onGestureEnd"
+      />
+      <view
+        class="tf__handle tf__handle--ne {{editMode === 'size' ? 'tf__handle--active' : ''}}"
+        data-corner="ne"
+        catchtouchstart="onResizeStart"
+        catchtouchmove="onResizeMove"
+        catchtouchend="onGestureEnd"
+        catchtouchcancel="onGestureEnd"
+      />
+      <view
+        class="tf__handle tf__handle--sw {{editMode === 'size' ? 'tf__handle--active' : ''}}"
+        data-corner="sw"
+        catchtouchstart="onResizeStart"
+        catchtouchmove="onResizeMove"
+        catchtouchend="onGestureEnd"
+        catchtouchcancel="onGestureEnd"
+      />
+      <view
+        class="tf__handle tf__handle--se {{editMode === 'size' ? 'tf__handle--active' : ''}}"
+        data-corner="se"
+        catchtouchstart="onResizeStart"
+        catchtouchmove="onResizeMove"
+        catchtouchend="onGestureEnd"
+        catchtouchcancel="onGestureEnd"
+      />
     </block>
   </view>
 

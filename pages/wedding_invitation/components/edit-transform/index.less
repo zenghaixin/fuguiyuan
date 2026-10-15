@@ -1,5 +1,9 @@
+@import '/variable.less';
+
 /* 圆环带厚度：刻度、数字、角度标识都落在这个宽度里 */
 @angle-band: 56rpx;
+/* 选中态跟主题红；虚线+白描边，红底元素上仍可辨认 */
+@select: @brand7-normal;
 
 .tf {
   position: absolute;
@@ -23,26 +27,42 @@
     z-index: 1;
   }
 
+  /* 选中：虚线红框 + 白描边，样式与蓝版一致，色走主题 */
   &__frame {
     position: absolute;
-    inset: -2rpx;
-    border: 2rpx solid #b91c3a;
+    inset: -4rpx;
+    border: 3rpx dashed @select;
+    border-radius: 6rpx;
     box-sizing: border-box;
     pointer-events: none;
     z-index: 2;
+    background: rgba(185, 28, 58, 0.06);
+    box-shadow:
+      0 0 0 2rpx rgba(255, 255, 255, 0.95),
+      0 0 0 6rpx rgba(185, 28, 58, 0.2);
   }
 
   &__handle {
     position: absolute;
-    width: 28rpx;
-    height: 28rpx;
-    margin: -14rpx;
-    border-radius: 50%;
+    width: 22rpx;
+    height: 22rpx;
+    margin: -11rpx;
+    border-radius: 4rpx;
     background: #fff;
-    border: 3rpx solid #b91c3a;
+    border: 3rpx solid @select;
     box-sizing: border-box;
     z-index: 3;
-    box-shadow: 0 2rpx 8rpx rgba(61, 41, 20, 0.18);
+    box-shadow: 0 2rpx 8rpx rgba(185, 28, 58, 0.28);
+    pointer-events: none;
+
+    &--active {
+      width: 28rpx;
+      height: 28rpx;
+      margin: -14rpx;
+      border-radius: 50%;
+      pointer-events: auto;
+      box-shadow: 0 2rpx 10rpx rgba(185, 28, 58, 0.4);
+    }
 
     &--nw {
       left: 0;

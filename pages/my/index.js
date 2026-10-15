@@ -57,7 +57,14 @@ Page({
   },
 
   onEleClick(e) {
-    const { name, url } = e.currentTarget.dataset.data || {};
+    const data = e.currentTarget.dataset.data || {};
+    const { name, url, type } = data;
+    if (type === 'invite' || name === '我的喜帖') {
+      wx.navigateTo({
+        url: '/pages/wedding_invitation/edit/invite-works/index',
+      });
+      return;
+    }
     if (url) return;
     this.onShowToast('#t-toast', name || '功能示意');
   },

@@ -1,0 +1,40 @@
+<view class="start">
+  <view
+    class="start__back"
+    style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+    catchtap="onBack"
+  >
+    <t-icon name="chevron-left" size="44rpx" color="#3d2914" />
+  </view>
+
+  <view class="start__head" style="padding-top: {{backTop}}px;">
+    <view class="start__nav" style="height: {{backSize}}px;">
+      <view class="start__title">新建喜帖</view>
+    </view>
+    <view class="start__sub">选择模板快速开始，或从空白自定义</view>
+  </view>
+
+  <view class="start__list">
+    <view class="start-card" bindtap="onPickTemplate">
+      <view class="start-card__icon start-card__icon--red">
+        <t-icon name="file" size="48rpx" color="#b91c3a" />
+      </view>
+      <view class="start-card__main">
+        <view class="start-card__name">选择模板</view>
+        <view class="start-card__desc">含封面与内页结构，后续可再改</view>
+      </view>
+      <t-icon name="chevron-right" size="40rpx" color="#b5a394" />
+    </view>
+
+    <view class="start-card" bindtap="onPickCustom">
+      <view class="start-card__icon start-card__icon--gold">
+        <t-icon name="edit" size="48rpx" color="#b91c3a" />
+      </view>
+      <view class="start-card__main">
+        <view class="start-card__name">自定义</view>
+        <view class="start-card__desc">从空白封面页开始制作</view>
+      </view>
+      <t-icon name="chevron-right" size="40rpx" color="#b5a394" />
+    </view>
+  </view>
+</view>

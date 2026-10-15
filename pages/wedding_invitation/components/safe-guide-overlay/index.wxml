@@ -1,0 +1,21 @@
+<view class="safe-guide" wx:if="{{visible}}">
+  <view
+    class="safe-guide__frame"
+    wx:if="{{guideOn}}"
+    style="width: {{frameW}}px; height: {{frameH}}px; left: {{frameL}}px; top: {{frameT}}px;"
+  />
+  <view
+    class="safe-guide__btn {{expanded ? '' : 'safe-guide__btn--collapsed'}}"
+    catchtouchstart="onBtnTouchStart"
+    catchtouchmove="onBtnTouchMove"
+    catchtouchend="onBtnTouchEnd"
+    catchtouchcancel="onBtnTouchCancel"
+  >
+    <t-icon
+      name="{{guideOn ? 'browse' : 'browse-off'}}"
+      size="36rpx"
+      color="#fff"
+    />
+    <text class="safe-guide__label">{{guideOn ? '隐藏安全区' : '打开安全区'}}</text>
+  </view>
+</view>

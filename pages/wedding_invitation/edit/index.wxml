@@ -7,8 +7,10 @@
     <t-icon name="chevron-left" size="44rpx" color="#3d2914" />
   </view>
 
-  <view class="hub__head" style="padding-top: {{statusBarHeight + 56}}px;">
-    <view class="hub__title">编辑电子请柬</view>
+  <view class="hub__head" style="padding-top: {{backTop}}px;">
+    <view class="hub__nav" style="height: {{backSize}}px;">
+      <view class="hub__title">编辑喜帖</view>
+    </view>
     <view class="hub__sub">按模块分别编辑，不需要的可以跳过</view>
   </view>
 
@@ -35,7 +37,7 @@
   </view>
 
   <view class="hub__foot">
-    <view class="hub__preview" bindtap="onPreview">预览请柬效果</view>
+    <view class="hub__preview" bindtap="onPreview">预览喜帖效果</view>
     <view class="hub__demo" bindtap="onPreviewDemo">预览 Demo</view>
   </view>
 </view>

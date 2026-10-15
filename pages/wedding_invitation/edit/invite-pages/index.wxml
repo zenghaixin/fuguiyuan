@@ -1,0 +1,102 @@
+<view class="pages-hub">
+  <view
+    class="pages-hub__back"
+    style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+    catchtap="onBack"
+  >
+    <t-icon name="chevron-left" size="44rpx" color="#3d2914" />
+  </view>
+
+  <view class="pages-hub__head" style="padding-top: {{backTop}}px;">
+    <view class="pages-hub__nav" style="height: {{backSize}}px;">
+      <view class="pages-hub__title-row" catchtap="onRenameWork">
+        <text class="pages-hub__title">{{workTitle}}</text>
+        <t-icon name="edit" size="32rpx" color="#8a7464" />
+      </view>
+    </view>
+    <view class="pages-hub__sub">点击缩略图编辑页面；下方可进照片墙</view>
+  </view>
+
+  <scroll-view class="pages-hub__scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="pages-hub__grid" wx:if="{{pages.length}}">
+      <view
+        class="page-card"
+        wx:for="{{pages}}"
+        wx:key="id"
+        data-index="{{index}}"
+        bindtap="onOpenPage"
+      >
+        <view class="page-card__media">
+          <view
+            class="page-card__thumb"
+            style="background: {{item.bgColor || '#f7f0ea'}};"
+          >
+            <image
+              wx:if="{{item.bgSrc}}"
+              class="page-card__bg"
+              src="{{item.bgSrc}}"
+              mode="aspectFill"
+            />
+            <view
+              wx:for="{{item.elements}}"
+              wx:for-item="el"
+              wx:key="id"
+              class="page-card__el"
+              style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; background: {{el.color}}; transform: rotate({{el.rotate || 0}}deg); z-index: {{el.layer || 1}};"
+            />
+            <view class="page-card__empty" wx:if="{{!item.elements.length && !item.bgSrc}}">空白页</view>
+          </view>
+          <view class="page-card__order">第{{index + 1}}页</view>
+          <view
+            class="page-card__del"
+            data-index="{{index}}"
+            catchtap="onDeletePage"
+          >
+            <t-icon name="delete" size="32rpx" color="#b91c3a" />
+          </view>
+        </view>
+      </view>
+
+      <view
+        class="page-card page-card--add"
+        wx:if="{{pages.length < maxPages}}"
+        bindtap="onAddPage"
+      >
+        <view class="page-card__media">
+          <view class="page-card__thumb page-card__thumb--add">
+            <t-icon name="add" size="56rpx" color="#b5a394" />
+            <text class="page-card__add-text">新增页面</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="pages-hub__empty" wx:else>
+      <view class="pages-hub__empty-card" bindtap="onAddPage">
+        <t-icon name="add" size="64rpx" color="#b5a394" />
+        <view class="pages-hub__empty-tip">添加第1页</view>
+        <view class="pages-hub__empty-desc">可继续添加第2页、第3页…</view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="pages-hub__foot">
+    <view class="pages-hub__actions">
+      <view class="pages-hub__photo" bindtap="onEditPhotoWall">照片墙</view>
+      <view class="pages-hub__preview" bindtap="onPreviewAll">预览喜帖</view>
+    </view>
+  </view>
+
+  <edit-dialog
+    visible="{{dialog.visible}}"
+    mode="{{dialog.mode}}"
+    title="{{dialog.title}}"
+    content="{{dialog.content}}"
+    value="{{dialog.value}}"
+    placeholder="{{dialog.placeholder}}"
+    confirm-text="{{dialog.confirmText}}"
+    danger="{{dialog.danger}}"
+    bind:cancel="onDialogCancel"
+    bind:confirm="onDialogConfirm"
+  />
+</view>

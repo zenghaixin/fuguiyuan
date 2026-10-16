@@ -61,7 +61,7 @@ Page({
     const { name, url, type } = data;
     if (type === 'invite' || name === '我的喜帖') {
       wx.navigateTo({
-        url: '/pages/wedding_invitation/edit/invite-works/index',
+        url: '/pages/wedding_invitation/edit/invite-works/index?from=my',
       });
       return;
     }

@@ -2,15 +2,16 @@
   <swiper
     class="pw-carousel__swiper"
     style="height: {{height}}px;"
-    current="{{current}}"
+    current="{{innerCurrent}}"
     bindchange="onChange"
+
     circular="{{false}}"
     duration="{{280}}"
   >
     <swiper-item wx:for="{{photos}}" wx:key="id">
-      <view class="pw-carousel__slide">
+      <view class="pw-carousel__slide" data-index="{{index}}" bindtap="onPreview">
         <view class="pw-carousel__frame">
-          <image class="pw-carousel__img" src="{{item.src}}" mode="aspectFill" />
+          <image class="pw-carousel__img" src="{{item.src}}" mode="aspectFit" />
           <view
             wx:if="{{editable}}"
             class="pw-carousel__del"
@@ -34,4 +35,3 @@
     />
   </view>
 </view>
-

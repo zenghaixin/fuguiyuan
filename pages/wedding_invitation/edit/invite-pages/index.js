@@ -13,6 +13,7 @@ import {
 import { DESIGN_ASPECT } from '~/services/invite-canvas';
 import { navigateBackToRoute, WORKS_ROUTE, WORKS_URL } from '../nav-route';
 
+
 function pageLabel(index) {
   return `第${index + 1}页`;
 }
@@ -75,10 +76,16 @@ Page({
     });
   },
 
-  /** 固定入口：从「我的喜帖」进来（新建也会落在这层）→ 固定回作品列表 */
+  /**
+   * 固定回到「我的喜帖」。
+   * 优先 navigateBack 到栈里已有的作品列表（保留首页/我的在栈底）；
+   * 找不到再 reLaunch，避免新建链路上一页是选模板。
+   */
   onBack() {
     navigateBackToRoute(WORKS_ROUTE, WORKS_URL);
   },
+
+
 
 
   openDialog(patch) {

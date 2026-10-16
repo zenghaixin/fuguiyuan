@@ -1,0 +1,59 @@
+<view class="pw-stack" style="height: {{height}}px;">
+  <view wx:if="{{!layers.length}}" class="pw-stack__empty">
+    <t-icon name="image" size="64rpx" color="rgba(243,234,210,0.45)" />
+    <text>暂无照片</text>
+  </view>
+
+  <view wx:else class="pw-stack__deck">
+    <view class="pw-stack__count" wx:if="{{totalCount > 1}}">{{countText}}</view>
+
+    <!-- 视觉层：一张图一层；角度在 frame 上 -->
+    <block wx:for="{{layers}}" wx:key="id">
+      <view
+        wx:if="{{item.show}}"
+        class="pw-stack__layer {{item.isGhost ? 'pw-stack__layer--ghost' : ''}}"
+        style="z-index: {{item.z}};"
+      >
+        <view
+          class="pw-stack__media"
+          style="{{item.isTop && topMediaDrag ? topMediaDrag : item.mediaStyle}}"
+        >
+          <view
+            class="pw-stack__frame"
+            style="{{item.isTop && topImgDrag ? topImgDrag : item.imgStyle}}"
+          >
+            <image class="pw-stack__img" src="{{item.src}}" mode="aspectFill" />
+          </view>
+        </view>
+        <view
+          class="pw-stack__caption"
+          wx:if="{{item.caption && item.isTop && !item.isGhost}}"
+        >{{item.caption}}</view>
+      </view>
+    </block>
+
+    <!-- 透明 button 热区：滑动 + bindtap 看大图（删钮不放这里，避免被 button 裁切） -->
+    <button
+      class="pw-stack__hit"
+      hover-class="none"
+      bindtap="onTap"
+      bindtouchstart="onTouchStart"
+      bindtouchmove="onTouchMove"
+      bindtouchend="onTouchEnd"
+      bindtouchcancel="onTouchEnd"
+    ></button>
+
+    <!-- 删钮：与顶图同位移/旋转，叠在 hit 之上，不被 overflow 裁切 -->
+    <view
+      wx:if="{{editable && topId}}"
+      class="pw-stack__del-slot"
+      style="{{topMediaDrag || topMediaStyle}}"
+    >
+      <view class="pw-stack__del-frame" style="{{topImgDrag || topImgStyle}}">
+        <view class="pw-stack__del" data-id="{{topId}}" catchtap="onDelete">
+          <t-icon name="close" size="28rpx" color="#fff" />
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

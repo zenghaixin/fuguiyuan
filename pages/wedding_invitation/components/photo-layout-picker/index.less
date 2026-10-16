@@ -1,0 +1,229 @@
+.layout-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.layout-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(61, 41, 20, 0.45);
+}
+
+.layout-sheet__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fffcf8;
+  border-radius: 28rpx 28rpx 0 0;
+  padding: 12rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.layout-sheet__bar {
+  width: 64rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: rgba(201, 184, 168, 0.55);
+  margin: 8rpx auto 20rpx;
+}
+
+.layout-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+  padding: 0 8rpx;
+}
+
+.layout-sheet__title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #3d2914;
+}
+
+.layout-sheet__done {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #b91c3a;
+  padding: 8rpx 4rpx;
+}
+
+.layout-sheet__tip {
+  font-size: 22rpx;
+  color: rgba(61, 41, 20, 0.55);
+  margin-bottom: 20rpx;
+  padding: 0 8rpx;
+}
+
+.layout-sheet__scroll {
+  max-height: 62vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.layout-sheet__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  padding: 0 4rpx 12rpx;
+  box-sizing: border-box;
+}
+
+
+.layout-opt {
+  width: calc((100% - 20rpx) / 2);
+  box-sizing: border-box;
+  padding: 16rpx 14rpx 18rpx;
+  border-radius: 20rpx;
+  background: #fff;
+  border: 3rpx solid transparent;
+  box-shadow: 0 4rpx 16rpx rgba(61, 41, 20, 0.06);
+
+  &--on {
+    border-color: #b91c3a;
+    box-shadow: 0 6rpx 20rpx rgba(185, 28, 58, 0.12);
+  }
+
+  &__stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 14;
+    border-radius: 16rpx;
+    overflow: hidden;
+    background: linear-gradient(165deg, #1a1210 0%, #0c0809 55%, #160e12 100%);
+    box-sizing: border-box;
+  }
+
+
+
+  &__label {
+    margin-top: 14rpx;
+    font-size: 26rpx;
+    font-weight: 650;
+    color: #3d2914;
+    text-align: center;
+  }
+
+  &__desc {
+    margin-top: 4rpx;
+    font-size: 20rpx;
+    color: rgba(61, 41, 20, 0.5);
+    text-align: center;
+  }
+}
+
+/* 淡蓝透明底 + 荧光白边，示意「照片」 */
+.ghost {
+  background: rgba(170, 220, 255, 0.18);
+  border: 2rpx solid rgba(230, 250, 255, 0.95);
+  border-radius: 10rpx;
+  box-shadow:
+    0 0 8rpx rgba(160, 230, 255, 0.95),
+    0 0 18rpx rgba(100, 200, 255, 0.65),
+    0 0 32rpx rgba(80, 180, 255, 0.35),
+    inset 0 0 14rpx rgba(200, 240, 255, 0.35);
+  box-sizing: border-box;
+}
+
+
+/* —— 左右滑动 —— */
+.layout-opt__stage--carousel {
+  .ghost--main {
+    position: absolute;
+    left: 12%;
+    top: 14%;
+    width: 62%;
+    height: 68%;
+  }
+
+  .ghost--peek {
+    position: absolute;
+    right: 0;
+    top: 20%;
+    width: 22%;
+    height: 56%;
+    border-radius: 10rpx 0 0 10rpx;
+    opacity: 0.7;
+  }
+}
+
+/* —— 叠放 —— */
+.layout-opt__stage--stack {
+  .ghost--s1,
+  .ghost--s2,
+  .ghost--s3 {
+    position: absolute;
+    width: 58%;
+    height: 62%;
+    left: 21%;
+    top: 18%;
+  }
+
+  .ghost--s3 {
+    transform: rotate(-8deg) translate(-10rpx, 6rpx);
+    opacity: 0.45;
+  }
+
+  .ghost--s2 {
+    transform: rotate(6deg) translate(10rpx, 4rpx);
+    opacity: 0.65;
+  }
+
+  .ghost--s1 {
+    transform: rotate(-1deg);
+    z-index: 2;
+  }
+}
+
+/* —— 四宫格 —— */
+.layout-opt__stage--grid4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 10rpx;
+  padding: 18rpx 16rpx;
+
+  .ghost--g {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+/* —— 九宫格（铺满拼图） —— */
+.layout-opt__stage--grid9 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 6rpx;
+  padding: 14rpx 12rpx;
+
+  .ghost--g {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+/* —— 上下 —— */
+
+
+.layout-opt__stage--column {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  padding: 16rpx 18rpx;
+
+  .ghost--row {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .ghost--row-dim {
+    opacity: 0.45;
+    flex: 0.55;
+  }
+}

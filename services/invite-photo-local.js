@@ -5,6 +5,36 @@
 
 export const MAX_PHOTO_WALL = 20;
 export const DEFAULT_PHOTO_LAYOUT = 'carousel';
+/** 四宫格 / 九宫格最多张数 */
+export const GRID4_MAX = 4;
+export const GRID9_MAX = 9;
+
+/** 旧版 grid → 四宫格 */
+export function normalizePhotoLayout(layout) {
+  if (layout === 'grid') return 'grid4';
+  return layout || DEFAULT_PHOTO_LAYOUT;
+}
+
+export function isGridLayout(layout) {
+  const key = normalizePhotoLayout(layout);
+  return key === 'grid4' || key === 'grid9';
+}
+
+/** 排序 / 宫格列数 */
+export function layoutSortCols(layout) {
+  return normalizePhotoLayout(layout) === 'grid4' ? 2 : 3;
+}
+
+/** 宫格排版张数上限；非宫格返回 0 */
+export function layoutGridMax(layout) {
+  const key = normalizePhotoLayout(layout);
+  if (key === 'grid4') return GRID4_MAX;
+  if (key === 'grid9') return GRID9_MAX;
+  return 0;
+}
+
+
+
 
 function uid() {
   return `photo_${Date.now()}_${Math.floor(Math.random() * 10000)}`;

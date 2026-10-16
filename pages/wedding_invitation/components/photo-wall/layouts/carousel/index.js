@@ -5,18 +5,23 @@ Component({
     height: { type: Number, value: 400 },
     /** 编辑态：显示删除 */
     editable: { type: Boolean, value: false },
+    /** 外部指定当前页（上传后滚到最新） */
+    current: { type: Number, value: 0 },
   },
 
   data: {
-    current: 0,
+    innerCurrent: 0,
   },
 
   observers: {
-    photos(photos) {
+    'photos, current': function (photos, current) {
       const list = photos || [];
       const max = Math.max(list.length - 1, 0);
-      if (this.data.current > max) {
-        this.setData({ current: max });
+      let next = Number(current);
+      if (!Number.isFinite(next)) next = 0;
+      next = Math.max(0, Math.min(max, next));
+      if (next !== this.data.innerCurrent) {
+        this.setData({ innerCurrent: next });
       }
     },
   },
@@ -24,8 +29,14 @@ Component({
   methods: {
     onChange(e) {
       const current = (e.detail && e.detail.current) || 0;
-      this.setData({ current });
+      this.setData({ innerCurrent: current });
       this.triggerEvent('change', { current });
+    },
+
+    onPreview(e) {
+      const index = Number(e.currentTarget.dataset.index);
+      if (Number.isNaN(index)) return;
+      this.triggerEvent('preview', { index });
     },
 
     onDelete(e) {
@@ -35,3 +46,4 @@ Component({
     },
   },
 });
+

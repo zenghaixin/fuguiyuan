@@ -70,9 +70,20 @@
     </view>
 
     <view class="works__empty" wx:else>
+      <view class="works__empty-art" aria-hidden="true">
+        <view class="works__empty-glow" />
+        <view class="works__empty-card works__empty-card--back" />
+        <view class="works__empty-card works__empty-card--front">
+          <view class="works__empty-card-seal" />
+          <view class="works__empty-card-line works__empty-card-line--lg" />
+          <view class="works__empty-card-line" />
+          <view class="works__empty-card-line works__empty-card-line--sm" />
+        </view>
+      </view>
       <view class="works__empty-tip">还没有喜帖</view>
-      <view class="works__empty-desc">新建后可选择模板或自定义</view>
+      <view class="works__empty-desc">从下方新建一份，可选模板或自行设计</view>
     </view>
+
   </scroll-view>
 
   <view class="works__foot">

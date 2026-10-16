@@ -32,10 +32,30 @@
     overflow: hidden;
   }
 
+  &__swipe {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  &__grid-wrap {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+
+
   &__track {
     height: 100%;
     display: flex;
     will-change: transform;
+
+    &--column {
+      flex-direction: column;
+      width: 100%;
+      height: auto;
+    }
 
     &--anim {
       transition: transform 0.3s cubic-bezier(0.22, 0.8, 0.28, 1);
@@ -47,7 +67,13 @@
     flex-shrink: 0;
     padding: 0 32rpx;
     box-sizing: border-box;
+
+    &--column {
+      width: 100%;
+      height: auto;
+    }
   }
+
 
   &__frame {
     position: relative;
@@ -56,7 +82,9 @@
     border-radius: 24rpx;
     overflow: hidden;
     background: #2a1218;
+
   }
+
 
   &__img {
     width: 100%;
@@ -71,6 +99,14 @@
     flex-direction: column;
     align-items: center;
     gap: 14rpx;
+
+    /* 宫格且无提示/圆点：只留安全区，舞台吃满 */
+    &--slim {
+      padding-top: 0;
+      padding-bottom: env(safe-area-inset-bottom);
+      gap: 0;
+      min-height: 0;
+    }
   }
 
   &__caption {
@@ -100,23 +136,87 @@
     }
   }
 
+
+
   &__hint {
-    min-height: 64rpx;
+    height: 64rpx;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4rpx;
     font-size: 22rpx;
     line-height: 32rpx;
     color: rgba(243, 234, 210, 0.85);
     letter-spacing: 2rpx;
     animation: photo-hint-bounce 1.6s ease-in-out infinite;
+    box-sizing: border-box;
 
     &--back {
       animation-name: photo-hint-bounce-back;
     }
   }
+
+  &__viewer {
+    /**
+     * 不能用 fixed：预览喜帖时照片墙在带 transform 的 module-slider 里，
+     * fixed 会相对错误坐标系，导致大图上下偏移。
+     * absolute 铺满当前照片墙屏（激活时即可视区域）。
+     */
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+  }
+
+
+
+  &__viewer-bar {
+    flex-shrink: 0;
+    position: relative;
+    height: 72rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: content-box;
+  }
+
+  &__viewer-ind {
+    font-size: 28rpx;
+    color: rgba(255, 255, 255, 0.92);
+    letter-spacing: 2rpx;
+  }
+
+  &__viewer-close {
+    position: absolute;
+    right: 16rpx;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 64rpx;
+    height: 64rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__viewer-body {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__viewer-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
 }
+
 
 @keyframes photo-hint-bounce {
   0%,

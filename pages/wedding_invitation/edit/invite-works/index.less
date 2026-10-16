@@ -133,21 +133,111 @@
 }
 
 .works__empty {
-  padding: 80rpx 0;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 48rpx 24rpx 80rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
+.works__empty-art {
+  position: relative;
+  width: 280rpx;
+  height: 300rpx;
+  margin-bottom: 36rpx;
+}
+
+.works__empty-glow {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 220rpx;
+  height: 220rpx;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(185, 28, 58, 0.14) 0%,
+    rgba(185, 28, 58, 0.04) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.works__empty-card {
+  position: absolute;
+  left: 50%;
+  width: 168rpx;
+  height: 224rpx;
+  border-radius: 18rpx;
+  box-sizing: border-box;
+  background: #fffcf8;
+  box-shadow: 0 12rpx 36rpx rgba(61, 41, 20, 0.1);
+
+  &--back {
+    top: 28rpx;
+    transform: translateX(-50%) rotate(-8deg);
+    background: #f7f0ea;
+    border: 2rpx solid rgba(201, 184, 168, 0.35);
+    opacity: 0.85;
+  }
+
+  &--front {
+    top: 40rpx;
+    transform: translateX(-50%) rotate(4deg);
+    border: 2rpx solid rgba(185, 28, 58, 0.18);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36rpx 24rpx 28rpx;
+    gap: 14rpx;
+  }
+}
+
+.works__empty-card-seal {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  margin-bottom: 8rpx;
+  background: radial-gradient(circle at 35% 30%, #d94866, #b91c3a 70%);
+  box-shadow: 0 4rpx 12rpx rgba(185, 28, 58, 0.28);
+}
+
+.works__empty-card-line {
+  width: 72%;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: rgba(201, 184, 168, 0.45);
+
+  &--lg {
+    width: 56%;
+    height: 10rpx;
+    background: rgba(185, 28, 58, 0.22);
+  }
+
+  &--sm {
+    width: 40%;
+  }
+}
+
 .works__empty-tip {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #8a7464;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #3d2914;
   margin-bottom: 12rpx;
+  letter-spacing: 1rpx;
 }
 
 .works__empty-desc {
-  font-size: 22rpx;
-  color: #b5a394;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: #8a7464;
+  max-width: 420rpx;
 }
+
 
 .works__foot {
   flex-shrink: 0;

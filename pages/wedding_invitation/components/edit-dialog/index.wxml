@@ -19,11 +19,16 @@
       <text class="edit-dialog__content">{{content}}</text>
     </view>
     <view class="edit-dialog__actions">
-      <view class="edit-dialog__btn edit-dialog__btn--cancel" catchtap="onCancel">{{cancelText}}</view>
       <view
-        class="edit-dialog__btn edit-dialog__btn--ok {{danger ? 'edit-dialog__btn--danger' : ''}}"
+        wx:if="{{showCancel}}"
+        class="edit-dialog__btn edit-dialog__btn--cancel"
+        catchtap="onCancel"
+      >{{cancelText}}</view>
+      <view
+        class="edit-dialog__btn edit-dialog__btn--ok {{danger ? 'edit-dialog__btn--danger' : ''}} {{showCancel ? '' : 'edit-dialog__btn--alone'}}"
         catchtap="onConfirm"
       >{{confirmText}}</view>
     </view>
+
   </view>
 </view>

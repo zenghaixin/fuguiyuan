@@ -1,0 +1,172 @@
+.pw-stack {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  /* 飞出走影需要裁切；删钮在内侧，避免贴边被裁 */
+  overflow: hidden;
+  padding: 28rpx 48rpx 56rpx;
+}
+
+.pw-stack__deck {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.pw-stack__count {
+  position: absolute;
+  top: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  min-width: 88rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 24rpx;
+  background: rgba(0, 0, 0, 0.45);
+  color: rgba(243, 234, 210, 0.95);
+  font-size: 24rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+  text-align: center;
+  pointer-events: none;
+}
+
+.pw-stack__layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: transparent;
+  pointer-events: none;
+
+  &--ghost {
+    pointer-events: none;
+  }
+}
+
+.pw-stack__media {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8rpx;
+  bottom: 52rpx;
+  transform-origin: center center;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.pw-stack__frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.pw-stack__img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 24rpx;
+  background: #1a0c10;
+  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+/* 与顶图 media 同位置，z 高于 hit，避免被 button 裁切 */
+.pw-stack__del-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8rpx;
+  bottom: 52rpx;
+  z-index: 60;
+  transform-origin: center center;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.pw-stack__del-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.pw-stack__del {
+  position: absolute;
+  /* 往内收，避开圆角与父级 overflow 裁切 */
+  top: 28rpx;
+  right: 28rpx;
+  z-index: 2;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(185, 28, 58, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.25);
+}
+
+.pw-stack__del .t-icon,
+.pw-stack__del t-icon {
+  pointer-events: none;
+}
+
+.pw-stack__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24rpx;
+  z-index: 2;
+  padding: 0 24rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.pw-stack__empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  color: rgba(243, 234, 210, 0.55);
+  font-size: 26rpx;
+  border-radius: 24rpx;
+  border: 2rpx dashed rgba(255, 255, 255, 0.12);
+  box-sizing: border-box;
+}
+
+.pw-stack__hit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 50;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  line-height: normal;
+  font-size: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  &::after {
+    border: none;
+  }
+}

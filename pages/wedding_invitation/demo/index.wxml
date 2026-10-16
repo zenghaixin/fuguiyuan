@@ -24,6 +24,7 @@
 
 
     <photo-wall
+      id="photoWall"
       photos="{{photoWall}}"
       window-height="{{windowHeight}}"
       window-width="{{windowWidth}}"
@@ -33,6 +34,7 @@
       has-next-module="{{true}}"
       bind:moduledrag="onModuleDrag"
     />
+
 
     <bless-board
       id="blessBoard"

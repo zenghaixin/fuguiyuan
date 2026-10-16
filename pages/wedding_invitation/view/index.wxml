@@ -13,6 +13,7 @@
   >
     <!-- ① 请柬封面 -->
     <invite-cover
+      wx:if="{{showCover}}"
       pages="{{invitePages}}"
       window-height="{{windowHeight}}"
       window-width="{{windowWidth}}"
@@ -26,6 +27,7 @@
     <!-- ② 照片墙：有数据才显示 -->
     <photo-wall
       wx:if="{{showPhotoWall}}"
+      id="photoWall"
       photos="{{photoWall}}"
       window-height="{{windowHeight}}"
       window-width="{{windowWidth}}"
@@ -33,8 +35,14 @@
       active="{{moduleIndex === photoModuleIndex}}"
       left-behind="{{moduleIndex > photoModuleIndex}}"
       has-next-module="{{hasNextAfterPhoto}}"
+      start-index="{{photoStartIndex}}"
+      layout="{{photoWallLayout}}"
       bind:moduledrag="onModuleDrag"
     />
+
+
+
+
 
     <!-- ③ 留言/婚礼现场：仅正式请帖 -->
     <bless-board
@@ -53,10 +61,11 @@
 
   <!-- 安全区虚线浮层（独立于预览组件，仅草稿预览） -->
   <safe-guide-overlay
-    visible="{{enableSafeGuide && moduleIndex === 0}}"
+    visible="{{enableSafeGuide && showCover && moduleIndex === 0}}"
     window-width="{{windowWidth}}"
     window-height="{{windowHeight}}"
   />
+
 </view>
 
 <view class="bless-sheet" wx:if="{{showGuestModules && blessVisible}}">

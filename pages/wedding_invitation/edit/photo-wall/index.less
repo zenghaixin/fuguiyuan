@@ -38,3 +38,62 @@ edit-toolbox {
   flex-shrink: 0;
   width: 100%;
 }
+
+.sort-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.sort-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(61, 41, 20, 0.45);
+}
+
+.sort-sheet__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fffcf8;
+  border-radius: 28rpx 28rpx 0 0;
+  padding: 12rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.sort-sheet__bar {
+  width: 64rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: rgba(201, 184, 168, 0.55);
+  margin: 8rpx auto 20rpx;
+}
+
+.sort-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+  padding: 0 8rpx;
+}
+
+.sort-sheet__title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #3d2914;
+}
+
+.sort-sheet__done {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #b91c3a;
+  padding: 8rpx 4rpx;
+}
+
+.sort-sheet__tip {
+  font-size: 22rpx;
+  color: rgba(61, 41, 20, 0.55);
+  margin-bottom: 12rpx;
+  padding: 0 8rpx;
+}

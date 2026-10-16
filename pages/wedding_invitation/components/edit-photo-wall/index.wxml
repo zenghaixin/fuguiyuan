@@ -4,32 +4,71 @@
       <view class="edit-photo__title">编辑照片墙</view>
     </view>
     <view class="edit-photo__sub">
-      {{photos.length ? '已添加 ' + photos.length + ' 张，可继续添加' : '添加你们的合影与瞬间'}}
+      {{photos.length ? (isGrid ? '已添加 ' + photos.length + ' 张，长按拖动可排序' : '已添加 ' + photos.length + ' 张，可继续添加') : (isGrid ? '点击空位或下方按钮添加照片' : '添加你们的合影与瞬间')}}
+
     </view>
   </view>
 
   <view class="edit-photo__body">
-    <view class="edit-canvas" wx:if="{{!photos.length}}" bindtap="onAdd">
-      <view class="edit-canvas__frame">
-        <t-icon name="image" size="64rpx" color="#c4b5a5" />
-        <view class="edit-canvas__tip">点击添加照片</view>
-        <view class="edit-canvas__desc">可多选，默认左右滑动浏览</view>
+    <view class="edit-photo__stage">
+      <!-- 非宫格且无图：点击添加 -->
+      <view class="edit-canvas" wx:if="{{!photos.length && !isGrid}}" bindtap="onAdd">
+        <view class="edit-canvas__frame">
+          <t-icon name="image" size="64rpx" color="#c4b5a5" />
+          <view class="edit-canvas__tip">点击添加照片</view>
+          <view class="edit-canvas__desc">可多选，默认左右滑动浏览</view>
+        </view>
       </view>
+
+      <!-- 宫格：无图也直接展示空宫格 -->
+      <pw-grid
+        wx:elif="{{isGrid}}"
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        cols="{{gridCols}}"
+        editable="{{true}}"
+        bind:delete="onDelete"
+        bind:preview="onPreview"
+        bind:add="onAdd"
+        bind:reorder="onReorder"
+      />
+
+
+      <pw-column
+        wx:elif="{{layout === 'column'}}"
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        current="{{current}}"
+        editable="{{true}}"
+        bind:delete="onDelete"
+        bind:change="onChange"
+        bind:preview="onPreview"
+      />
+      <pw-stack
+        wx:elif="{{layout === 'stack'}}"
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        current="{{current}}"
+        editable="{{true}}"
+        bind:delete="onDelete"
+        bind:change="onChange"
+        bind:preview="onPreview"
+      />
+      <pw-carousel
+        wx:else
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        current="{{current}}"
+        editable="{{true}}"
+        bind:delete="onDelete"
+        bind:change="onChange"
+        bind:preview="onPreview"
+      />
     </view>
 
-    <view class="edit-photo__filled" wx:else>
-      <view class="edit-photo__stage">
-        <pw-carousel
-          photos="{{photos}}"
-          height="{{stageHeight}}"
-          editable="{{true}}"
-          bind:delete="onDelete"
-        />
-      </view>
-      <view class="edit-photo__add" bindtap="onAdd">
-        <t-icon name="add" size="36rpx" color="#b91c3a" />
-        <text>继续添加照片</text>
-      </view>
+    <view class="edit-photo__add" wx:if="{{photos.length || isGrid}}" bindtap="onAdd">
+      <t-icon name="add" size="36rpx" color="#b91c3a" />
+      <text>{{photos.length ? '继续添加照片' : '添加照片'}}</text>
     </view>
   </view>
 </view>

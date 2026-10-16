@@ -10,12 +10,20 @@
   <edit-photo-wall
     photos="{{photoWall}}"
     window-height="{{windowHeight}}"
+    window-width="{{windowWidth}}"
     status-bar-height="{{statusBarHeight}}"
     back-top="{{backTop}}"
     back-size="{{backSize}}"
+    current="{{carouselIndex}}"
+    layout="{{photoWallLayout}}"
     bind:add="onAddPhoto"
     bind:delete="onDeletePhoto"
+    bind:change="onCarouselChange"
+    bind:preview="onCarouselPreview"
+    bind:reorder="onStripReorder"
   />
+
+
 
 
   <edit-toolbox
@@ -23,4 +31,45 @@
     active-key="{{toolboxActive}}"
     bind:select="onToolboxSelect"
   />
+
+  <view class="sort-sheet" wx:if="{{sortVisible}}" catchtouchmove="noop">
+    <view class="sort-sheet__mask" catchtap="cancelSortSheet" />
+    <view class="sort-sheet__panel">
+      <view class="sort-sheet__bar" />
+      <view class="sort-sheet__head">
+        <view class="sort-sheet__title">调整顺序</view>
+        <view class="sort-sheet__done" catchtap="confirmSortSheet">完成</view>
+      </view>
+      <view class="sort-sheet__tip">长按拖到目标位置，点一下查看大图；点完成后再应用到编辑区</view>
+      <photo-sort-strip
+        photos="{{sortDraft}}"
+        active-index="{{carouselIndex}}"
+        height="{{sortGridHeight}}"
+        cols="{{sortCols}}"
+        bind:reorder="onStripReorder"
+        bind:select="onStripSelect"
+      />
+
+    </view>
+  </view>
+
+  <photo-layout-picker
+    visible="{{layoutVisible}}"
+    value="{{photoWallLayout}}"
+    bind:close="closeLayoutSheet"
+    bind:select="onLayoutSelect"
+  />
+
+  <edit-dialog
+    visible="{{alertDialog.visible}}"
+    mode="confirm"
+    title="{{alertDialog.title}}"
+    content="{{alertDialog.content}}"
+    confirm-text="{{alertDialog.confirmText}}"
+    show-cancel="{{false}}"
+    bind:cancel="onAlertDialogClose"
+    bind:confirm="onAlertDialogClose"
+  />
 </view>
+
+

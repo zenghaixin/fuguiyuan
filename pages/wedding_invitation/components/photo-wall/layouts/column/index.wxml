@@ -1,0 +1,37 @@
+<view class="pw-column" style="height: {{height}}px;">
+  <swiper
+    class="pw-column__swiper"
+    style="height: {{height}}px;"
+    vertical
+    current="{{innerCurrent}}"
+    bindchange="onChange"
+    circular="{{false}}"
+    duration="{{280}}"
+  >
+    <swiper-item wx:for="{{photos}}" wx:key="id">
+      <view class="pw-column__slide" data-index="{{index}}" bindtap="onPreview">
+        <view class="pw-column__frame">
+          <image class="pw-column__img" src="{{item.src}}" mode="aspectFit" />
+          <view
+            wx:if="{{editable}}"
+            class="pw-column__del"
+            data-id="{{item.id}}"
+            catchtap="onDelete"
+          >
+            <t-icon name="close" size="28rpx" color="#fff" />
+          </view>
+        </view>
+        <view class="pw-column__caption" wx:if="{{item.caption}}">{{item.caption}}</view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <view class="pw-column__dots" wx:if="{{photos.length > 1}}">
+    <view
+      class="pw-column__dot {{innerCurrent === index ? 'pw-column__dot--on' : ''}}"
+      wx:for="{{photos}}"
+      wx:key="id"
+      wx:for-index="index"
+    />
+  </view>
+</view>

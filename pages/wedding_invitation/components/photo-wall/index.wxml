@@ -1,37 +1,108 @@
-<view
-  class="photo-wall"
-  style="height: {{windowHeight}}px;"
-  catchtouchstart="onTouchStart"
-  catchtouchmove="onTouchMove"
-  catchtouchend="onTouchEnd"
-  catchtouchcancel="onTouchEnd"
->
-  <view class="photo-wall__head" style="padding-top: {{statusBarHeight + 12}}px;">
+<view class="photo-wall" style="height: {{windowHeight}}px;">
+  <view
+    class="photo-wall__head"
+    style="padding-top: {{statusBarHeight + 12}}px;"
+    catchtouchstart="onModuleTouchStart"
+    catchtouchmove="onModuleTouchMove"
+    catchtouchend="onModuleTouchEnd"
+    catchtouchcancel="onModuleTouchEnd"
+  >
     <view class="photo-wall__title">我们的照片</view>
-    <view class="photo-wall__sub">左右滑动查看</view>
+    <view class="photo-wall__sub">{{subText}}</view>
   </view>
 
+
   <view class="photo-wall__stage">
+    <!-- 宫格：整区可上下滑切模块，点格看大图 -->
     <view
-      class="photo-wall__track {{animating ? 'photo-wall__track--anim' : ''}}"
-      style="width: {{trackWidth}}px; transform: translate3d({{translateX}}px, 0, 0);"
+      wx:if="{{isGrid}}"
+      class="photo-wall__grid-wrap"
+      style="height: {{stageHeight}}px;"
+      bindtouchstart="onModuleTouchStart"
+      bindtouchmove="onModuleTouchMove"
+      bindtouchend="onModuleTouchEnd"
+      bindtouchcancel="onModuleTouchEnd"
+    >
+      <pw-grid
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        cols="{{gridCols}}"
+        editable="{{false}}"
+        bind:preview="onGridPreview"
+      />
+    </view>
+
+    <!-- 叠放：组件内左右翻牌，纵向 moduledrag 切模块 -->
+    <view
+      wx:elif="{{isStack}}"
+      class="photo-wall__grid-wrap"
+      style="height: {{stageHeight}}px;"
+    >
+      <pw-stack
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        current="{{current}}"
+        editable="{{false}}"
+        has-next-module="{{hasNextModule}}"
+        bind:preview="onStackPreview"
+        bind:change="onStackChange"
+        bind:moduledrag="onStackModuleDrag"
+      />
+    </view>
+
+    <!-- 上下 / 左右：整区手势 -->
+    <view
+      wx:else
+      class="photo-wall__swipe"
+      catchtouchstart="onTouchStart"
+      catchtouchmove="onTouchMove"
+      catchtouchend="onTouchEnd"
+      catchtouchcancel="onTouchEnd"
     >
       <view
-        class="photo-wall__item"
-        wx:for="{{photos}}"
-        wx:key="id"
-        style="width: {{windowWidth}}px;"
+        wx:if="{{layout === 'column'}}"
+        class="photo-wall__track photo-wall__track--column {{animating ? 'photo-wall__track--anim' : ''}}"
+        style="height: {{trackHeight}}px; transform: translate3d(0, {{translateY}}px, 0);"
       >
-        <view class="photo-wall__frame">
-          <image class="photo-wall__img" src="{{item.src}}" mode="aspectFill" />
+        <view
+          class="photo-wall__item photo-wall__item--column"
+          wx:for="{{photos}}"
+          wx:key="id"
+          style="height: {{stageHeight}}px;"
+        >
+          <view class="photo-wall__frame">
+            <image class="photo-wall__img" src="{{item.src}}" mode="aspectFill" />
+          </view>
+        </view>
+      </view>
+      <view
+        wx:else
+        class="photo-wall__track {{animating ? 'photo-wall__track--anim' : ''}}"
+        style="width: {{trackWidth}}px; transform: translate3d({{translateX}}px, 0, 0);"
+      >
+        <view
+          class="photo-wall__item"
+          wx:for="{{photos}}"
+          wx:key="id"
+          style="width: {{windowWidth}}px;"
+        >
+          <view class="photo-wall__frame">
+            <image class="photo-wall__img" src="{{item.src}}" mode="aspectFill" />
+          </view>
         </view>
       </view>
     </view>
   </view>
 
-  <view class="photo-wall__footer">
-    <view class="photo-wall__caption" wx:if="{{currentCaption}}">{{currentCaption}}</view>
-    <view class="photo-wall__dots" wx:if="{{photos.length > 1}}">
+  <view
+    class="photo-wall__footer {{footerSlim ? 'photo-wall__footer--slim' : ''}}"
+    catchtouchstart="onModuleTouchStart"
+    catchtouchmove="onModuleTouchMove"
+    catchtouchend="onModuleTouchEnd"
+    catchtouchcancel="onModuleTouchEnd"
+  >
+    <view class="photo-wall__caption" wx:if="{{currentCaption && !isGrid && !isStack}}">{{currentCaption}}</view>
+    <view class="photo-wall__dots" wx:if="{{photos.length > 1 && !isGrid && !isStack}}">
       <view
         class="photo-wall__dot {{current === index ? 'photo-wall__dot--on' : ''}}"
         wx:for="{{photos}}"
@@ -39,9 +110,11 @@
         wx:for-index="index"
       />
     </view>
+
+    <!-- 无下一部分时不占位，避免宫格下方空出一条 -->
     <view
-      class="photo-wall__hint {{hintBack ? 'photo-wall__hint--back' : ''}}"
       wx:if="{{hintVisible}}"
+      class="photo-wall__hint {{hintBack ? 'photo-wall__hint--back' : ''}}"
     >
       <t-icon
         wx:if="{{hintBack}}"
@@ -58,4 +131,6 @@
       />
     </view>
   </view>
+
 </view>
+

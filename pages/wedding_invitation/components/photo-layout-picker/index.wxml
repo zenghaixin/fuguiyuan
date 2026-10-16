@@ -1,0 +1,59 @@
+<view class="layout-sheet" wx:if="{{visible}}" catchtouchmove="noop">
+  <view class="layout-sheet__mask" catchtap="onMask" />
+  <view class="layout-sheet__panel">
+    <view class="layout-sheet__bar" />
+    <view class="layout-sheet__head">
+      <view class="layout-sheet__title">选择排版</view>
+      <view class="layout-sheet__done" catchtap="onClose">完成</view>
+    </view>
+    <view class="layout-sheet__tip">透明白光边卡片示意照片位置</view>
+
+    <scroll-view class="layout-sheet__scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="layout-sheet__grid">
+        <view
+          class="layout-opt {{value === item.key ? 'layout-opt--on' : ''}}"
+          wx:for="{{options}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="onPick"
+        >
+          <view class="layout-opt__stage layout-opt__stage--{{item.key}}">
+            <block wx:if="{{item.key === 'carousel'}}">
+              <view class="ghost ghost--main" />
+              <view class="ghost ghost--peek" />
+            </block>
+            <block wx:elif="{{item.key === 'column'}}">
+              <view class="ghost ghost--row" />
+              <view class="ghost ghost--row" />
+              <view class="ghost ghost--row ghost--row-dim" />
+            </block>
+            <block wx:elif="{{item.key === 'grid4'}}">
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+            </block>
+            <block wx:elif="{{item.key === 'grid9'}}">
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+            </block>
+            <block wx:elif="{{item.key === 'stack'}}">
+              <view class="ghost ghost--s3" />
+              <view class="ghost ghost--s2" />
+              <view class="ghost ghost--s1" />
+            </block>
+          </view>
+          <view class="layout-opt__label">{{item.label}}</view>
+          <view class="layout-opt__desc">{{item.desc}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

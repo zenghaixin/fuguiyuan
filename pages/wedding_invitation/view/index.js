@@ -31,6 +31,7 @@ Page({
     moduleTrackHeight: 2001,
     moduleAnimating: true,
     moduleCount: 1,
+    showCover: true,
     showPhotoWall: false,
     showGuestModules: false,
     photoModuleIndex: -1,
@@ -52,7 +53,12 @@ Page({
     stagePhotos: [],
     blessings: [],
     coverStartPage: 0,
+    /** 进入照片墙时的起始张 */
+    photoStartIndex: 0,
+    photoWallLayout: 'carousel',
   },
+
+
 
   onLoad(query) {
     const viewport = readWindowViewport();
@@ -66,7 +72,10 @@ Page({
 
     let invitePages = model.invitePages;
     let photoWall = model.photoWall || [];
+    let photoWallLayout = model.photoWallLayout || 'carousel';
+    let showCover = true;
     let showPhotoWall = model.showPhotoWall;
+
     let showGuestModules = model.showGuestModules;
     let moduleCount = model.moduleCount;
     let photoModuleIndex = model.photoModuleIndex;
@@ -79,13 +88,44 @@ Page({
     if (mode !== 'draft' || invitePages == null) {
       invitePages = mockInvitePages;
       photoWall = mockPhotoWall;
+      photoWallLayout = 'carousel';
       stagePhotos = mockStagePhotos;
+      showCover = true;
       showPhotoWall = mockPhotoWall.length > 0;
+
       showGuestModules = true;
       moduleCount = 1 + (showPhotoWall ? 1 : 0) + 1;
       photoModuleIndex = showPhotoWall ? 1 : -1;
       blessModuleIndex = showPhotoWall ? 2 : 1;
       blessings = loadBlessings();
+      enableSafeGuide = false;
+    }
+
+    // 编辑预览分镜：请帖只看请帖，照片墙只看照片墙
+    const startModule = (query && query.module) || '';
+    let moduleIndex = 0;
+    let moduleTranslateY = 0;
+    let photoStartIndex = 0;
+
+    if (mode === 'draft' && startModule === 'invite') {
+      showCover = true;
+      showPhotoWall = false;
+      showGuestModules = false;
+      moduleCount = 1;
+      photoModuleIndex = -1;
+      blessModuleIndex = -1;
+      invitePages = (invitePages || []).map((page, i, arr) => {
+        if (i < arr.length - 1) return page;
+        return { ...page, hint: '' };
+      });
+    } else if (mode === 'draft' && startModule === 'photo') {
+      showCover = false;
+      showPhotoWall = (photoWall || []).length > 0;
+      showGuestModules = false;
+      moduleCount = 1;
+      photoModuleIndex = showPhotoWall ? 0 : -1;
+      blessModuleIndex = -1;
+      photoStartIndex = 0;
       enableSafeGuide = false;
     }
 
@@ -101,21 +141,26 @@ Page({
       ...viewport,
       invitePages,
       photoWall,
+      photoWallLayout,
       stagePhotos,
       blessings,
+      showCover,
       showPhotoWall,
       showGuestModules,
       moduleCount,
       photoModuleIndex,
       blessModuleIndex,
       enableSafeGuide,
-      hasNextAfterCover: moduleCount > 1,
+      hasNextAfterCover: showCover && (showPhotoWall || showGuestModules),
       hasNextAfterPhoto: showGuestModules,
       moduleTrackHeight: viewport.windowHeight * moduleCount,
-      moduleTranslateY: 0,
-      moduleIndex: 0,
+      moduleTranslateY,
+      moduleIndex,
       coverStartPage,
+      photoStartIndex,
     });
+
+
     this._submitting = false;
     this._moduleDragBase = 0;
     bindWindowResize(this, (next) => {
@@ -132,6 +177,11 @@ Page({
   },
 
   onBack() {
+    // 大图是浮层不是页面：返回先关看图，再退出预览页
+    const wall = this.selectComponent('#photoWall');
+    if (wall && typeof wall.closeViewerIfOpen === 'function' && wall.closeViewerIfOpen()) {
+      return;
+    }
     const pages = getCurrentPages();
     if (pages.length > 1) {
       wx.navigateBack({ delta: 1 });
@@ -139,6 +189,16 @@ Page({
     }
     wx.switchTab({ url: '/pages/home/index' });
   },
+
+  /** Android 物理返回同上 */
+  onBackPress() {
+    const wall = this.selectComponent('#photoWall');
+    if (wall && typeof wall.closeViewerIfOpen === 'function' && wall.closeViewerIfOpen()) {
+      return true;
+    }
+    return false;
+  },
+
 
   onShow() {
     if (this.data.showGuestModules && this.data.blessings && this.data.blessings.length) {

@@ -285,8 +285,9 @@ Page({
       const id = this.data.inviteId || TEMP_INVITE_ID;
       const page = this.data.invitePageIndex || 0;
       wx.navigateTo({
-        url: `/pages/wedding_invitation/view/index?mode=draft&id=${id}&page=${page}`,
+        url: `/pages/wedding_invitation/view/index?mode=draft&id=${id}&module=invite&page=${page}`,
       });
+
     });
   },
 

@@ -4,6 +4,11 @@
   "usingComponents": {
     "edit-photo-wall": "/pages/wedding_invitation/components/edit-photo-wall/index",
     "edit-toolbox": "/pages/wedding_invitation/components/edit-toolbox/index",
+    "photo-sort-strip": "/pages/wedding_invitation/components/photo-sort-strip/index",
+    "photo-layout-picker": "/pages/wedding_invitation/components/photo-layout-picker/index",
+    "edit-dialog": "/pages/wedding_invitation/components/edit-dialog/index",
     "t-icon": "tdesign-miniprogram/icon/icon"
   }
 }
+
+

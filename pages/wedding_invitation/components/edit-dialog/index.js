@@ -11,7 +11,10 @@ Component({
     cancelText: { type: String, value: '取消' },
     confirmText: { type: String, value: '确定' },
     danger: { type: Boolean, value: false },
+    /** 是否显示取消按钮（提示类弹窗可关） */
+    showCancel: { type: Boolean, value: true },
   },
+
 
   data: {
     innerValue: '',

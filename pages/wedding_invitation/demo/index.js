@@ -68,6 +68,10 @@ Page({
   },
 
   onBack() {
+    const wall = this.selectComponent('#photoWall');
+    if (wall && typeof wall.closeViewerIfOpen === 'function' && wall.closeViewerIfOpen()) {
+      return;
+    }
     const pages = getCurrentPages();
     if (pages.length > 1) {
       wx.navigateBack({ delta: 1 });
@@ -77,6 +81,15 @@ Page({
       url: '/pages/wedding_invitation/edit/invite-works/index',
     });
   },
+
+  onBackPress() {
+    const wall = this.selectComponent('#photoWall');
+    if (wall && typeof wall.closeViewerIfOpen === 'function' && wall.closeViewerIfOpen()) {
+      return true;
+    }
+    return false;
+  },
+
 
   onShow() {
     if (this.data.blessings && this.data.blessings.length) {

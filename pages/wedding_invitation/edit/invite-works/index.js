@@ -3,7 +3,7 @@ import {
   deleteInviteWork,
   renameInviteWork,
 } from '~/services/invite-draft';
-import { navigateBackOne } from '../nav-route';
+import { captureWorksEntry, leaveWorksToEntry } from '../nav-route';
 
 
 Page({
@@ -26,7 +26,9 @@ Page({
     },
   },
 
-  onLoad() {
+  onLoad(query) {
+    // 记住从哪个 Tab 进来（from 或栈上一页）；reLaunch 后不覆盖
+    captureWorksEntry(query);
     const { statusBarHeight } = wx.getWindowInfo();
     const menu = wx.getMenuButtonBoundingClientRect();
     this.setData({
@@ -34,11 +36,24 @@ Page({
       backTop: menu.top || statusBarHeight + 6,
       backSize: menu.height || 32,
     });
+    // 新建完成后 reLaunch 到此，再打开对应作品的页列表
+    const openId = query && query.open;
+    if (openId) {
+      this._openAfterCreate = openId;
+    }
   },
 
   onShow() {
     this.reload();
+    if (this._openAfterCreate) {
+      const id = this._openAfterCreate;
+      this._openAfterCreate = '';
+      wx.navigateTo({
+        url: `/pages/wedding_invitation/edit/invite-pages/index?id=${id}`,
+      });
+    }
   },
+
 
   reload() {
     this.setData({ works: listInviteWorks() });
@@ -46,9 +61,9 @@ Page({
 
   noop() {},
 
-  /** 多入口（首页 / 我的）→ 只回上一页 */
+  /** 多入口：回进入时的 Tab（首页 / 我的）；脏栈不退子页 */
   onBack() {
-    navigateBackOne();
+    leaveWorksToEntry();
   },
 
 

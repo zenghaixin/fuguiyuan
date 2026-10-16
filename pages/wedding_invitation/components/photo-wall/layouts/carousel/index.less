@@ -4,6 +4,7 @@
   position: relative;
   width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
 
   &__swiper {
     width: 100%;
@@ -12,11 +13,9 @@
   &__slide {
     height: 100%;
     box-sizing: border-box;
-    padding: 0 8rpx 56rpx;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
   }
 
   &__frame {
@@ -24,17 +23,22 @@
     width: 100%;
     flex: 1;
     min-height: 0;
+    height: 100%;
     border-radius: 20rpx;
     overflow: hidden;
-    background: #efe6dc;
-    box-shadow: 0 12rpx 32rpx rgba(61, 41, 20, 0.12);
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+
 
   &__img {
     width: 100%;
     height: 100%;
     display: block;
   }
+
 
   &__del {
     position: absolute;
@@ -51,17 +55,25 @@
   }
 
   &__caption {
-    margin-top: 16rpx;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 48rpx;
+    z-index: 2;
+    padding: 0 24rpx;
     font-size: 24rpx;
-    color: @gy2;
+    color: rgba(255, 255, 255, 0.92);
     text-align: center;
+    text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.35);
+    pointer-events: none;
   }
 
   &__dots {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 12rpx;
+    bottom: 16rpx;
+    z-index: 2;
     display: flex;
     justify-content: center;
     gap: 10rpx;
@@ -72,13 +84,12 @@
     width: 10rpx;
     height: 10rpx;
     border-radius: 50%;
-    background: rgba(61, 41, 20, 0.2);
+    background: rgba(255, 255, 255, 0.45);
 
     &--on {
       width: 24rpx;
       border-radius: 8rpx;
-      background: @brand7-normal;
+      background: #fff;
     }
   }
 }
-

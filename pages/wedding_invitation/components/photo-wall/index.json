@@ -1,6 +1,8 @@
 {
   "component": true,
   "usingComponents": {
-    "t-icon": "tdesign-miniprogram/icon/icon"
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "pw-grid": "./layouts/grid/index",
+    "pw-stack": "./layouts/stack/index"
   }
 }

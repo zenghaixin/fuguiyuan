@@ -2,6 +2,11 @@
   "component": true,
   "usingComponents": {
     "t-icon": "tdesign-miniprogram/icon/icon",
-    "pw-carousel": "../photo-wall/layouts/carousel/index"
+    "pw-carousel": "../photo-wall/layouts/carousel/index",
+    "pw-column": "../photo-wall/layouts/column/index",
+    "pw-grid": "../photo-wall/layouts/grid/index",
+    "pw-stack": "../photo-wall/layouts/stack/index"
   }
 }
+
+

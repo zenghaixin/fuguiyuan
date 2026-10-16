@@ -1,0 +1,67 @@
+<view class="pw-grid pw-grid--fill {{dragging ? 'pw-grid--drag' : ''}}" style="height: {{height}}px;">
+  <view class="pw-grid__list pw-grid__list--fill pw-grid__list--cols{{cols}}">
+    <!-- 编辑：可长按拖排序 -->
+    <block wx:if="{{editable}}">
+      <view
+        class="pw-grid__cell {{item ? '' : 'pw-grid__cell--empty'}} {{dragFrom === idx ? 'pw-grid__cell--lift' : ''}} {{hoverIndex === idx && dragging ? 'pw-grid__cell--hover' : ''}}"
+        wx:for="{{cells}}"
+        wx:for-index="idx"
+        wx:key="idx"
+        data-index="{{idx}}"
+        bindtap="onPreview"
+        bindlongpress="onLongPress"
+        catchtouchmove="onItemTouchMove"
+        bindtouchend="onTouchEnd"
+        bindtouchcancel="onTouchEnd"
+      >
+        <block wx:if="{{item}}">
+          <image class="pw-grid__img" src="{{item.src}}" mode="aspectFill" />
+          <view
+            class="pw-grid__del"
+            data-id="{{item.id}}"
+            catchtap="onDelete"
+          >
+            <t-icon name="close" size="24rpx" color="#fff" />
+          </view>
+          <view class="pw-grid__num">{{idx + 1}}</view>
+        </block>
+      </view>
+    </block>
+    <!-- 预览：右上角 icon 看大图，整格可上下滑 -->
+    <block wx:else>
+      <view
+        class="pw-grid__cell {{item ? '' : 'pw-grid__cell--empty'}}"
+        wx:for="{{cells}}"
+        wx:for-index="idx"
+        wx:key="idx"
+      >
+        <block wx:if="{{item}}">
+          <image
+            class="pw-grid__img"
+            src="{{item.src}}"
+            mode="aspectFill"
+            show-menu-by-longpress="{{false}}"
+          />
+          <view
+            class="pw-grid__view"
+            data-index="{{idx}}"
+            catchtap="onPreview"
+          >
+            <t-icon name="zoom-in" size="28rpx" color="#fff" />
+
+          </view>
+          <view class="pw-grid__num">{{idx + 1}}</view>
+        </block>
+      </view>
+    </block>
+
+  </view>
+
+  <view
+    wx:if="{{dragging}}"
+    class="pw-grid__ghost"
+    style="left: {{ghostX}}px; top: {{ghostY}}px;"
+  >
+    <image class="pw-grid__ghost-img" src="{{ghostSrc}}" mode="aspectFill" />
+  </view>
+</view>

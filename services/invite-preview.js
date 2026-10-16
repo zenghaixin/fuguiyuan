@@ -58,6 +58,19 @@ export function resolveInviteViewModel(query = {}) {
     const draft = loadInviteDraft(inviteId);
     const photoWall = (draft && draft.photoWall) || [];
     const showPhotoWall = photoWall.length > 0;
+    let photoWallLayout = (draft && draft.photoWallLayout) || 'carousel';
+    if (photoWallLayout === 'grid') photoWallLayout = 'grid4';
+    // 宫格超张则回退左右滑动，避免预览错乱
+    if (photoWallLayout === 'grid4' && photoWall.length > 4) {
+      photoWallLayout = 'carousel';
+    }
+    if (photoWallLayout === 'grid9' && photoWall.length > 9) {
+      photoWallLayout = 'carousel';
+    }
+
+
+
+
     const coverPages = editPagesToCoverPages((draft && draft.pages) || [], {
       hasPhotoWall: showPhotoWall,
     });
@@ -68,6 +81,7 @@ export function resolveInviteViewModel(query = {}) {
       mode,
       invitePages,
       photoWall,
+      photoWallLayout,
       showPhotoWall,
       showGuestModules: false,
       moduleCount,
@@ -82,6 +96,7 @@ export function resolveInviteViewModel(query = {}) {
     mode: 'published',
     invitePages: null,
     photoWall: null,
+    photoWallLayout: 'carousel',
     showPhotoWall: true,
     showGuestModules: true,
     moduleCount: 3,
@@ -90,3 +105,4 @@ export function resolveInviteViewModel(query = {}) {
     designAspect: 0,
   };
 }
+

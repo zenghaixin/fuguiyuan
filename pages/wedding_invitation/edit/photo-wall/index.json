@@ -7,6 +7,7 @@
     "photo-sort-strip": "/pages/wedding_invitation/components/photo-sort-strip/index",
     "photo-layout-picker": "/pages/wedding_invitation/components/photo-layout-picker/index",
     "edit-dialog": "/pages/wedding_invitation/components/edit-dialog/index",
+    "photo-viewer": "/pages/wedding_invitation/components/photo-viewer/index",
     "t-icon": "tdesign-miniprogram/icon/icon"
   }
 }

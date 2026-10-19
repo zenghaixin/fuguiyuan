@@ -4,7 +4,6 @@ const DIR_LOCK = 10;
 const TAP_SLOP = 28;
 const FLY_RATIO = 0.1;
 const FLY_MS = 280;
-/** 同时露出的叠层数（含顶牌）；list 仍按全部照片建层，仅 show 前几张 */
 const STACK_SHOW = 5;
 const ROT_MIN = -6.5;
 const ROT_MAX = 6.5;
@@ -25,17 +24,15 @@ function hashUnit(str) {
   return ((h >>> 0) % 10000) / 10000;
 }
 
-function mediaStyle(rot, depth) {
+/** 静置：位移 + 旋转 + 缩放都在同一张牌上（跟手时也只改这一条） */
+function layerTransform(rot, depth, show) {
   const lean = rot >= 0 ? 1 : -1;
   const tx = lean * (6 + Math.abs(rot) * 0.6) + lean * depth * 1.5;
   const ty = depth * 10;
   const scale = Math.max(0.82, 1 - depth * 0.04);
   const opacity = depth <= 2 ? 1 : Math.max(0.92, 1 - (depth - 2) * 0.04);
-  return `transform: translate3d(${tx}px, ${ty}px, 0) scale(${scale}); opacity: ${opacity};`;
-}
-
-function imgStyle(rot) {
-  return `transform: rotate(${rot}deg);`;
+  const z = show - depth;
+  return `transform: translate3d(${tx}px, ${ty}px, 0) rotate(${rot}deg) scale(${scale}); opacity: ${opacity}; z-index: ${z};`;
 }
 
 function countLabel(current, total) {
@@ -61,34 +58,46 @@ Component({
 
   data: {
     innerCurrent: 0,
-    layers: [],
+    deck: [],
     topId: '',
     totalCount: 0,
     countText: '',
-    topMediaDrag: '',
-    topImgDrag: '',
-    topMediaStyle: '',
-    topImgStyle: '',
+    topStyle: '',
+    topLayerStyle: '',
+    /** 翻牌上浮过渡中 */
+    rising: false,
+    flyGhost: {
+      show: false,
+      src: '',
+      style: '',
+    },
   },
 
   observers: {
-    photos: function (photos) {
+    // 合并监听：父级一次 setData 同时改 photos+current 时，避免连续两次重建 deck 触发渲染层崩溃
+    'photos, current': function (photos, current) {
+      if (this._flying) return;
       const list = photos || [];
       const sig = list.map((p) => p && p.id).join(',');
-      if (sig === this._photosSig && (this.data.layers || []).length) return;
-      this._photosSig = sig;
-      this.syncFromProps({ resetAngles: true });
-    },
-    current: function (current) {
-      if (this._flying) return;
+      const photosChanged = sig !== this._photosSig;
       let next = Number(current);
       if (!Number.isFinite(next)) next = 0;
-      const list = this.properties.photos || this.data.photos || [];
       const n = list.length;
       if (n > 0) next = ((next % n) + n) % n;
       else next = 0;
-      if (next === this.data.innerCurrent && (this.data.layers || []).length) return;
-      this.syncFromProps({ resetAngles: false, current: next });
+
+      if (
+        !photosChanged &&
+        next === this.data.innerCurrent &&
+        (this.data.deck || []).length
+      ) {
+        return;
+      }
+      if (photosChanged) this._photosSig = sig;
+      this.syncFromProps({
+        resetAngles: photosChanged,
+        current: next,
+      });
     },
   },
 
@@ -99,7 +108,7 @@ Component({
     },
     ready() {
       this.syncFromProps({
-        resetAngles: !(this.data.layers && this.data.layers.length),
+        resetAngles: !(this.data.deck && this.data.deck.length),
       });
     },
   },
@@ -115,16 +124,20 @@ Component({
       if (n > 0) next = ((next % n) + n) % n;
       else next = 0;
 
-      if (opts.resetAngles || !this._angleById) {
+      if (opts.resetAngles || !this._angleByAbs) {
         this.resetAngleBook(list);
         this._photosSig = list.map((p) => p && p.id).join(',');
+        this._absCurrent = next;
+      } else {
+        // 对齐到同一张图，绝对游标只平移，不整表重建 → 环形 key 可衔接
+        this.alignAbsCurrent(next, n);
       }
 
-      const patch = this.layersPatch(list, next);
+      const patch = this.deckPatch(list, next);
       if (
         !opts.resetAngles &&
         next === this.data.innerCurrent &&
-        (this.data.layers || []).length === (patch.layers || []).length &&
+        (this.data.deck || []).length === (patch.deck || []).length &&
         this.data.topId === patch.topId
       ) {
         return;
@@ -133,17 +146,31 @@ Component({
       this.setData({
         innerCurrent: next,
         ...patch,
-        topMediaDrag: '',
-        topImgDrag: '',
+        topStyle: '',
+        rising: false,
+        flyGhost: { show: false, src: '', style: '' },
       });
     },
 
-    resetAngleBook(photos) {
-      this._angleById = {};
+    /** 让 _absCurrent % n === current，保留单调递增，供环形 wx:key */
+    alignAbsCurrent(current, n) {
+      if (!n) {
+        this._absCurrent = 0;
+        return;
+      }
+      const cur = ((Number(current) || 0) % n + n) % n;
+      if (this._absCurrent == null || !Number.isFinite(this._absCurrent)) {
+        this._absCurrent = cur;
+        return;
+      }
+      const a = this._absCurrent;
+      const mod = ((a % n) + n) % n;
+      this._absCurrent = a - mod + cur;
+    },
+
+    resetAngleBook() {
+      this._angleByAbs = {};
       this._leanBalance = { left: 0, right: 0 };
-      (photos || []).forEach((p) => {
-        if (p && p.id) this._angleById[p.id] = null;
-      });
     },
 
     balancePreferSide() {
@@ -188,127 +215,95 @@ Component({
     },
 
     ensureInitialAngles(order) {
+      if (!this._angleByAbs) this._angleByAbs = {};
       order.forEach((row, i) => {
-        const id = row.p && row.p.id;
-        if (!id || this._angleById[id] != null) return;
-        // 只给会露出来的层补角
-        if (row.depth >= STACK_SHOW) {
-          this._angleById[id] = 0;
-          return;
-        }
+        const abs = row.abs;
+        if (abs == null || this._angleByAbs[abs] != null) return;
+        const seed = `${(row.p && row.p.id) || 'p'}:${abs}`;
         let rot;
-        if (i === 0) rot = this.initialTopAngle(id);
+        if (i === 0) rot = this.initialTopAngle(seed);
         else {
-          const above = order[i - 1];
-          const aboveRot =
-            above && above.p ? this._angleById[above.p.id] : 0;
-          rot = this.calcAngleFromAbove(aboveRot == null ? 0 : aboveRot, id);
+          const aboveRot = this._angleByAbs[order[i - 1].abs];
+          rot = this.calcAngleFromAbove(aboveRot == null ? 0 : aboveRot, seed);
         }
         this.noteLean(rot, null);
-        this._angleById[id] = rot;
+        this._angleByAbs[abs] = rot;
       });
     },
 
     /**
-     * 按 photos 全量建层：一张图一层。
-     * depth=0 顶牌；翻牌后 current 前进，整表循环重排。
-     * show：仅前 STACK_SHOW 张进 DOM（走影单独一项 isGhost 也 show）。
+     * 环形预留：始终铺 STACK_SHOW 层（可重复 A,B,C,D,A…）。
+     * wx:key 用绝对下标 k-{abs}，飞走只丢掉顶层 key，底下已有的下一张不会「突然生成」。
      */
-    buildLayers(photos, current, opts = {}) {
+    buildDeck(photos, current, opts = {}) {
       const list = photos || [];
       const n = list.length;
       if (!n) return [];
-      if (!this._angleById) this.resetAngleBook(list);
+      if (!this._angleByAbs) this.resetAngleBook();
 
       const cur = ((Number(current) || 0) % n + n) % n;
-      const flewId = opts.flewId || '';
-      const ghost = opts.ghost || null;
+      // 多于 1 张时固定铺满 STACK_SHOW，不足则循环重复（像无限列表预载）
+      const show = n <= 1 ? 1 : STACK_SHOW;
 
-      // 从顶到底：depth 0..n-1，对应 list 循环序
+      let absBase = opts.absBase;
+      if (absBase == null) absBase = this._absCurrent;
+      if (absBase == null || !Number.isFinite(absBase)) absBase = cur;
+      const mod = ((absBase % n) + n) % n;
+      if (mod !== cur) absBase = absBase - mod + cur;
+
       const order = [];
-      for (let depth = 0; depth < n; depth += 1) {
-        const photoIndex = (cur + depth) % n;
+      for (let depth = 0; depth < show; depth += 1) {
+        const abs = absBase + depth;
+        const photoIndex = ((abs % n) + n) % n;
         order.push({
+          abs,
           photoIndex,
           p: list[photoIndex],
           depth,
         });
       }
 
-      this.ensureInitialAngles(order.filter((r) => r.depth < STACK_SHOW));
+      this.ensureInitialAngles(order);
 
-      if (flewId) {
-        const idx = order.findIndex((r) => r.p && r.p.id === flewId);
-        let aboveRot = 0;
-        if (idx > 0) aboveRot = this._angleById[order[idx - 1].p.id] || 0;
-        else if (order.length) {
-          aboveRot = this._angleById[order[order.length - 1].p.id] || 0;
-        }
-        if (idx !== 0) {
-          const prevRot = this._angleById[flewId];
-          const rot = this.calcAngleFromAbove(aboveRot, flewId);
-          this.noteLean(rot, prevRot);
-          this._angleById[flewId] = rot;
-        }
-      }
-
-      // 底层先、顶层后，方便同 z 时的绘制顺序
-      const layers = [];
+      const cards = [];
       for (let i = order.length - 1; i >= 0; i -= 1) {
-        const { p, photoIndex, depth } = order[i];
+        const { p, photoIndex, depth, abs } = order[i];
         if (!p) continue;
-        const rot = this._angleById[p.id] || 0;
-        const show = depth < STACK_SHOW;
-        layers.push({
-          id: p.id,
+        const rot = this._angleByAbs[abs] || 0;
+        const style = layerTransform(rot, depth, show);
+        cards.push({
+          id: `k-${abs}`,
           photoId: p.id,
           src: p.src,
           caption: p.caption || '',
           photoIndex,
           isTop: depth === 0,
-          isGhost: false,
           depth,
           rot,
-          show,
-          z: n - depth,
-          mediaStyle: show ? mediaStyle(rot, depth) : '',
-          imgStyle: show ? imgStyle(rot) : '',
+          layerStyle: style,
         });
       }
-
-      // 走影也是 layers 里的一项
-      if (ghost) {
-        layers.push({
-          id: `ghost-${ghost.photoId}`,
-          photoId: ghost.photoId,
-          src: ghost.src,
-          caption: '',
-          photoIndex: ghost.photoIndex,
-          isTop: false,
-          isGhost: true,
-          depth: -1,
-          rot: ghost.rot || 0,
-          show: true,
-          z: n + 10,
-          mediaStyle: ghost.mediaStyle || '',
-          imgStyle: ghost.imgStyle || '',
-        });
-      }
-
-      return layers;
+      return cards;
     },
 
-    layersPatch(list, current, opts) {
-      const layers = this.buildLayers(list, current, opts);
-      const top = layers.find((l) => l.isTop && !l.isGhost);
+    deckPatch(list, current, opts) {
+      const deck = this.buildDeck(list, current, opts);
+      const top = deck.find((c) => c.isTop);
       return {
-        layers,
+        deck,
         topId: (top && top.photoId) || '',
-        topMediaStyle: (top && top.mediaStyle) || '',
-        topImgStyle: (top && top.imgStyle) || '',
+        topLayerStyle: (top && top.layerStyle) || '',
         totalCount: (list || []).length,
         countText: countLabel(current, (list || []).length),
       };
+    },
+
+    pruneAngleAbs(absBase) {
+      if (!this._angleByAbs) return;
+      const minKeep = (Number(absBase) || 0) - 2;
+      Object.keys(this._angleByAbs).forEach((k) => {
+        if (Number(k) < minKeep) delete this._angleByAbs[k];
+      });
     },
 
     resetTouch() {
@@ -323,27 +318,54 @@ Component({
       this._cardDragging = false;
     },
 
-    onDelete(e) {
-      const id = e.currentTarget.dataset.id;
-      if (!id) return;
+    /**
+     * 原生 button 内子节点经常收不到 tap，只稳定收到 touch*。
+     * 用 touchstart 标记、touchend 真正删除（防重复）。
+     * 删除事件必须延后抛出：在 touch 回调里立刻 setData 拆掉 button/自定义组件，
+     * 会触发渲染层 FLOW_ALLOC_NODE_ID。
+     */
+    onDeleteStart(e) {
+      const id = e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id;
       this._skipTap = true;
-      this.triggerEvent('delete', { id });
+      this._touching = false;
+      this._deletePendingId = id || this.data.topId || '';
     },
 
-    /** 与左右轮播同一套：utils/preview-photos → wx.previewImage */
+    onDeleteCancel() {
+      this._deletePendingId = '';
+    },
+
+    onDelete(e) {
+      const id =
+        (e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id) ||
+        this._deletePendingId ||
+        '';
+      if (!id) return;
+      // touchend + tap 可能连续到，同一按下只删一次
+      if (this._deleteFiredId === id && Date.now() - (this._deleteFiredAt || 0) < 400) {
+        return;
+      }
+      this._deleteFiredId = id;
+      this._deleteFiredAt = Date.now();
+      this._deletePendingId = '';
+      this._skipTap = true;
+      if (this._deleteTimer) clearTimeout(this._deleteTimer);
+      this._deleteTimer = setTimeout(() => {
+        this._deleteTimer = null;
+        this.triggerEvent('delete', { id });
+      }, 32);
+    },
+
     openPreview(index) {
-      const list = this.data.photos || this.properties.photos || [];
-      console.log('[pw-stack] openPreview', { index, listLen: list.length });
-      previewPhotos(list, index, {
+      previewPhotos(this.data.photos || this.properties.photos || [], index, {
         fail: (err) => console.error('[pw-stack] previewImage fail', err),
       });
     },
 
     onTap() {
-      console.log('[pw-stack] onTap', { skip: this._skipTap, flying: this._flying });
       this._awaitingTap = false;
       if (this._flying || this._skipTap) return;
-      const top = (this.data.layers || []).find((l) => l.isTop && !l.isGhost);
+      const top = (this.data.deck || []).find((c) => c.isTop);
       if (!top) return;
       this.openPreview(top.photoIndex);
     },
@@ -394,14 +416,12 @@ Component({
       }
       this._cardDragging = true;
 
-      const top = (this.data.layers || []).find((l) => l.isTop && !l.isGhost);
-      const baseRot = (top && top.rot) || 0;
       const n = (this.data.photos || []).length;
       const dragX = n <= 1 ? dx * 0.35 : dx;
-      const dragRot = Math.max(-14, Math.min(14, dragX / 18));
+      const rot = Math.max(-14, Math.min(14, dragX / 18));
+      // 一条 topStyle：位移+倾斜，只动顶牌
       this.setData({
-        topMediaDrag: `transform: translate3d(${dragX}px, 0, 0);`,
-        topImgDrag: `transform: rotate(${baseRot + dragRot}deg);`,
+        topStyle: `transform: translate3d(${dragX}px, 0, 0) rotate(${rot}deg); z-index: 10;`,
       });
     },
 
@@ -409,7 +429,7 @@ Component({
       if (!this._touching) return;
       if (this._flying) {
         this.resetTouch();
-        this.setData({ topMediaDrag: '', topImgDrag: '' });
+        this.setData({ topStyle: '' });
         return;
       }
 
@@ -427,32 +447,22 @@ Component({
           : 375;
       const flyTh = w * FLY_RATIO;
 
-      // 轻点：交给 button bindtap 调 previewImage；若 tap 没来，本地全屏兜底
       if (Math.abs(dx) < TAP_SLOP && Math.abs(dy) < TAP_SLOP) {
         if (moduleDragging) {
           this._moduleDragging = false;
           this.triggerEvent('moduledrag', { phase: 'cancel', dy: 0 });
         }
-        const top = (this.data.layers || []).find((l) => l.isTop && !l.isGhost);
-        this.setData({ topMediaDrag: '', topImgDrag: '' });
+        this.setData({ topStyle: '' });
         this.resetTouch();
-        // tap 由 button.bindtap 触发；此处只清状态
-        this._awaitingTap = true;
-        clearTimeout(this._tapFallbackTimer);
-        this._tapFallbackTimer = setTimeout(() => {
-          this._awaitingTap = false;
-        }, 120);
         return;
       }
 
-      // 有明显滑动：吞掉随后的 tap
       this._skipTap = true;
-      this._awaitingTap = false;
 
       if (moduleDragging && dir === 'v' && Math.abs(dy) >= TAP_SLOP) {
         this._moduleDragging = false;
         this.triggerEvent('moduledrag', { phase: 'end', dy });
-        this.setData({ topMediaDrag: '', topImgDrag: '' });
+        this.setData({ topStyle: '' });
         this.resetTouch();
         return;
       }
@@ -461,18 +471,16 @@ Component({
         if (n > 1 && Math.abs(dx) >= flyTh) {
           this.flyToBottom(dx > 0 ? 1 : -1, dx);
         } else {
-          const top = (this.data.layers || []).find((l) => l.isTop && !l.isGhost);
-          const back = (top && top.mediaStyle) || '';
-          const imgBack = (top && top.imgStyle) || '';
+          const top = (this.data.deck || []).find((c) => c.isTop);
+          const back = (top && top.layerStyle) || '';
           this.setData({
-            topMediaDrag: back
+            topStyle: back
               ? `${back} transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.28, 1);`
               : '',
-            topImgDrag: imgBack,
           });
           clearTimeout(this._springTimer);
           this._springTimer = setTimeout(() => {
-            if (!this._flying) this.setData({ topMediaDrag: '', topImgDrag: '' });
+            if (!this._flying) this.setData({ topStyle: '' });
           }, 280);
         }
         this.resetTouch();
@@ -483,12 +491,12 @@ Component({
         this._moduleDragging = false;
         this.triggerEvent('moduledrag', { phase: 'cancel', dy: 0 });
       }
-      this.setData({ topMediaDrag: '', topImgDrag: '' });
+      this.setData({ topStyle: '' });
       this.resetTouch();
     },
 
     flyToBottom(sign, fromDx) {
-      const list = this.data.photos || [];
+      const list = this.data.photos || this.properties.photos || [];
       const n = list.length;
       if (n <= 1) return;
 
@@ -497,55 +505,62 @@ Component({
       if (!photo) return;
 
       const next = (cur + 1) % n;
+      const absNext =
+        (this._absCurrent != null && Number.isFinite(this._absCurrent)
+          ? this._absCurrent
+          : cur) + 1;
+      this._absCurrent = absNext;
+      this.pruneAngleAbs(absNext);
+
       const w =
         typeof wx !== 'undefined' && wx.getWindowInfo
           ? wx.getWindowInfo().windowWidth
           : 375;
       const startX = Number(fromDx) || 0;
-      const top = (this.data.layers || []).find((l) => l.isTop && !l.isGhost);
-      const baseRot = (top && top.rot) || 0;
-      const startRot = baseRot + Math.max(-14, Math.min(14, startX / 18));
+      const startRot = Math.max(-14, Math.min(14, startX / 18));
       const dist = (w + 80) * (sign >= 0 ? 1 : -1);
-      const endRot = baseRot + (sign >= 0 ? 18 : -18);
+      const endRot = sign >= 0 ? 18 : -18;
+      const ease = `transform ${FLY_MS}ms cubic-bezier(0.22, 0.8, 0.28, 1), opacity ${FLY_MS}ms ease`;
 
       this._flying = true;
-      const patch = this.layersPatch(list, next, {
-        flewId: photo.id,
-        ghost: {
-          photoId: photo.id,
-          photoIndex: cur,
-          src: photo.src,
-          rot: baseRot,
-          mediaStyle: `transform: translate3d(${startX}px, 0, 0);`,
-          imgStyle: `transform: rotate(${startRot}deg);`,
-        },
-      });
 
-      this.setData({
-        topMediaDrag: '',
-        topImgDrag: '',
-        innerCurrent: next,
-        ...patch,
-      });
+      // ① 先开 rise；换 deck 时顶层 k-{old} 卸掉，底下已预留的环向牌上浮，底部只多一张新 key
+      this.setData({ rising: true, topStyle: '' }, () => {
+        const patch = this.deckPatch(list, next, { absBase: absNext });
 
-      const ghostIndex = patch.layers.findIndex((l) => l.isGhost);
-      clearTimeout(this._flyKick);
-      this._flyKick = setTimeout(() => {
-        if (ghostIndex < 0) return;
-        this.setData({
-          [`layers[${ghostIndex}].mediaStyle`]: `transform: translate3d(${dist}px, 0, 0); opacity: 0; transition: transform ${FLY_MS}ms ease, opacity ${FLY_MS}ms ease;`,
-          [`layers[${ghostIndex}].imgStyle`]: `transform: rotate(${endRot}deg); transition: transform ${FLY_MS}ms ease;`,
-        });
-      }, 16);
+        this.setData(
+          {
+            innerCurrent: next,
+            ...patch,
+            flyGhost: {
+              show: true,
+              src: photo.src,
+              style: `transform: translate3d(${startX}px, 0, 0) rotate(${startRot}deg);`,
+            },
+          },
+          () => {
+            clearTimeout(this._flyKick);
+            this._flyKick = setTimeout(() => {
+              this.setData({
+                'flyGhost.style': `transform: translate3d(${dist}px, 0, 0) rotate(${endRot}deg); opacity: 0; transition: ${ease};`,
+              });
+            }, 20);
+          }
+        );
+      });
 
       clearTimeout(this._flyTimer);
       this._flyTimer = setTimeout(() => {
+        const patch = this.deckPatch(list, next, { absBase: absNext });
         this._flying = false;
-        // 去掉走影项，保留新牌序
-        const cleaned = (this.data.layers || []).filter((l) => !l.isGhost);
-        this.setData({ layers: cleaned });
+        this.setData({
+          rising: false,
+          flyGhost: { show: false, src: '', style: '' },
+          ...patch,
+        });
         this.triggerEvent('change', { current: next });
-      }, FLY_MS + 24);
+      }, FLY_MS + 32);
     },
   },
 });
+

@@ -91,3 +91,5 @@
     </view>
   </view>
 </view>
+
+<photo-viewer />

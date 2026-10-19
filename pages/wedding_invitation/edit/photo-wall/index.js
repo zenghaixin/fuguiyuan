@@ -13,7 +13,7 @@ import {
   layoutSortCols,
   layoutGridMax,
 } from '~/services/invite-photo-local';
-const { previewPhotos } = require('../../utils/preview-photos');
+const { previewPhotos, closeViewer } = require('../../utils/preview-photos');
 
 
 
@@ -150,8 +150,9 @@ Page({
     this.persistDraft();
   },
 
-  /** 从页列表进 → 回上一页 */
+  /** 从页列表进 → 回上一页；大图打开时先关预览 */
   onBack() {
+    if (closeViewer()) return;
     this.persistDraft();
     wx.navigateBack({ delta: 1 });
   },
@@ -425,10 +426,11 @@ Page({
           photoWallLayout: normalizePhotoLayout(photoWallLayout),
           meta: { source: 'edit/photo-wall' },
         }).then(() => {
+          // 定位到本次新加的第一张（空列表上传即 1/N，而不是最后一张 N/N）
           this.setData({
             photoWall,
             photoWallLayout,
-            carouselIndex: photoWall.length - 1,
+            carouselIndex: cur.length,
           });
           wx.showToast({ title: `已添加 ${added.length} 张`, icon: 'success' });
         });

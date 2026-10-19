@@ -27,13 +27,15 @@
         </block>
       </view>
     </block>
-    <!-- 预览：右上角 icon 看大图，整格可上下滑 -->
+    <!-- 预览：点击图片看大图（不再要右上角放大 icon） -->
     <block wx:else>
       <view
         class="pw-grid__cell {{item ? '' : 'pw-grid__cell--empty'}}"
         wx:for="{{cells}}"
         wx:for-index="idx"
         wx:key="idx"
+        data-index="{{idx}}"
+        bindtap="onPreview"
       >
         <block wx:if="{{item}}">
           <image
@@ -42,14 +44,6 @@
             mode="aspectFill"
             show-menu-by-longpress="{{false}}"
           />
-          <view
-            class="pw-grid__view"
-            data-index="{{idx}}"
-            catchtap="onPreview"
-          >
-            <t-icon name="zoom-in" size="28rpx" color="#fff" />
-
-          </view>
           <view class="pw-grid__num">{{idx + 1}}</view>
         </block>
       </view>

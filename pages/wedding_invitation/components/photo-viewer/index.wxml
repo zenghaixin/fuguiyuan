@@ -1,0 +1,71 @@
+<view
+  class="pv"
+  wx:if="{{visible}}"
+  catchtouchmove="noop"
+>
+  <swiper
+    class="pv__swiper"
+    current="{{current}}"
+    duration="{{280}}"
+    circular="{{false}}"
+    disable-touch="{{zoomed}}"
+    bindchange="onSwiperChange"
+  >
+    <swiper-item wx:for="{{items}}" wx:key="id">
+      <view
+        class="pv__stage"
+        data-index="{{index}}"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd"
+        bindtouchcancel="onTouchEnd"
+        bindtap="onStageTap"
+      >
+        <image
+          class="pv__img"
+          src="{{item.src}}"
+          mode="aspectFit"
+          style="{{transforms[index]}}"
+          lazy-load="{{false}}"
+          show-menu-by-longpress="{{false}}"
+        />
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <view class="pv__chrome {{chromeOn ? 'pv__chrome--on' : ''}}">
+    <view class="pv__top" style="padding-top: {{statusBarHeight}}px;">
+      <view class="pv__close" catchtap="onClose">
+        <t-icon name="close" size="40rpx" color="#fff" />
+      </view>
+      <view class="pv__index" wx:if="{{showIndex && items.length}}">
+        {{current + 1}} / {{items.length}}
+      </view>
+      <view class="pv__top-spacer" />
+    </view>
+
+    <view class="pv__tools">
+      <view class="pv__tool" catchtap="onFlip" hover-class="pv__tool--hover">
+        <image
+          class="pv__ico"
+          src="/pages/wedding_invitation/assets/icons/flip-h.svg"
+          mode="aspectFit"
+        />
+      </view>
+      <view class="pv__tool" catchtap="onRotate" data-deg="-90" hover-class="pv__tool--hover">
+        <image
+          class="pv__ico"
+          src="/pages/wedding_invitation/assets/icons/rotate-90-left.svg"
+          mode="aspectFit"
+        />
+      </view>
+      <view class="pv__tool" catchtap="onRotate" data-deg="90" hover-class="pv__tool--hover">
+        <image
+          class="pv__ico"
+          src="/pages/wedding_invitation/assets/icons/rotate-90-right.svg"
+          mode="aspectFit"
+        />
+      </view>
+    </view>
+  </view>
+</view>

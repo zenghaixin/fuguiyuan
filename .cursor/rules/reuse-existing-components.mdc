@@ -1,0 +1,40 @@
+---
+description: 新功能先复用已有组件/工具，禁止重复造查看大图、弹窗等轮子
+alwaysApply: true
+---
+
+# 先复用，再新建
+
+做**新功能 / 新交互**前，先在仓库里搜是否已有可复用的组件或工具；能扩展就扩展，**禁止**为同一能力再写一套。
+
+## 开工前检查（必做）
+
+1. 在 `pages/wedding_invitation/components/`、根目录 `components/`、`utils/`、`services/` 按关键词搜索（预览、弹窗、dialog、viewer、toast、sheet 等）
+2. 看模块内是否已有同类 UI；全局能力优先查 `utils/` 与已注册的 TDesign 组件
+3. 若差点合适：优先加属性 / 事件扩展现有实现，而不是复制一份改名
+
+## 已有能力（优先用这些）
+
+| 需求 | 复用 | 路径 / 用法 |
+|------|------|-------------|
+| 查看大图（缩放/滑动/旋转/镜像） | `photo-viewer` + `previewPhotos` | 组件：`pages/wedding_invitation/components/photo-viewer`；入口：`pages/wedding_invitation/utils/preview-photos.js`。页面需挂载 `<photo-viewer />`，再在 tap 里调 `previewPhotos(photos, index)` |
+| 确认 / 提示 / 输入弹窗 | `edit-dialog` | `pages/wedding_invitation/components/edit-dialog`（`mode`: confirm \| prompt） |
+| 图标 / 基础按钮等 | TDesign | 如 `t-icon`、`t-button`（模板已带，勿另引一套图标库除非明确需求） |
+| 照片墙排版与编辑 | `photo-wall` / `edit-photo-wall` 及 `layouts/*` | 叠放/宫格/轮播等已在 layouts 下，改行为先改布局组件 |
+
+## 反例
+
+```text
+❌ 再写一个全屏看图页 / 再调一套 wx.previewImage 专用逻辑（已有 photo-viewer）
+❌ 再用 cover-view + 自绘蒙层做确认框（已有 edit-dialog）
+❌ 复制 photo-viewer 改名为 image-preview 只改样式
+
+✅ 给 previewPhotos / photo-viewer 加参数（如 showIndex）
+✅ 给 edit-dialog 加文案或 danger 样式
+✅ 确认没有现成组件后，再在模块 components/ 新建，并尽量写清职责方便下次复用
+```
+
+## 新建时
+
+- 组件放对目录（见 `folder-structure` 规则）
+- 若能力可能被多处调用，同时提供清晰入口（类似 `previewPhotos`），并在本表或组件注释里补一行「何时用」

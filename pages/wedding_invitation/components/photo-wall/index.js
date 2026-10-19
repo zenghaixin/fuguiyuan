@@ -1,4 +1,4 @@
-const { previewPhotos } = require('../../utils/preview-photos');
+const { previewPhotos, closeViewer } = require('../../utils/preview-photos');
 
 const SNAP_RATIO = 0.1;
 const HINT_NEXT = '上滑留下祝福';
@@ -339,14 +339,14 @@ Component({
       this.openViewer(this.data.current || 0);
     },
 
-    /** 与叠放 / 编辑页同一套 wx.previewImage */
+    /** 与叠放 / 编辑页同一套自定义大图 */
     openViewer(index) {
       previewPhotos(this.data.photos || [], index);
     },
 
-    /** 系统预览由微信自己关；保留方法给页面返回键兼容 */
+    /** 自定义大图打开时，返回键先关预览 */
     closeViewerIfOpen() {
-      return false;
+      return closeViewer();
     },
 
     noop() {},

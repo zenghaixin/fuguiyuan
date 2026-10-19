@@ -2,7 +2,6 @@
   position: relative;
   width: 100%;
   box-sizing: border-box;
-  /* 飞出走影需要裁切；删钮在内侧，避免贴边被裁 */
   overflow: hidden;
   padding: 28rpx 48rpx 56rpx;
 }
@@ -11,7 +10,6 @@
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: visible;
 }
 
 .pw-stack__count {
@@ -19,7 +17,7 @@
   top: 8rpx;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 200;
+  z-index: 30;
   min-width: 88rpx;
   padding: 8rpx 18rpx;
   border-radius: 24rpx;
@@ -32,38 +30,38 @@
   pointer-events: none;
 }
 
-.pw-stack__layer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  background: transparent;
-  pointer-events: none;
-
-  &--ghost {
-    pointer-events: none;
-  }
-}
-
-.pw-stack__media {
+/* 一张牌：错位/缩放/角度都在同一张 card 的 transform 上（丝滑跟手） */
+.pw-stack__card {
   position: absolute;
   left: 0;
   right: 0;
   top: 8rpx;
   bottom: 52rpx;
-  transform-origin: center center;
-  pointer-events: none;
+  border-radius: 24rpx;
   overflow: visible;
-}
+  background: transparent;
+  transform-origin: center center;
+  isolation: isolate;
 
-.pw-stack__frame {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-origin: center center;
-  pointer-events: none;
-  overflow: visible;
+  &--behind {
+    pointer-events: none;
+  }
+
+  &--top {
+    z-index: 10;
+  }
+
+  /* 翻牌后其余牌上浮：同一 wx:key 节点改 transform，靠过渡跟手 */
+  &--rise {
+    transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.28, 1),
+      opacity 0.28s ease;
+  }
+
+  &--ghost {
+    z-index: 20;
+    pointer-events: none;
+  }
+
 }
 
 .pw-stack__img {
@@ -76,23 +74,13 @@
   pointer-events: none;
 }
 
-/* 与顶图 media 同位置，z 高于 hit，避免被 button 裁切 */
-.pw-stack__del-slot {
+/* 与顶牌同 transform，挂在 button 内才能点到 */
+.pw-stack__delhost {
   position: absolute;
   left: 0;
   right: 0;
   top: 8rpx;
   bottom: 52rpx;
-  z-index: 60;
-  transform-origin: center center;
-  pointer-events: none;
-  overflow: visible;
-}
-
-.pw-stack__del-frame {
-  position: relative;
-  width: 100%;
-  height: 100%;
   transform-origin: center center;
   pointer-events: none;
   overflow: visible;
@@ -100,24 +88,26 @@
 
 .pw-stack__del {
   position: absolute;
-  /* 往内收，避开圆角与父级 overflow 裁切 */
   top: 28rpx;
   right: 28rpx;
-  z-index: 2;
-  width: 56rpx;
-  height: 56rpx;
+  z-index: 12;
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 50%;
   background: rgba(185, 28, 58, 0.88);
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
 }
 
-.pw-stack__del .t-icon,
-.pw-stack__del t-icon {
+.pw-stack__del-x {
   pointer-events: none;
+  font-size: 40rpx;
+  line-height: 1;
+  color: #fff;
+  font-weight: 300;
 }
 
 .pw-stack__caption {
@@ -149,6 +139,7 @@
   box-sizing: border-box;
 }
 
+/* 仅热区：tap 看大图 + 手势；视觉在下方 card */
 .pw-stack__hit {
   position: absolute;
   left: 0;
@@ -164,7 +155,7 @@
   line-height: normal;
   font-size: 0;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 
   &::after {
     border: none;

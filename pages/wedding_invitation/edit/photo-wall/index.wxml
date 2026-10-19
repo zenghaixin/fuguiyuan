@@ -70,6 +70,8 @@
     bind:cancel="onAlertDialogClose"
     bind:confirm="onAlertDialogClose"
   />
+
+  <photo-viewer />
 </view>
 
 

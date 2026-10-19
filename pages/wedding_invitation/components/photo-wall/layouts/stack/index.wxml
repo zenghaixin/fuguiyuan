@@ -1,5 +1,5 @@
 <view class="pw-stack" style="height: {{height}}px;">
-  <view wx:if="{{!layers.length}}" class="pw-stack__empty">
+  <view wx:if="{{!deck.length}}" class="pw-stack__empty">
     <t-icon name="image" size="64rpx" color="rgba(243,234,210,0.45)" />
     <text>暂无照片</text>
   </view>
@@ -7,32 +7,32 @@
   <view wx:else class="pw-stack__deck">
     <view class="pw-stack__count" wx:if="{{totalCount > 1}}">{{countText}}</view>
 
-    <!-- 视觉层：一张图一层；角度在 frame 上 -->
-    <block wx:for="{{layers}}" wx:key="id">
-      <view
-        wx:if="{{item.show}}"
-        class="pw-stack__layer {{item.isGhost ? 'pw-stack__layer--ghost' : ''}}"
-        style="z-index: {{item.z}};"
-      >
-        <view
-          class="pw-stack__media"
-          style="{{item.isTop && topMediaDrag ? topMediaDrag : item.mediaStyle}}"
-        >
-          <view
-            class="pw-stack__frame"
-            style="{{item.isTop && topImgDrag ? topImgDrag : item.imgStyle}}"
-          >
-            <image class="pw-stack__img" src="{{item.src}}" mode="aspectFill" />
-          </view>
-        </view>
-        <view
-          class="pw-stack__caption"
-          wx:if="{{item.caption && item.isTop && !item.isGhost}}"
-        >{{item.caption}}</view>
-      </view>
-    </block>
+    <!--
+      环形预留牌位（A,B,C,D,A…）：wx:key 用绝对下标，飞走卸顶层，底下已预载不会突兀冒出。
+      顶牌跟手 topStyle；飞走 flyGhost；透明 button 负责 tap 看大图。
+    -->
+    <view
+      wx:for="{{deck}}"
+      wx:key="id"
+      class="pw-stack__card {{item.isTop ? 'pw-stack__card--top' : 'pw-stack__card--behind'}} {{rising ? 'pw-stack__card--rise' : ''}}"
+      style="{{item.isTop && topStyle ? topStyle : item.layerStyle}}"
+    >
+      <image class="pw-stack__img" src="{{item.src}}" mode="aspectFill" />
+      <view class="pw-stack__caption" wx:if="{{item.caption && item.isTop}}">{{item.caption}}</view>
+    </view>
 
-    <!-- 透明 button 热区：滑动 + bindtap 看大图（删钮不放这里，避免被 button 裁切） -->
+    <view
+      wx:if="{{flyGhost.show}}"
+      class="pw-stack__card pw-stack__card--ghost"
+      style="{{flyGhost.style}}"
+    >
+      <image class="pw-stack__img" src="{{flyGhost.src}}" mode="aspectFill" />
+    </view>
+
+    <!--
+      原生 button 会盖住普通 view（z-index 无效），删钮必须放在 button 内部，
+      用 catchtap 拦截，才点得动且不误触看大图。
+    -->
     <button
       class="pw-stack__hit"
       hover-class="none"
@@ -41,19 +41,24 @@
       bindtouchmove="onTouchMove"
       bindtouchend="onTouchEnd"
       bindtouchcancel="onTouchEnd"
-    ></button>
-
-    <!-- 删钮：与顶图同位移/旋转，叠在 hit 之上，不被 overflow 裁切 -->
-    <view
-      wx:if="{{editable && topId}}"
-      class="pw-stack__del-slot"
-      style="{{topMediaDrag || topMediaStyle}}"
     >
-      <view class="pw-stack__del-frame" style="{{topImgDrag || topImgStyle}}">
-        <view class="pw-stack__del" data-id="{{topId}}" catchtap="onDelete">
-          <t-icon name="close" size="28rpx" color="#fff" />
+      <view
+        wx:if="{{editable && topId}}"
+        class="pw-stack__delhost"
+        style="{{topStyle || topLayerStyle}}"
+      >
+        <!-- 不用 t-icon：自定义组件嵌在原生 button 内，删图重建时易 FLOW_ALLOC_NODE_ID -->
+        <view
+          class="pw-stack__del"
+          data-id="{{topId}}"
+          catchtouchstart="onDeleteStart"
+          catchtouchend="onDelete"
+          catchtouchcancel="onDeleteCancel"
+          catchtap="onDelete"
+        >
+          <text class="pw-stack__del-x">×</text>
         </view>
       </view>
-    </view>
+    </button>
   </view>
 </view>

@@ -1,0 +1,127 @@
+.pw-thumbs {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pw-thumbs__main {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background: #000;
+}
+
+.pw-thumbs__layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  transition: opacity 0.32s ease;
+  pointer-events: none;
+}
+
+.pw-thumbs__frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.pw-thumbs__img {
+  display: block;
+}
+
+.pw-thumbs__img--fit {
+  width: 100%;
+  height: 100%;
+}
+
+.pw-thumbs__img--crop {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.pw-thumbs__del {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  z-index: 5;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(185, 28, 58, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pw-thumbs__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16rpx;
+  z-index: 4;
+  padding: 0 24rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.pw-thumbs__rail-wrap {
+  flex-shrink: 0;
+  margin-top: 16rpx;
+  height: 128rpx;
+}
+
+.pw-thumbs__rail {
+  width: 100%;
+  height: 128rpx;
+  white-space: nowrap;
+}
+
+.pw-thumbs__rail-inner {
+  display: inline-flex;
+  align-items: center;
+  height: 128rpx;
+  padding: 0 4rpx;
+  box-sizing: border-box;
+}
+
+.pw-thumbs__thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 112rpx;
+  height: 112rpx;
+  margin-right: 12rpx;
+  border-radius: 14rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 3rpx solid transparent;
+  background: #1a1210;
+  opacity: 0.72;
+}
+
+.pw-thumbs__thumb:last-child {
+  margin-right: 0;
+}
+
+.pw-thumbs__thumb--on {
+  border-color: #f3ead2;
+  opacity: 1;
+  box-shadow: 0 0 0 2rpx rgba(185, 28, 58, 0.35);
+}
+
+.pw-thumbs__thumb-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

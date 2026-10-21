@@ -12,6 +12,8 @@ Page({
     backTop: 48,
     backSize: 32,
     works: [],
+    /** 作品封面小图宽 88rpx → px */
+    thumbBoardW: 44,
     dialog: {
       visible: false,
       mode: 'prompt',
@@ -29,12 +31,13 @@ Page({
   onLoad(query) {
     // 记住从哪个 Tab 进来（from 或栈上一页）；reLaunch 后不覆盖
     captureWorksEntry(query);
-    const { statusBarHeight } = wx.getWindowInfo();
+    const { statusBarHeight, windowWidth } = wx.getWindowInfo();
     const menu = wx.getMenuButtonBoundingClientRect();
     this.setData({
       statusBarHeight,
       backTop: menu.top || statusBarHeight + 6,
       backSize: menu.height || 32,
+      thumbBoardW: Math.max(40, (88 / 750) * windowWidth),
     });
     // 新建完成后 reLaunch 到此，再打开对应作品的页列表
     const openId = query && query.open;
@@ -45,6 +48,7 @@ Page({
 
   onShow() {
     this.reload();
+    this.measureThumbBoard();
     if (this._openAfterCreate) {
       const id = this._openAfterCreate;
       this._openAfterCreate = '';
@@ -57,6 +61,19 @@ Page({
 
   reload() {
     this.setData({ works: listInviteWorks() });
+  },
+
+  measureThumbBoard() {
+    wx.nextTick(() => {
+      this.createSelectorQuery()
+        .select('.work-card__cover')
+        .boundingClientRect((rect) => {
+          if (!rect || !(rect.width > 0)) return;
+          if (Math.abs(rect.width - (this.data.thumbBoardW || 0)) < 0.5) return;
+          this.setData({ thumbBoardW: rect.width });
+        })
+        .exec();
+    });
   },
 
   noop() {},

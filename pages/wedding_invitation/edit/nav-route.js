@@ -11,6 +11,7 @@ export const WORKS_ROUTE = 'pages/wedding_invitation/edit/invite-works/index';
 export const WORKS_URL = '/pages/wedding_invitation/edit/invite-works/index';
 
 export const PAGES_ROUTE = 'pages/wedding_invitation/edit/invite-pages/index';
+export const SHEET_ROUTE = 'pages/wedding_invitation/edit/invite-sheet/index';
 export const INVITE_ROUTE = 'pages/wedding_invitation/edit/invite/index';
 
 export const HOME_TAB_URL = '/pages/home/index';

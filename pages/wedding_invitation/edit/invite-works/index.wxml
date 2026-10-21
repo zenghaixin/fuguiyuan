@@ -1,3 +1,4 @@
+<wxs src="../../utils/element-style.wxs" module="elStyle" />
 <view class="works">
   <view
     class="works__back"
@@ -28,18 +29,32 @@
           style="background: {{item.coverBgColor}};"
         >
           <image
-            wx:if="{{item.coverBgSrc}}"
+            wx:if="{{item.coverThumbSrc}}"
             class="work-card__bg"
-            src="{{item.coverBgSrc}}"
+            src="{{item.coverThumbSrc}}"
             mode="aspectFill"
           />
-          <view
-            wx:for="{{item.coverElements}}"
-            wx:for-item="el"
-            wx:key="id"
-            class="work-card__el"
-            style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; background: {{el.color}}; transform: rotate({{el.rotate || 0}}deg); z-index: {{el.layer || 1}};"
-          />
+          <block wx:else>
+            <image
+              wx:if="{{item.coverBgSrc}}"
+              class="work-card__bg"
+              src="{{item.coverBgSrc}}"
+              mode="aspectFill"
+            />
+            <view
+              wx:for="{{item.coverElements}}"
+              wx:for-item="el"
+              wx:key="id"
+              class="work-card__el"
+              style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; background: {{elStyle.boxBg(el)}}; transform: rotate({{el.rotate || 0}}deg); z-index: {{el.layer || 1}}; {{elStyle.isText(el) ? elStyle.textLayoutStyle(el) : ''}}"
+            >
+              <text
+                wx:if="{{elStyle.thumbText(el)}}"
+                class="work-card__el-text"
+                style="color: {{elStyle.boxColor(el)}}; font-size: {{elStyle.fontSizeOnCanvas(el, thumbBoardW)}}; font-weight: {{elStyle.fontWeightCss(el)}};{{elStyle.textInnerStyle(el)}}"
+              >{{elStyle.thumbText(el)}}</text>
+            </view>
+          </block>
         </view>
         <view class="work-card__main">
           <view class="work-card__name">{{item.title}}</view>

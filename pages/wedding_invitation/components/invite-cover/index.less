@@ -61,6 +61,45 @@
     align-items: center;
     justify-content: center;
     transform-origin: center center;
+    overflow: hidden;
+    padding: 4rpx 8rpx;
+
+    &--text {
+      box-shadow: none;
+      /* 默认居中；具体对齐由 textLayoutStyle / textInnerStyle 覆盖 */
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      text-align: center;
+    }
+
+    &--sans {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+    }
+
+    &--serif {
+      font-family: Songti SC, STSong, 'Noto Serif SC', serif;
+    }
+
+    &--kai {
+      font-family: KaiTi, STKaiti, 'Kaiti SC', serif;
+    }
+
+    &--yuan {
+      font-family: 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+    }
+  }
+
+  &__el-text {
+    width: 100%;
+    display: block;
+    line-height: 1.35;
+    word-break: break-word;
+    text-align: center;
+  }
+
+  &__el--plain {
+    box-shadow: none;
   }
 
   &__el-label {

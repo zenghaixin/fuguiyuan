@@ -1,0 +1,91 @@
+<view class="pw-thumbs" style="height: {{height}}px;">
+  <view
+    class="pw-thumbs__main"
+    catchtouchstart="onTouchStart"
+    catchtouchmove="onTouchMove"
+    catchtouchend="onTouchEnd"
+    catchtouchcancel="onTouchEnd"
+  >
+    <view
+      class="pw-thumbs__layer"
+      style="opacity: {{opacityA}}; z-index: {{activeSlot === 'a' ? 2 : 1}};"
+    >
+      <view class="pw-thumbs__frame">
+        <image
+          wx:if="{{slotA.useCrop}}"
+          class="pw-thumbs__img pw-thumbs__img--crop"
+          src="{{slotA.src}}"
+          mode="scaleToFill"
+          style="{{slotA.imgBoxStyle}}"
+        />
+        <image
+          wx:elif="{{slotA.src}}"
+          class="pw-thumbs__img pw-thumbs__img--fit"
+          src="{{slotA.src}}"
+          mode="aspectFill"
+        />
+      </view>
+    </view>
+
+    <view
+      class="pw-thumbs__layer"
+      style="opacity: {{opacityB}}; z-index: {{activeSlot === 'b' ? 2 : 1}};"
+    >
+      <view class="pw-thumbs__frame">
+        <image
+          wx:if="{{slotB.useCrop}}"
+          class="pw-thumbs__img pw-thumbs__img--crop"
+          src="{{slotB.src}}"
+          mode="scaleToFill"
+          style="{{slotB.imgBoxStyle}}"
+        />
+        <image
+          wx:elif="{{slotB.src}}"
+          class="pw-thumbs__img pw-thumbs__img--fit"
+          src="{{slotB.src}}"
+          mode="aspectFill"
+        />
+      </view>
+    </view>
+
+    <view
+      wx:if="{{editable && topId}}"
+      class="pw-thumbs__del"
+      data-id="{{topId}}"
+      catchtap="onDelete"
+    >
+      <t-icon name="close" size="28rpx" color="#fff" />
+    </view>
+
+    <view class="pw-thumbs__caption" wx:if="{{caption}}">{{caption}}</view>
+  </view>
+
+  <view class="pw-thumbs__rail-wrap" wx:if="{{thumbs.length}}">
+    <scroll-view
+      class="pw-thumbs__rail"
+      scroll-x
+      enhanced
+      show-scrollbar="{{false}}"
+      scroll-with-animation
+      scroll-into-view="{{scrollInto}}"
+      enable-flex
+    >
+      <view class="pw-thumbs__rail-inner">
+        <view
+          class="pw-thumbs__thumb {{innerCurrent === index ? 'pw-thumbs__thumb--on' : ''}}"
+          wx:for="{{thumbs}}"
+          wx:key="id"
+          id="thumb-{{index}}"
+          data-index="{{index}}"
+          catchtap="onThumbTap"
+        >
+          <image
+            class="pw-thumbs__thumb-img"
+            src="{{item.src}}"
+            mode="aspectFill"
+          />
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

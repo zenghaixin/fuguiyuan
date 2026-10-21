@@ -13,9 +13,9 @@
 
 
   <view class="photo-wall__stage">
-    <!-- 宫格：整区可上下滑切模块，点格看大图 -->
+    <!-- 网格族（四/九宫格 + 杂志）：同一套杂志引擎；旧 pw-grid 暂保留未删 -->
     <view
-      wx:if="{{isGrid}}"
+      wx:if="{{isGrid || isMagazine}}"
       class="photo-wall__grid-wrap"
       style="height: {{stageHeight}}px;"
       bindtouchstart="onModuleTouchStart"
@@ -23,12 +23,14 @@
       bindtouchend="onModuleTouchEnd"
       bindtouchcancel="onModuleTouchEnd"
     >
-      <pw-grid
+      <pw-magazine
         photos="{{photos}}"
         height="{{stageHeight}}"
-        cols="{{gridCols}}"
+        layout="{{layout}}"
         editable="{{false}}"
+        has-next-module="{{hasNextModule}}"
         bind:preview="onGridPreview"
+        bind:moduledrag="onStackModuleDrag"
       />
     </view>
 
@@ -39,6 +41,42 @@
       style="height: {{stageHeight}}px;"
     >
       <pw-stack
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        current="{{current}}"
+        editable="{{false}}"
+        has-next-module="{{hasNextModule}}"
+        bind:preview="onStackPreview"
+        bind:change="onStackChange"
+        bind:moduledrag="onStackModuleDrag"
+      />
+    </view>
+
+    <!-- 淡入淡出：左右切图，纵向切模块 -->
+    <view
+      wx:elif="{{isFade}}"
+      class="photo-wall__grid-wrap"
+      style="height: {{stageHeight}}px;"
+    >
+      <pw-fade
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        current="{{current}}"
+        editable="{{false}}"
+        has-next-module="{{hasNextModule}}"
+        bind:preview="onStackPreview"
+        bind:change="onStackChange"
+        bind:moduledrag="onStackModuleDrag"
+      />
+    </view>
+
+    <!-- 缩略导览：大图 + 底部缩略条 -->
+    <view
+      wx:elif="{{isThumbs}}"
+      class="photo-wall__grid-wrap"
+      style="height: {{stageHeight}}px;"
+    >
+      <pw-thumbs
         photos="{{photos}}"
         height="{{stageHeight}}"
         current="{{current}}"
@@ -66,12 +104,24 @@
       >
         <view
           class="photo-wall__item photo-wall__item--column"
-          wx:for="{{photos}}"
+          wx:for="{{viewPhotos}}"
           wx:key="id"
           style="height: {{stageHeight}}px;"
         >
           <view class="photo-wall__frame">
-            <image class="photo-wall__img" src="{{item.src}}" mode="aspectFill" />
+            <image
+              wx:if="{{item.useCrop}}"
+              class="photo-wall__img photo-wall__img--crop"
+              src="{{item.src}}"
+              mode="scaleToFill"
+              style="{{item.imgBoxStyle}}"
+            />
+            <image
+              wx:else
+              class="photo-wall__img photo-wall__img--fit"
+              src="{{item.src}}"
+              mode="aspectFill"
+            />
           </view>
         </view>
       </view>
@@ -82,12 +132,24 @@
       >
         <view
           class="photo-wall__item"
-          wx:for="{{photos}}"
+          wx:for="{{viewPhotos}}"
           wx:key="id"
           style="width: {{windowWidth}}px;"
         >
           <view class="photo-wall__frame">
-            <image class="photo-wall__img" src="{{item.src}}" mode="aspectFill" />
+            <image
+              wx:if="{{item.useCrop}}"
+              class="photo-wall__img photo-wall__img--crop"
+              src="{{item.src}}"
+              mode="scaleToFill"
+              style="{{item.imgBoxStyle}}"
+            />
+            <image
+              wx:else
+              class="photo-wall__img photo-wall__img--fit"
+              src="{{item.src}}"
+              mode="aspectFill"
+            />
           </view>
         </view>
       </view>
@@ -101,8 +163,8 @@
     catchtouchend="onModuleTouchEnd"
     catchtouchcancel="onModuleTouchEnd"
   >
-    <view class="photo-wall__caption" wx:if="{{currentCaption && !isGrid && !isStack}}">{{currentCaption}}</view>
-    <view class="photo-wall__dots" wx:if="{{photos.length > 1 && !isGrid && !isStack}}">
+    <view class="photo-wall__caption" wx:if="{{currentCaption && !isGrid && !isMagazine && !isStack && !isFade && !isThumbs}}">{{currentCaption}}</view>
+    <view class="photo-wall__dots" wx:if="{{photos.length > 1 && !isGrid && !isMagazine && !isStack && !isFade && !isThumbs}}">
       <view
         class="photo-wall__dot {{current === index ? 'photo-wall__dot--on' : ''}}"
         wx:for="{{photos}}"

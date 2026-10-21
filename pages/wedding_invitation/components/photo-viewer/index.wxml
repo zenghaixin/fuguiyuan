@@ -8,7 +8,7 @@
     current="{{current}}"
     duration="{{280}}"
     circular="{{false}}"
-    disable-touch="{{zoomed}}"
+    disable-touch="{{!swipeable || zoomed}}"
     bindchange="onSwiperChange"
   >
     <swiper-item wx:for="{{items}}" wx:key="id">

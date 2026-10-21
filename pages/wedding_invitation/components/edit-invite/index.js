@@ -1,4 +1,10 @@
 import { fitDesignFrame, DESIGN_ASPECT } from '~/services/invite-canvas';
+import {
+  snapToGrid,
+  gridLinePositions,
+  DEFAULT_COLS,
+  DEFAULT_ROWS,
+} from '../../utils/snap-grid';
 
 const STAGE_PAD = 6;
 
@@ -14,6 +20,12 @@ Component({
     statusBarHeight: { type: Number, value: 20 },
     backTop: { type: Number, value: 48 },
     backSize: { type: Number, value: 32 },
+    /** 网格吸附开关（暂关） */
+    snapEnabled: { type: Boolean, value: false },
+    snapCols: { type: Number, value: DEFAULT_COLS },
+    snapRows: { type: Number, value: DEFAULT_ROWS },
+    /** 递增后强制变换框与数据对齐 */
+    layoutRev: { type: Number, value: 0 },
   },
 
   data: {
@@ -23,12 +35,16 @@ Component({
     canvasTop: 0,
     safeStyle: '',
     frostStyle: '',
+    snapActive: false,
+    snapGridV: [],
+    snapGridH: [],
   },
 
   lifetimes: {
     ready() {
       this.measureCanvas();
       this.startStageWatch();
+      this._refreshGridBase();
     },
     detached() {
       this.stopStageWatch();
@@ -48,6 +64,9 @@ Component({
   observers: {
     'windowHeight, windowWidth': function () {
       wx.nextTick(() => this.measureCanvas());
+    },
+    'snapCols, snapRows': function () {
+      this._refreshGridBase();
     },
     pages(pages) {
       if (pages && pages.length) {
@@ -139,6 +158,104 @@ Component({
       return els.find((el) => el.id === activeElementId) || null;
     },
 
+    _snapOpts() {
+      return {
+        cols: this.data.snapCols || DEFAULT_COLS,
+        rows: this.data.snapRows || DEFAULT_ROWS,
+        thresholdPx: 6,
+        canvasWidth: this.data.canvasWidth || 0,
+      };
+    },
+
+    _refreshGridBase(activeGuides) {
+      const cols = this.data.snapCols || DEFAULT_COLS;
+      const rows = this.data.snapRows || DEFAULT_ROWS;
+      const base = gridLinePositions(cols, rows);
+      const av = (activeGuides && activeGuides.vertical) || [];
+      const ah = (activeGuides && activeGuides.horizontal) || [];
+      const near = (a, b) => Math.abs(a - b) < 1e-4;
+      this.setData({
+        snapGridV: base.vertical.map((pos) => ({
+          pos: pos * 100,
+          on: av.some((v) => near(v, pos)),
+        })),
+        snapGridH: base.horizontal.map((pos) => ({
+          pos: pos * 100,
+          on: ah.some((v) => near(v, pos)),
+        })),
+      });
+    },
+
+    _setSnapActive(active, guides) {
+      if (active) {
+        const cols = this.data.snapCols || DEFAULT_COLS;
+        const rows = this.data.snapRows || DEFAULT_ROWS;
+        const base = gridLinePositions(cols, rows);
+        const av = (guides && guides.vertical) || [];
+        const ah = (guides && guides.horizontal) || [];
+        const near = (a, b) => Math.abs(a - b) < 1e-4;
+        this.setData({
+          snapActive: true,
+          snapGridV: base.vertical.map((pos) => ({
+            pos: pos * 100,
+            on: av.some((v) => near(v, pos)),
+          })),
+          snapGridH: base.horizontal.map((pos) => ({
+            pos: pos * 100,
+            on: ah.some((v) => near(v, pos)),
+          })),
+        });
+      } else if (this.data.snapActive) {
+        this.setData({ snapActive: false });
+      }
+    },
+
+    /**
+     * 统一吸附闸门：合并当前元素几何后 snap，写回 partial。
+     * @returns {{ partial: object, guides: object }}
+     */
+    applySnap(partial, modeHint) {
+      if (!this.data.snapEnabled) {
+        return { partial: partial || {}, guides: { vertical: [], horizontal: [] } };
+      }
+      const el = this._findActive();
+      if (!el || !partial) {
+        return { partial: partial || {}, guides: { vertical: [], horizontal: [] } };
+      }
+
+      const hasPos =
+        partial.x != null ||
+        partial.y != null ||
+        partial.w != null ||
+        partial.h != null;
+      if (!hasPos) {
+        return { partial, guides: { vertical: [], horizontal: [] } };
+      }
+
+      const box = {
+        x: partial.x != null ? partial.x : el.x,
+        y: partial.y != null ? partial.y : el.y,
+        w: partial.w != null ? partial.w : el.w,
+        h: partial.h != null ? partial.h : el.h,
+      };
+
+      const resizing = partial.w != null || partial.h != null;
+      const mode = modeHint || (resizing ? 'resize' : 'move');
+      const result = snapToGrid(box, { ...this._snapOpts(), mode });
+      const next = { ...partial };
+      if (mode === 'move') {
+        if (partial.x != null) next.x = result.box.x;
+        if (partial.y != null) next.y = result.box.y;
+      } else {
+        if (partial.x != null || partial.w != null) next.x = result.box.x;
+        if (partial.y != null || partial.h != null) next.y = result.box.y;
+        if (partial.w != null) next.w = result.box.w;
+        if (partial.h != null) next.h = result.box.h;
+      }
+
+      return { partial: next, guides: result.guides };
+    },
+
     onPickTemplate() {
       this.triggerEvent('picktemplate');
     },
@@ -150,8 +267,41 @@ Component({
       this.triggerEvent('selectelement', { id });
     },
 
+    onSnapStart(e) {
+      const mode = (e.detail && e.detail.mode) || '';
+      if (mode === 'rotate') return;
+      this._snapGestureMode = mode === 'resize' ? 'resize' : 'move';
+      this._setSnapActive(true, null);
+    },
+
+    onSnapEnd() {
+      this._snapGestureMode = '';
+      this._setSnapActive(false);
+    },
+
     onElementChange(e) {
-      this.triggerEvent('elementchange', e.detail || {});
+      const detail = e.detail || {};
+      const { id } = detail;
+      if (!id) return;
+
+      const patch = {};
+      if (detail.x != null) patch.x = detail.x;
+      if (detail.y != null) patch.y = detail.y;
+      if (detail.w != null) patch.w = detail.w;
+      if (detail.h != null) patch.h = detail.h;
+      if (detail.rotate != null) patch.rotate = detail.rotate;
+      if (detail.layer != null) patch.layer = detail.layer;
+
+      const modeHint =
+        this._snapGestureMode ||
+        (patch.w != null || patch.h != null ? 'resize' : 'move');
+      const { partial, guides } = this.applySnap(patch, modeHint);
+
+      if (this.data.snapActive || this._pageDrag) {
+        this._setSnapActive(true, guides);
+      }
+
+      this.triggerEvent('elementchange', { id, ...partial });
     },
 
     onPageTap() {
@@ -159,42 +309,15 @@ Component({
       this.triggerEvent('selectelement', { id: '' });
     },
 
-    onPageTouchStart(e) {
-      if (!this.data.activeElementId) return;
-      if (this.data.elementEditMode !== 'position') return;
-      const t = e.touches[0];
-      const el = this._findActive();
-      const { canvasWidth, canvasHeight } = this.data;
-      if (!t || !el || !canvasWidth || !canvasHeight) return;
-      this._pageDrag = {
-        startX: t.clientX,
-        startY: t.clientY,
-        ox: el.x,
-        oy: el.y,
-        moved: false,
-      };
-    },
+    /** 空白处拖页已关：改位请拖元素本身，避免每帧回写父级导致慢半拍 */
+    onPageTouchStart() {},
 
-    onPageTouchMove(e) {
-      const drag = this._pageDrag;
-      if (!drag || !this.data.activeElementId) return;
-      if (this.data.elementEditMode !== 'position') return;
-      const t = e.touches[0];
-      const { canvasWidth, canvasHeight, activeElementId } = this.data;
-      if (!t || !canvasWidth || !canvasHeight) return;
-      const dx = (t.clientX - drag.startX) / canvasWidth;
-      const dy = (t.clientY - drag.startY) / canvasHeight;
-      if (!drag.moved && Math.abs(dx) < 0.004 && Math.abs(dy) < 0.004) return;
-      drag.moved = true;
-      this.triggerEvent('elementchange', {
-        id: activeElementId,
-        x: drag.ox + dx,
-        y: drag.oy + dy,
-      });
-    },
+    onPageTouchMove() {},
 
     onPageTouchEnd() {
       this._pageDrag = null;
+      this._snapGestureMode = '';
+      this._setSnapActive(false);
     },
   },
 });

@@ -1,12 +1,15 @@
 {
   "navigationStyle": "custom",
   "disableScroll": true,
+  "disableSwipeBack": true,
   "usingComponents": {
     "edit-invite": "/pages/wedding_invitation/components/edit-invite/index",
     "edit-toolbox": "/pages/wedding_invitation/components/edit-toolbox/index",
     "edit-decor-sheet": "/pages/wedding_invitation/components/edit-decor-sheet/index",
     "edit-layer-panel": "/pages/wedding_invitation/components/edit-layer-panel/index",
     "edit-layer-picker": "/pages/wedding_invitation/components/edit-layer-picker/index",
+    "edit-color-picker": "/pages/wedding_invitation/components/edit-color-picker/index",
+    "edit-dialog": "/pages/wedding_invitation/components/edit-dialog/index",
     "t-icon": "tdesign-miniprogram/icon/icon"
   }
 }

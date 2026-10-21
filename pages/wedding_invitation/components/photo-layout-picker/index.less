@@ -33,27 +33,38 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8rpx;
+  margin-bottom: 20rpx;
   padding: 0 8rpx;
 }
 
+.layout-sheet__side {
+  width: 64rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.layout-sheet__back {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -12rpx;
+}
+
 .layout-sheet__title {
+  flex: 1;
+  text-align: center;
   font-size: 32rpx;
   font-weight: 700;
   color: #3d2914;
 }
 
-.layout-sheet__done {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #b91c3a;
-  padding: 8rpx 4rpx;
-}
-
 .layout-sheet__tip {
   font-size: 22rpx;
   color: rgba(61, 41, 20, 0.55);
-  margin-bottom: 20rpx;
+  margin: -8rpx 0 20rpx;
   padding: 0 8rpx;
 }
 
@@ -61,6 +72,10 @@
   max-height: 62vh;
   width: 100%;
   box-sizing: border-box;
+
+  &--pending {
+    opacity: 0;
+  }
 }
 
 .layout-sheet__grid {
@@ -207,8 +222,168 @@
   }
 }
 
-/* —— 上下 —— */
+/* —— 经典拼贴：左大 + 右上下 + 底通栏 —— */
+.layout-opt__stage--magazine {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 0.85fr;
+  gap: 8rpx;
+  padding: 14rpx 12rpx;
 
+  .ghost--mag-hero {
+    grid-column: 1 / span 2;
+    grid-row: 1 / span 2;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .ghost--mag-a {
+    grid-column: 3;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .ghost--mag-b {
+    grid-column: 3;
+    grid-row: 2;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .ghost--mag-c {
+    grid-column: 1 / span 3;
+    grid-row: 3;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    opacity: 0.75;
+  }
+}
+
+/* —— 顶栏主图 —— */
+.layout-opt__stage--magazineTop {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  /* 大图 12×12 / 小图 4×6 → 行比 12:6 */
+  grid-template-rows: 2fr 1fr;
+  gap: 8rpx;
+  padding: 14rpx 12rpx;
+
+  .ghost--mtop-hero {
+    grid-column: 1 / span 3;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .ghost--mtop-a,
+  .ghost--mtop-b,
+  .ghost--mtop-c {
+    grid-row: 2;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    opacity: 0.8;
+  }
+
+  .ghost--mtop-a {
+    grid-column: 1;
+  }
+
+  .ghost--mtop-b {
+    grid-column: 2;
+  }
+
+  .ghost--mtop-c {
+    grid-column: 3;
+  }
+}
+
+/* —— 左右对开 —— */
+.layout-opt__stage--magazineSplit {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 8rpx;
+  padding: 14rpx 12rpx;
+
+  .ghost--msplit-hero {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .ghost--msplit-a,
+  .ghost--msplit-b,
+  .ghost--msplit-c {
+    grid-column: 2;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    opacity: 0.8;
+  }
+
+  .ghost--msplit-a {
+    grid-row: 1;
+  }
+
+  .ghost--msplit-b {
+    grid-row: 2;
+  }
+
+  .ghost--msplit-c {
+    grid-row: 3;
+  }
+}
+
+/* —— 底栏主图 —— */
+.layout-opt__stage--magazineFocus {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  /* 小图 4×6 / 大图 12×12 → 行比 6:12 */
+  grid-template-rows: 1fr 2fr;
+  gap: 8rpx;
+  padding: 14rpx 12rpx;
+
+  .ghost--mfocus-a,
+  .ghost--mfocus-b,
+  .ghost--mfocus-c {
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    opacity: 0.8;
+  }
+
+  .ghost--mfocus-a {
+    grid-column: 1;
+  }
+
+  .ghost--mfocus-b {
+    grid-column: 2;
+  }
+
+  .ghost--mfocus-c {
+    grid-column: 3;
+  }
+
+  .ghost--mfocus-hero {
+    grid-column: 1 / span 3;
+    grid-row: 2;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+/* —— 上下 —— */
 
 .layout-opt__stage--column {
   display: flex;
@@ -227,3 +402,59 @@
     flex: 0.55;
   }
 }
+
+/* —— 淡入淡出 —— */
+.layout-opt__stage--fade {
+  .ghost--fade-back,
+  .ghost--fade-front {
+    position: absolute;
+    left: 14%;
+    top: 14%;
+    width: 72%;
+    height: 72%;
+  }
+
+  .ghost--fade-back {
+    transform: translate(10rpx, 10rpx);
+    opacity: 0.35;
+  }
+
+  .ghost--fade-front {
+    z-index: 2;
+    opacity: 0.95;
+  }
+}
+
+/* —— 缩略导览 —— */
+.layout-opt__stage--thumbs {
+  .ghost--thumbs-main {
+    position: absolute;
+    left: 12%;
+    top: 10%;
+    width: 76%;
+    height: 58%;
+  }
+
+  .ghost--thumbs-rail {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: 10%;
+    height: 18%;
+    display: flex;
+    align-items: stretch;
+    gap: 6rpx;
+  }
+
+  .ghost--thumbs-cell {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    opacity: 0.55;
+  }
+
+  .ghost--thumbs-cell-on {
+    opacity: 1;
+  }
+}
+

@@ -4,14 +4,25 @@
     style="height: {{height}}px;"
     current="{{innerCurrent}}"
     bindchange="onChange"
-
     circular="{{false}}"
     duration="{{280}}"
   >
-    <swiper-item wx:for="{{photos}}" wx:key="id">
+    <swiper-item wx:for="{{viewPhotos}}" wx:key="id">
       <view class="pw-carousel__slide" data-index="{{index}}" bindtap="onPreview">
         <view class="pw-carousel__frame">
-          <image class="pw-carousel__img" src="{{item.src}}" mode="aspectFit" />
+          <image
+            wx:if="{{item.useCrop}}"
+            class="pw-carousel__img pw-carousel__img--crop"
+            src="{{item.src}}"
+            mode="scaleToFill"
+            style="{{item.imgBoxStyle}}"
+          />
+          <image
+            wx:else
+            class="pw-carousel__img pw-carousel__img--fit"
+            src="{{item.src}}"
+            mode="aspectFill"
+          />
           <view
             wx:if="{{editable}}"
             class="pw-carousel__del"
@@ -26,10 +37,10 @@
     </swiper-item>
   </swiper>
 
-  <view class="pw-carousel__dots" wx:if="{{photos.length > 1}}">
+  <view class="pw-carousel__dots" wx:if="{{viewPhotos.length > 1}}">
     <view
       class="pw-carousel__dot {{current === index ? 'pw-carousel__dot--on' : ''}}"
-      wx:for="{{photos}}"
+      wx:for="{{viewPhotos}}"
       wx:key="id"
       wx:for-index="index"
     />

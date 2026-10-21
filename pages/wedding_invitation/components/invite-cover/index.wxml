@@ -1,6 +1,7 @@
+<wxs src="../../utils/element-style.wxs" module="elStyle" />
 <view
   class="invite-cover {{fullBleed ? 'invite-cover--bleed' : ''}}"
-  style="height: {{windowHeight}}px;"
+  style="height: {{windowHeight}}px; background: {{coverBg}};"
   catchtouchstart="onTouchStart"
   catchtouchmove="onTouchMove"
   catchtouchend="onTouchEnd"
@@ -34,13 +35,18 @@
         style="width: {{frameW}}px; height: {{frameH}}px; left: {{frameL}}px; top: {{frameT}}px;"
       >
         <view
-          class="invite-cover__el"
+          class="invite-cover__el {{el.type === 'text' ? 'invite-cover__el--text' : ''}} {{elStyle.hasContent(el) ? 'invite-cover__el--plain' : ''}} invite-cover__el--{{el.fontFamily || 'sans'}}"
           wx:for="{{item.elements}}"
           wx:for-item="el"
           wx:key="id"
-          style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; z-index: {{el.layer || 1}}; transform: rotate({{el.rotate || 0}}deg); background: {{el.color}};"
+          style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; z-index: {{el.layer || 1}}; transform: rotate({{el.rotate || 0}}deg); background: {{elStyle.boxBg(el)}}; color: {{elStyle.boxColor(el)}}; font-size: {{elStyle.fontSizeOnCanvas(el, frameW)}}; font-weight: {{elStyle.fontWeightCss(el)}};{{elStyle.isText(el) ? elStyle.textLayoutStyle(el) : ''}}"
         >
-          <text class="invite-cover__el-label" wx:if="{{el.label}}">{{el.label}}</text>
+          <text
+            wx:if="{{el.type === 'text'}}"
+            class="invite-cover__el-text"
+            style="{{elStyle.textInnerStyle(el)}}"
+          >{{el.text || ''}}</text>
+          <text class="invite-cover__el-text" wx:elif="{{el.label}}">{{el.label}}</text>
         </view>
       </view>
 

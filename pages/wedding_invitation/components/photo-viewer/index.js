@@ -71,6 +71,7 @@ Component({
     items: [],
     current: 0,
     showIndex: true,
+    swipeable: true,
     chromeOn: true,
     zoomed: false,
     transforms: [],
@@ -126,7 +127,7 @@ Component({
     },
 
     /**
-     * @param {{ urls?: string[], photos?: Array<{src?: string, id?: string}>, index?: number, showIndex?: boolean }} payload
+     * @param {{ urls?: string[], photos?: Array<{src?: string, id?: string}>, index?: number, showIndex?: boolean, swipeable?: boolean }} payload
      */
     open(payload = {}) {
       this.refreshMetrics();
@@ -159,6 +160,7 @@ Component({
         items,
         current,
         showIndex: payload.showIndex !== false,
+        swipeable: payload.swipeable !== false,
         chromeOn: true,
         zoomed: false,
         transforms: this._tfList.map((tf) => this.styleOf(tf)),

@@ -5,7 +5,12 @@ import {
   createBlessing,
   withTimeText,
 } from '~/services/blessing';
-import { resolveInviteViewModel } from '~/services/invite-preview';
+import {
+  resolveInviteViewModel,
+  editPagesToCoverPages,
+  takeDraftPreviewSnap,
+} from '~/services/invite-preview';
+import { loadInviteDraft } from '~/services/invite-draft';
 import {
   readWindowViewport,
   bindWindowResize,
@@ -32,12 +37,17 @@ Page({
     moduleAnimating: true,
     moduleCount: 1,
     showCover: true,
+    showStory: false,
     showPhotoWall: false,
     showGuestModules: false,
+    storyModuleIndex: -1,
     photoModuleIndex: -1,
     blessModuleIndex: -1,
     hasNextAfterCover: false,
+    hasNextAfterStory: false,
     hasNextAfterPhoto: false,
+    storyChapters: [],
+    storyStartIndex: 0,
     /** 草稿预览显示安全区虚线开关 */
     enableSafeGuide: false,
     blessVisible: false,
@@ -48,7 +58,8 @@ Page({
       groom: '张晨',
       bride: '李婉',
     },
-    invitePages: mockInvitePages,
+    // 勿默认 mock：草稿预览首帧否则会闪/卡住 demo 大图
+    invitePages: [],
     photoWall: [],
     stagePhotos: [],
     blessings: [],
@@ -58,71 +69,189 @@ Page({
     photoWallLayout: 'carousel',
   },
 
-
+  /** 把编辑画布 pages 套成封面结构（草稿专用，无 demo src） */
+  _coverFromEditPages(editPages, opts = {}) {
+    const coverPages = editPagesToCoverPages(editPages || [], opts);
+    return coverPages.length
+      ? coverPages
+      : [
+          {
+            id: 'blank',
+            src: '',
+            bgColor: '#f7f0ea',
+            bgSrc: '',
+            elements: [],
+            hint: '',
+            backHint: '下滑返回',
+          },
+        ];
+  },
 
   onLoad(query) {
     const viewport = readWindowViewport();
 
-    // 编辑预览显式 mode=draft；直接打开 / 分享默认正式请帖（暂用 mock）
-    const mode = (query && query.mode) || 'published';
-    const model = resolveInviteViewModel({
-      mode,
-      inviteId: (query && (query.id || query.inviteId)) || '',
-    });
+    // 编辑预览：mode=draft 或带 module；否则正式请帖（暂用 mock）
+    const startModule = (query && query.module) || '';
+    const inviteId = (query && (query.id || query.inviteId)) || '';
+    const mode =
+      (query && query.mode) === 'draft' ||
+      startModule === 'invite' ||
+      startModule === 'story' ||
+      startModule === 'photo'
+        ? 'draft'
+        : 'published';
 
-    let invitePages = model.invitePages;
-    let photoWall = model.photoWall || [];
-    let photoWallLayout = model.photoWallLayout || 'carousel';
+    let invitePages = [];
+    let photoWall = [];
+    let photoWallLayout = 'carousel';
+    let storyChapters = [];
     let showCover = true;
-    let showPhotoWall = model.showPhotoWall;
-
-    let showGuestModules = model.showGuestModules;
-    let moduleCount = model.moduleCount;
-    let photoModuleIndex = model.photoModuleIndex;
-    let blessModuleIndex = model.blessModuleIndex;
+    let showStory = false;
+    let showPhotoWall = false;
+    let showGuestModules = false;
+    let moduleCount = 1;
+    let storyModuleIndex = -1;
+    let photoModuleIndex = -1;
+    let blessModuleIndex = -1;
     let stagePhotos = [];
     let blessings = [];
-    let enableSafeGuide = mode === 'draft';
+    let enableSafeGuide = false;
 
-    // 正式请帖暂无接口：用本页 mock（含留言/现场）
-    if (mode !== 'draft' || invitePages == null) {
-      invitePages = mockInvitePages;
-      photoWall = mockPhotoWall;
-      photoWallLayout = 'carousel';
-      stagePhotos = mockStagePhotos;
+    if (mode === 'draft') {
+      // 1) 编辑页 eventChannel 直传 2) 预览快照 3) 本地草稿 —— 绝不走 mock
+      const draft = loadInviteDraft(inviteId);
+      const snap = takeDraftPreviewSnap(inviteId);
+      let editPages =
+        (snap && Array.isArray(snap.pages) && snap.pages.length
+          ? snap.pages
+          : null) ||
+        (draft && draft.pages) ||
+        [];
+
+      photoWall = (draft && draft.photoWall) || [];
+      photoWallLayout = (draft && draft.photoWallLayout) || 'carousel';
+      if (photoWallLayout === 'grid') photoWallLayout = 'grid4';
+      storyChapters =
+        (draft && draft.storyLine && draft.storyLine.chapters) || [];
+      const showPhotoWallDraft = photoWall.length > 0;
+      const showStoryDraft = storyChapters.length > 0;
+
+      invitePages = this._coverFromEditPages(editPages, {
+        hasStory: showStoryDraft,
+        hasPhotoWall: showPhotoWallDraft,
+      });
+
       showCover = true;
-      showPhotoWall = mockPhotoWall.length > 0;
+      showStory = showStoryDraft;
+      showPhotoWall = showPhotoWallDraft;
+      showGuestModules = false;
+      moduleCount = 1;
+      if (showStory) {
+        storyModuleIndex = moduleCount;
+        moduleCount += 1;
+      }
+      if (showPhotoWall) {
+        photoModuleIndex = moduleCount;
+        moduleCount += 1;
+      }
+      enableSafeGuide = true;
 
-      showGuestModules = true;
-      moduleCount = 1 + (showPhotoWall ? 1 : 0) + 1;
-      photoModuleIndex = showPhotoWall ? 1 : -1;
-      blessModuleIndex = showPhotoWall ? 2 : 1;
-      blessings = loadBlessings();
+      // 编辑页 navigateTo success 里会再推一份，防止存储时序问题
+      try {
+        const ec =
+          typeof this.getOpenerEventChannel === 'function'
+            ? this.getOpenerEventChannel()
+            : null;
+        if (ec && typeof ec.on === 'function') {
+          ec.on('previewDraft', (payload) => {
+            if (!payload || !Array.isArray(payload.pages)) return;
+            const pages = this._coverFromEditPages(payload.pages, {
+              hasStory: false,
+              hasPhotoWall: false,
+            });
+            const mapped =
+              startModule === 'invite'
+                ? pages.map((page, i, arr) =>
+                    i < arr.length - 1 ? page : { ...page, hint: '' }
+                  )
+                : pages;
+            this.setData({
+              invitePages: mapped,
+              coverStartPage: Math.max(
+                0,
+                Math.min(
+                  Math.max(mapped.length - 1, 0),
+                  Number(payload.pageIndex) || 0
+                )
+              ),
+            });
+          });
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    } else {
+      // 正式请帖暂无接口：mock
+      const model = resolveInviteViewModel({
+        mode: 'published',
+        inviteId,
+      });
+      invitePages = model.invitePages;
+      if (invitePages == null) {
+        invitePages = mockInvitePages;
+        photoWall = mockPhotoWall;
+        photoWallLayout = 'carousel';
+        stagePhotos = mockStagePhotos;
+        showCover = true;
+        showStory = false;
+        showPhotoWall = mockPhotoWall.length > 0;
+        showGuestModules = true;
+        moduleCount = 1 + (showPhotoWall ? 1 : 0) + 1;
+        storyModuleIndex = -1;
+        photoModuleIndex = showPhotoWall ? 1 : -1;
+        blessModuleIndex = showPhotoWall ? 2 : 1;
+        blessings = loadBlessings();
+      }
       enableSafeGuide = false;
     }
 
-    // 编辑预览分镜：请帖只看请帖，照片墙只看照片墙
-    const startModule = (query && query.module) || '';
+    // 编辑预览分镜：可只看某一模块
     let moduleIndex = 0;
     let moduleTranslateY = 0;
     let photoStartIndex = 0;
+    let storyStartIndex = 0;
 
     if (mode === 'draft' && startModule === 'invite') {
       showCover = true;
+      showStory = false;
       showPhotoWall = false;
       showGuestModules = false;
       moduleCount = 1;
+      storyModuleIndex = -1;
       photoModuleIndex = -1;
       blessModuleIndex = -1;
       invitePages = (invitePages || []).map((page, i, arr) => {
         if (i < arr.length - 1) return page;
         return { ...page, hint: '' };
       });
+    } else if (mode === 'draft' && startModule === 'story') {
+      showCover = false;
+      showStory = storyChapters.length > 0;
+      showPhotoWall = false;
+      showGuestModules = false;
+      moduleCount = showStory ? 1 : 0;
+      storyModuleIndex = showStory ? 0 : -1;
+      photoModuleIndex = -1;
+      blessModuleIndex = -1;
+      storyStartIndex = 0;
+      enableSafeGuide = false;
     } else if (mode === 'draft' && startModule === 'photo') {
       showCover = false;
+      showStory = false;
       showPhotoWall = (photoWall || []).length > 0;
       showGuestModules = false;
-      moduleCount = 1;
+      moduleCount = showPhotoWall ? 1 : 0;
+      storyModuleIndex = -1;
       photoModuleIndex = showPhotoWall ? 0 : -1;
       blessModuleIndex = -1;
       photoStartIndex = 0;
@@ -137,36 +266,45 @@ Page({
       )
     );
 
+    const hasNextAfterCover =
+      showCover && (showStory || showPhotoWall || showGuestModules);
+    const hasNextAfterStory =
+      showStory && (showPhotoWall || showGuestModules);
+    const hasNextAfterPhoto = showGuestModules;
+
     this.setData({
       ...viewport,
       invitePages,
       photoWall,
       photoWallLayout,
+      storyChapters,
       stagePhotos,
       blessings,
       showCover,
+      showStory,
       showPhotoWall,
       showGuestModules,
-      moduleCount,
+      moduleCount: Math.max(1, moduleCount),
+      storyModuleIndex,
       photoModuleIndex,
       blessModuleIndex,
       enableSafeGuide,
-      hasNextAfterCover: showCover && (showPhotoWall || showGuestModules),
-      hasNextAfterPhoto: showGuestModules,
-      moduleTrackHeight: viewport.windowHeight * moduleCount,
+      hasNextAfterCover,
+      hasNextAfterStory,
+      hasNextAfterPhoto,
+      moduleTrackHeight: viewport.windowHeight * Math.max(1, moduleCount),
       moduleTranslateY,
       moduleIndex,
       coverStartPage,
       photoStartIndex,
+      storyStartIndex,
     });
-
 
     this._submitting = false;
     this._moduleDragBase = 0;
     bindWindowResize(this, (next) => {
       const patch = { ...next };
       patch.moduleTrackHeight = next.windowHeight * this.data.moduleCount;
-      // 保持当前模块对齐
       patch.moduleTranslateY = -this.data.moduleIndex * next.windowHeight;
       this.setData(patch);
     });

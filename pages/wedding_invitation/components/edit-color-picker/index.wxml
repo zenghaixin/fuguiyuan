@@ -1,0 +1,62 @@
+<view class="color-picker {{visible ? 'color-picker--on' : ''}}" catchtouchmove="noop">
+  <view class="color-picker__mask" wx:if="{{visible}}" catchtap="onMask" />
+  <view class="color-picker__panel" wx:if="{{visible}}" catchtouchmove="noop">
+    <view class="color-picker__bar" />
+    <view class="color-picker__head">
+      <view class="color-picker__title">{{title}}</view>
+      <view class="color-picker__done" catchtap="onDone">完成</view>
+    </view>
+
+    <!-- 上：选色板（左 SV + 右色相） -->
+    <view class="color-picker__board">
+      <view
+        class="color-picker__sv"
+        style="{{panelStyle}}"
+        catchtouchstart="onSvStart"
+        catchtouchmove="onSvMove"
+        catchtouchend="onSvEnd"
+        catchtouchcancel="onSvEnd"
+      >
+        <view class="color-picker__sv-white" />
+        <view class="color-picker__sv-black" />
+        <view
+          class="color-picker__sv-thumb"
+          style="left: {{thumbLeft}}%; top: {{thumbTop}}%; background: {{hex}};"
+        />
+      </view>
+
+      <view
+        class="color-picker__hue"
+        catchtouchstart="onHueStart"
+        catchtouchmove="onHueMove"
+        catchtouchend="onHueEnd"
+        catchtouchcancel="onHueEnd"
+      >
+        <view
+          class="color-picker__hue-thumb"
+          style="top: {{hueTop}}%;"
+        />
+      </view>
+    </view>
+
+    <view class="color-picker__preview">
+      <view class="color-picker__preview-swatch" style="background: {{hex}};" />
+      <text class="color-picker__preview-hex">{{hex}}</text>
+    </view>
+
+    <!-- 下：常用色 -->
+    <view class="color-picker__section">常用色</view>
+    <view class="color-picker__presets">
+      <view
+        class="color-picker__preset {{hex === item.color ? 'color-picker__preset--on' : ''}}"
+        wx:for="{{presets}}"
+        wx:key="id"
+        style="background: {{item.color}};"
+        data-color="{{item.color}}"
+        catchtap="onPickPreset"
+      >
+        <text class="color-picker__preset-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -3,6 +3,7 @@
   "disableScroll": true,
   "usingComponents": {
     "invite-cover": "/pages/wedding_invitation/components/invite-cover/index",
+    "story-line": "/pages/wedding_invitation/components/story-line/index",
     "photo-wall": "/pages/wedding_invitation/components/photo-wall/index",
     "bless-board": "/pages/wedding_invitation/components/bless-board/index",
     "safe-guide-overlay": "/pages/wedding_invitation/components/safe-guide-overlay/index",

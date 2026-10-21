@@ -35,15 +35,21 @@ Component({
     frameL: 0,
     frameT: 0,
     bleedInset: PREVIEW_INSET,
+    /** 画布外留白底色：草稿跟当前页，避免黑边像 demo */
+    coverBg: '#1a0c10',
   },
 
   observers: {
     'pages, windowHeight, windowWidth, pageIndex, leftBehind, hasNextModule, fullBleed': function () {
       const fullBleed = !!this.data.fullBleed;
-      this.setData({ bleedInset: fullBleed ? 0 : PREVIEW_INSET });
+      const pages = this.data.pages || [];
+      const cur = pages[this.data.pageIndex] || pages[0] || {};
+      const coverBg = fullBleed
+        ? '#1a0c10'
+        : cur.bgColor || '#f3efe9';
+      this.setData({ bleedInset: fullBleed ? 0 : PREVIEW_INSET, coverBg });
       this.syncFrame();
       const h = this.data.windowHeight || 667;
-      const pages = this.data.pages || [];
       this.setData({
         trackHeight: h * Math.max(pages.length, 1),
         translateY: -this.data.pageIndex * h,

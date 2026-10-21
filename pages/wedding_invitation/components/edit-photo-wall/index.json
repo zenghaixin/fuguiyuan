@@ -4,7 +4,10 @@
     "t-icon": "tdesign-miniprogram/icon/icon",
     "pw-carousel": "../photo-wall/layouts/carousel/index",
     "pw-column": "../photo-wall/layouts/column/index",
+    "pw-fade": "../photo-wall/layouts/fade/index",
+    "pw-thumbs": "../photo-wall/layouts/thumbs/index",
     "pw-grid": "../photo-wall/layouts/grid/index",
+    "pw-magazine": "../photo-wall/layouts/magazine/index",
     "pw-stack": "../photo-wall/layouts/stack/index"
   }
 }

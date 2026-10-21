@@ -1,8 +1,5 @@
 @import '/variable.less';
 
-/* 圆环带厚度：刻度、数字、角度标识都落在这个宽度里 */
-@angle-band: 56rpx;
-/* 选中态跟主题红；虚线+白描边，红底元素上仍可辨认 */
 @select: @brand7-normal;
 
 .tf {
@@ -27,7 +24,6 @@
     z-index: 1;
   }
 
-  /* 选中：虚线红框 + 白描边，样式与蓝版一致，色走主题 */
   &__frame {
     position: absolute;
     inset: -4rpx;
@@ -42,27 +38,19 @@
       0 0 0 6rpx rgba(185, 28, 58, 0.2);
   }
 
+  /* 四角缩放手柄 */
   &__handle {
     position: absolute;
-    width: 22rpx;
-    height: 22rpx;
-    margin: -11rpx;
-    border-radius: 4rpx;
+    width: 28rpx;
+    height: 28rpx;
+    margin: -14rpx;
+    border-radius: 50%;
     background: #fff;
     border: 3rpx solid @select;
     box-sizing: border-box;
-    z-index: 3;
-    box-shadow: 0 2rpx 8rpx rgba(185, 28, 58, 0.28);
-    pointer-events: none;
-
-    &--active {
-      width: 28rpx;
-      height: 28rpx;
-      margin: -14rpx;
-      border-radius: 50%;
-      pointer-events: auto;
-      box-shadow: 0 2rpx 10rpx rgba(185, 28, 58, 0.4);
-    }
+    z-index: 5;
+    box-shadow: 0 2rpx 10rpx rgba(185, 28, 58, 0.4);
+    pointer-events: auto;
 
     &--nw {
       left: 0;
@@ -89,100 +77,89 @@
     }
   }
 
-  &__angle {
+  /* 四角外侧半圆：旋转（再外移，避免和缩放角点误触） */
+  &__rot {
+    position: absolute;
+    width: 44rpx;
+    height: 44rpx;
+    z-index: 4;
+    pointer-events: auto;
+    box-sizing: border-box;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 4rpx;
+      border: 4rpx solid rgba(185, 28, 58, 0.7);
+      background: transparent;
+      box-sizing: border-box;
+    }
+
+    &--nw {
+      left: -64rpx;
+      top: -64rpx;
+
+      &::after {
+        border-radius: 50% 0 0 0;
+        border-right: none;
+        border-bottom: none;
+      }
+    }
+
+    &--ne {
+      right: -64rpx;
+      top: -64rpx;
+      left: auto;
+
+      &::after {
+        border-radius: 0 50% 0 0;
+        border-left: none;
+        border-bottom: none;
+      }
+    }
+
+    &--sw {
+      left: -64rpx;
+      bottom: -64rpx;
+      top: auto;
+
+      &::after {
+        border-radius: 0 0 0 50%;
+        border-right: none;
+        border-top: none;
+      }
+    }
+
+    &--se {
+      right: -64rpx;
+      bottom: -64rpx;
+      left: auto;
+      top: auto;
+
+      &::after {
+        border-radius: 0 0 50% 0;
+        border-left: none;
+        border-top: none;
+      }
+    }
+  }
+
+  &__angle-hud {
     position: absolute;
     left: 50%;
     top: 50%;
-    z-index: 4;
+    z-index: 6;
     transform: translate(-50%, -50%);
-    pointer-events: auto;
-  }
-
-  /* 有宽度的圆环（中间镂空） */
-  &__angle-band {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    box-sizing: border-box;
-    pointer-events: none;
-    border: @angle-band solid rgba(255, 250, 246, 0.94);
-    box-shadow:
-      inset 0 0 0 2rpx rgba(185, 28, 58, 0.28),
-      0 0 0 2rpx rgba(185, 28, 58, 0.22),
-      0 6rpx 20rpx rgba(61, 41, 20, 0.08);
-  }
-
-  /* 刻度落在环带内：从外圈向内画 */
-  &__tick {
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 0;
-    transform-origin: center center;
-    pointer-events: none;
-
-    &-line {
-      position: absolute;
-      left: 50%;
-      top: 10rpx;
-      width: 2rpx;
-      height: 16rpx;
-      margin-left: -1rpx;
-      background: rgba(185, 28, 58, 0.35);
-      border-radius: 1rpx;
-    }
-
-    &--major &-line {
-      top: 6rpx;
-      height: 22rpx;
-      width: 3rpx;
-      margin-left: -1.5rpx;
-      background: rgba(185, 28, 58, 0.7);
-    }
-
-    /* 数字居中落在环带内 */
-    &-label {
-      position: absolute;
-      left: 50%;
-      top: calc(@angle-band / 2);
-      font-size: 18rpx;
-      font-weight: 700;
-      color: rgba(139, 30, 63, 0.9);
-      line-height: 1;
-      white-space: nowrap;
-      transform-origin: center center;
-    }
-  }
-
-  /* 当前角度标识：整块在环带内滑动 */
-  &__marker {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    transform-origin: center center;
-  }
-
-  &__marker-badge {
-    position: absolute;
-    left: 50%;
-    top: calc(@angle-band / 2);
-    z-index: 3;
-    padding: 6rpx 14rpx;
+    padding: 10rpx 20rpx;
     border-radius: 24rpx;
     background: #b91c3a;
     color: #fff;
-    font-size: 22rpx;
+    font-size: 28rpx;
     font-weight: 700;
     line-height: 1.2;
     white-space: nowrap;
     box-shadow: 0 4rpx 12rpx rgba(185, 28, 58, 0.35);
     border: 3rpx solid #fff;
-    transform-origin: center center;
-
-    &--on {
-      padding: 10rpx 20rpx;
-      font-size: 30rpx;
-    }
+    pointer-events: none;
   }
 }

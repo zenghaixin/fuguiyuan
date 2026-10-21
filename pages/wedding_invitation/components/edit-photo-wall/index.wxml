@@ -3,16 +3,13 @@
     <view class="edit-photo__nav" style="height: {{backSize}}px;">
       <view class="edit-photo__title">编辑照片墙</view>
     </view>
-    <view class="edit-photo__sub">
-      {{photos.length ? (isGrid ? '已添加 ' + photos.length + ' 张，长按拖动可排序' : '已添加 ' + photos.length + ' 张，可继续添加') : (isGrid ? '点击空位或下方按钮添加照片' : '添加你们的合影与瞬间')}}
-
-    </view>
+    <view class="edit-photo__sub">{{subText}}</view>
   </view>
 
   <view class="edit-photo__body">
     <view class="edit-photo__stage">
-      <!-- 非宫格且无图：点击添加 -->
-      <view class="edit-canvas" wx:if="{{!photos.length && !isGrid}}" bindtap="onAdd">
+      <!-- 非宫格/杂志且无图：点击添加 -->
+      <view class="edit-canvas" wx:if="{{!photos.length && !isGrid && !isMagazine}}" bindtap="onAdd">
         <view class="edit-canvas__frame">
           <t-icon name="image" size="64rpx" color="#c4b5a5" />
           <view class="edit-canvas__tip">点击添加照片</view>
@@ -20,22 +17,44 @@
         </view>
       </view>
 
-      <!-- 宫格：无图也直接展示空宫格 -->
-      <pw-grid
-        wx:elif="{{isGrid}}"
+      <!-- 网格族：四/九/杂志共用 pw-magazine；旧 pw-grid 暂保留未删 -->
+      <pw-magazine
+        wx:elif="{{isGrid || isMagazine}}"
+        id="magLayout"
         photos="{{photos}}"
         height="{{stageHeight}}"
-        cols="{{gridCols}}"
+        layout="{{layout}}"
         editable="{{true}}"
         bind:delete="onDelete"
         bind:preview="onPreview"
-        bind:add="onAdd"
-        bind:reorder="onReorder"
+        bind:framesensure="onFramesEnsure"
+        bind:framechange="onFrameChange"
+        bind:coverfocus="onCoverFocus"
+        bind:select="onSelect"
       />
-
 
       <pw-column
         wx:elif="{{layout === 'column'}}"
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        current="{{current}}"
+        editable="{{true}}"
+        bind:delete="onDelete"
+        bind:change="onChange"
+        bind:preview="onPreview"
+      />
+      <pw-fade
+        wx:elif="{{layout === 'fade'}}"
+        photos="{{photos}}"
+        height="{{stageHeight}}"
+        current="{{current}}"
+        editable="{{true}}"
+        bind:delete="onDelete"
+        bind:change="onChange"
+        bind:preview="onPreview"
+      />
+      <pw-thumbs
+        wx:elif="{{layout === 'thumbs'}}"
         photos="{{photos}}"
         height="{{stageHeight}}"
         current="{{current}}"
@@ -66,7 +85,7 @@
       />
     </view>
 
-    <view class="edit-photo__add" wx:if="{{photos.length || isGrid}}" bindtap="onAdd">
+    <view class="edit-photo__add" wx:if="{{photos.length || isGrid || isMagazine}}" bindtap="onAdd">
       <t-icon name="add" size="36rpx" color="#b91c3a" />
       <text>{{photos.length ? '继续添加照片' : '添加照片'}}</text>
     </view>

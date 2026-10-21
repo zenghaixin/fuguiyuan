@@ -1,4 +1,6 @@
-const { previewPhotos, closeViewer } = require('../../utils/preview-photos');
+import { photoCropDisplayForCell } from '../../utils/cover-crop';
+import { previewPhotos, closeViewer } from '../../utils/preview-photos';
+import { isMagazineLayout } from '~/services/invite-photo-local';
 
 const SNAP_RATIO = 0.1;
 const HINT_NEXT = '上滑留下祝福';
@@ -38,9 +40,13 @@ Component({
     /** 无底部文案时收紧 footer，舞台下沉占满 */
     footerSlim: false,
     isGrid: false,
+    isMagazine: false,
     isStack: false,
+    isFade: false,
+    isThumbs: false,
     gridCols: 2,
     subText: '左右滑动查看',
+    viewPhotos: [],
   },
 
 
@@ -49,15 +55,24 @@ Component({
       let key = layout;
       if (key === 'grid') key = 'grid4';
       const isGrid = key === 'grid4' || key === 'grid9';
+      const isMagazine = isMagazineLayout(key);
       const isStack = key === 'stack';
+      const isFade = key === 'fade';
+      const isThumbs = key === 'thumbs';
       let subText = '左右滑动查看';
       if (key === 'column') subText = '上下滑动查看';
-      else if (key === 'grid4' || key === 'grid9') subText = '点击右上角查看大图';
+      else if (key === 'fade') subText = '左右切换，淡入淡出';
+      else if (key === 'thumbs') subText = '点底部缩略图切换';
+      else if (key === 'grid4' || key === 'grid9') subText = '点击照片查看大图';
+      else if (isMagazine) subText = '按格排版，点击照片查看大图';
       else if (key === 'stack') subText = '左右翻看，翻过沉底';
 
       this.setData({
         isGrid,
+        isMagazine,
         isStack,
+        isFade,
+        isThumbs,
         gridCols: key === 'grid9' ? 3 : 2,
         subText,
       });
@@ -107,9 +122,23 @@ Component({
           const list = this.data.photos || [];
           const len = Math.max(list.length || 1, 1);
           const current = Math.min(this.data.current, len - 1);
+          const w = this.data.windowWidth || 375;
+          const cellAspect = w / Math.max(1, stageHeight);
+          const viewPhotos = list.map((p) => {
+            if (!p) return null;
+            const disp = photoCropDisplayForCell(p, cellAspect);
+            return {
+              id: p.id,
+              src: p.src,
+              caption: p.caption || '',
+              useCrop: !!disp.useCrop,
+              imgBoxStyle: disp.imgBoxStyle || '',
+            };
+          }).filter(Boolean);
           const patch = {
             stageHeight,
             trackHeight: stageHeight * len,
+            viewPhotos,
           };
           if (this.data.layout === 'column') {
             patch.translateY = -current * stageHeight;
@@ -139,6 +168,18 @@ Component({
       }
       current = Math.max(0, Math.min(max, current));
       const stageHeight = this.data.stageHeight || 400;
+      const cellAspect = w / Math.max(1, stageHeight);
+      const viewPhotos = list.map((p) => {
+        if (!p) return null;
+        const disp = photoCropDisplayForCell(p, cellAspect);
+        return {
+          id: p.id,
+          src: p.src,
+          caption: p.caption || '',
+          useCrop: !!disp.useCrop,
+          imgBoxStyle: disp.imgBoxStyle || '',
+        };
+      }).filter(Boolean);
       this.setData({
         trackWidth: w * len,
         trackHeight: stageHeight * len,
@@ -146,6 +187,7 @@ Component({
         currentCaption: (list[current] && list[current].caption) || '',
         translateX: -current * w,
         translateY: -current * stageHeight,
+        viewPhotos,
       });
       this.syncHint();
     },
@@ -167,11 +209,16 @@ Component({
       let layout = this.data.layout;
       if (layout === 'grid') layout = 'grid4';
       const isGrid = layout === 'grid4' || layout === 'grid9';
+      const isMagazine = isMagazineLayout(layout);
       const isStack = layout === 'stack';
+      const isFade = layout === 'fade';
+      const isThumbs = layout === 'thumbs';
       const list = this.data.photos || [];
       const max = Math.max(list.length - 1, 0);
       const current = this.data.current || 0;
       const isColumn = layout === 'column';
+      const isStaticBoard =
+        isGrid || isMagazine || isStack || isFade || isThumbs;
 
       let hintVisible = false;
       let hintText = '';
@@ -181,8 +228,8 @@ Component({
         hintVisible = true;
         hintText = HINT_BACK;
         hintBack = true;
-      } else if (isGrid || isStack) {
-        // 叠放翻牌本身已说明；仅提示下一部分
+      } else if (isStaticBoard) {
+        // 宫格/杂志/叠放：仅提示下一部分
         if (this.data.hasNextModule) {
           hintVisible = true;
           hintText = HINT_NEXT;
@@ -195,8 +242,8 @@ Component({
         hintText = HINT_NEXT;
       }
 
-      const showCaption = !!(this.data.currentCaption && !isGrid && !isStack);
-      const showDots = list.length > 1 && !isGrid && !isStack;
+      const showCaption = !!(this.data.currentCaption && !isStaticBoard);
+      const showDots = list.length > 1 && !isStaticBoard;
       const footerSlim = !hintVisible && !showCaption && !showDots;
 
       const prev = this.data;
@@ -217,6 +264,17 @@ Component({
       if (this._modMovedRecently) return;
       const index = Number(e.detail && e.detail.index);
       if (Number.isNaN(index) || index < 0) return;
+      const d = e.detail || {};
+      // 网格族：统一只看当前一张
+      if (this.data.isGrid || this.data.isMagazine || d.single) {
+        const list = this.data.photos || [];
+        const p = list[index];
+        previewPhotos(p ? [p] : [], 0, {
+          showIndex: false,
+          swipeable: false,
+        });
+        return;
+      }
       this.openViewer(index);
     },
 
@@ -259,9 +317,17 @@ Component({
       }
     },
 
-    /** 宫格 / 叠放：头/底上下滑切模块 */
+    /** 宫格 / 叠放 / 淡入 / 缩略：头/底上下滑切模块 */
     onModuleTouchStart(e) {
-      if ((!this.data.isGrid && !this.data.isStack) || !this.data.active) {
+      if (
+        (!this.data.isGrid &&
+          !this.data.isMagazine &&
+          !this.data.isStack &&
+          !this.data.isFade &&
+          !this.data.isThumbs &&
+          !this.data.isBook) ||
+        !this.data.active
+      ) {
         return;
       }
 
@@ -275,7 +341,12 @@ Component({
     onModuleTouchMove(e) {
       if (
         !this._modTouching ||
-        (!this.data.isGrid && !this.data.isStack) ||
+        (!this.data.isGrid &&
+          !this.data.isMagazine &&
+          !this.data.isStack &&
+          !this.data.isFade &&
+          !this.data.isThumbs &&
+          !this.data.isBook) ||
         !this.data.active
       ) {
         return;

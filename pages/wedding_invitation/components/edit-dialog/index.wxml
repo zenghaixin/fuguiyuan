@@ -1,4 +1,5 @@
-<view class="edit-dialog" wx:if="{{visible}}" catchtouchmove="noop">
+<!-- 用 hidden 代替 wx:if，避免关闭弹窗同时改画布时触发 FLOW_CREATE_NODE -->
+<view class="edit-dialog" hidden="{{!visible}}" catchtouchmove="noop">
   <view class="edit-dialog__mask" catchtap="onCancel" />
   <view class="edit-dialog__panel">
     <view class="edit-dialog__title">{{title}}</view>

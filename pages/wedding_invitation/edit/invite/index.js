@@ -1,9 +1,26 @@
-import { INVITE_TOOLS, buildElementTools } from '../toolbox';
+import {
+  INVITE_TOOLS,
+  buildElementTools,
+  buildTextElementTools,
+  buildTextStyleTools,
+} from '../toolbox';
 import { DECOR_ASSETS } from '../decor-assets';
 import { BG_ASSETS } from '../bg-assets';
 import {
+  FONT_FAMILIES,
+  FONT_SIZES,
+  FONT_WEIGHTS,
+  TEXT_COLORS,
+  TEXT_BG_COLORS,
+  TEXT_ALIGNS,
+  TEXT_VALIGNS,
+} from '../font-assets';
+import {
   ensureEditablePage,
   createDecorElement,
+  createTextElement,
+  DEFAULT_TEXT_STYLE,
+  DEFAULT_TEXT_LAYOUT,
   appendElement,
   updateElement,
   updatePageBackground,
@@ -23,6 +40,11 @@ import {
   bindWindowResize,
   unbindWindowResize,
 } from '~/services/window-viewport';
+import { writeDraftPreviewSnap } from '~/services/invite-preview';
+import { captureCoverThumb } from '~/services/invite-cover-thumb';
+import { navigateBackToRoute, SHEET_ROUTE } from '../nav-route';
+
+const SHEET_URL = '/pages/wedding_invitation/edit/invite-sheet/index';
 
 Page({
   data: {
@@ -36,8 +58,11 @@ Page({
     invitePageIndex: 0,
     activeElementId: '',
     elementEditMode: 'position',
+    layoutRev: 0,
     toolboxTools: INVITE_TOOLS,
     toolboxActive: '',
+    /** 文字选中：main 一级 / style 二级样式 */
+    textToolLevel: 'main',
     decorSheetVisible: false,
     decorAssets: DECOR_ASSETS,
     bgSheetVisible: false,
@@ -47,6 +72,35 @@ Page({
     layerPickerVisible: false,
     layerPickerValue: 1,
     layerPickerTargetId: '',
+    textContentVisible: false,
+    textContentDraft: '',
+    keyboardHeight: 0,
+    textSizeVisible: false,
+    textFontVisible: false,
+    textColorVisible: false,
+    textColorValue: '#3d2914',
+    textBgVisible: false,
+    textWeightVisible: false,
+    textAlignVisible: false,
+    currentAlign: 'center',
+    currentValign: 'middle',
+    fontFamilies: FONT_FAMILIES,
+    currentFontKey: 'sans',
+    fontSizes: FONT_SIZES,
+    fontWeights: FONT_WEIGHTS,
+    textColors: TEXT_COLORS,
+    textBgColors: TEXT_BG_COLORS,
+    textAligns: TEXT_ALIGNS,
+    textValigns: TEXT_VALIGNS,
+    dialog: {
+      visible: false,
+      mode: 'confirm',
+      title: '',
+      content: '',
+      confirmText: '确定',
+      danger: false,
+      action: '',
+    },
   },
 
   onLoad(query) {
@@ -94,22 +148,63 @@ Page({
       invitePageIndex,
       activeElementId: '',
       elementEditMode: 'position',
+      toolboxTools: INVITE_TOOLS,
       toolboxActive: '',
+      textToolLevel: 'main',
+      textContentVisible: false,
+      textSizeVisible: false,
+      textFontVisible: false,
+      textColorVisible: false,
+      textBgVisible: false,
+      textWeightVisible: false,
+      textAlignVisible: false,
     });
   },
 
-  /** 多入口可能扩展；当前从页列表进 → 回上一页即可 */
+  /** 固定回到喜帖子列表（invite-sheet），避免和总控/子列表返回抢栈 */
   onBack() {
-    this.persistDraft();
-    wx.navigateBack({ delta: 1 });
+    const id = this.data.inviteId || TEMP_INVITE_ID;
+    this.persistDraft()
+      .then(() => this.refreshCoverThumb())
+      .then(() => {
+        navigateBackToRoute(
+          SHEET_ROUTE,
+          `${SHEET_URL}?id=${encodeURIComponent(id)}`
+        );
+      });
+  },
+
+  /** 只截第 1 页作封面小图（模块列表 / 作品列表） */
+  refreshCoverThumb() {
+    const id = this.data.inviteId || TEMP_INVITE_ID;
+    const page = (this.data.invitePages || [])[0];
+    if (!page) return Promise.resolve('');
+    return captureCoverThumb(id, page).then((coverThumbSrc) => {
+      if (!coverThumbSrc) return '';
+      return saveInviteDraft({ inviteId: id, coverThumbSrc }).then(
+        () => coverThumbSrc,
+      );
+    });
+  },
+
+  onBackPress() {
+    this.onBack();
+    return true;
   },
 
 
 
   persistDraft() {
+    // 画布页清掉误存的整页 src，避免预览被 demo 图盖住
+    const pages = (this.data.invitePages || []).map((p) => {
+      if (!p || typeof p !== 'object') return p;
+      const next = { ...p };
+      delete next.src;
+      return next;
+    });
     return saveInviteDraft({
       inviteId: this.data.inviteId || TEMP_INVITE_ID,
-      pages: this.data.invitePages,
+      pages,
       pageIndex: this.data.invitePageIndex,
       designAspect: DESIGN_ASPECT,
       meta: { source: 'edit/invite' },
@@ -124,29 +219,89 @@ Page({
     this.setData({ layerList });
   },
 
-  _getElementLayer(id) {
+  _getElement(id) {
     const { invitePages, invitePageIndex } = this.data;
-    const els = (invitePages[invitePageIndex] && invitePages[invitePageIndex].elements) || [];
-    const el = els.find((item) => item.id === id);
+    const els =
+      (invitePages[invitePageIndex] && invitePages[invitePageIndex].elements) ||
+      [];
+    return els.find((item) => item.id === id) || null;
+  },
+
+  _getElementLayer(id) {
+    const el = this._getElement(id);
     return el ? Number(el.layer) || 1 : 1;
   },
 
-  enterElementEdit(id) {
+  _toolsForElement(id, level) {
+    const el = this._getElement(id);
+    const layer = el ? Number(el.layer) || 1 : 1;
+    if (el && el.type === 'text') {
+      if (level === 'style') return buildTextStyleTools();
+      return buildTextElementTools(layer);
+    }
+    return buildElementTools(layer);
+  },
+
+  enterTextStyleLevel() {
+    if (!this.data.activeElementId) return;
+    this.setData({
+      textToolLevel: 'style',
+      toolboxTools: buildTextStyleTools(),
+      toolboxActive: 'fontSize',
+      elementEditMode: 'position',
+      layerPickerVisible: false,
+      ...this._closeTextStyleSheets(),
+    });
+  },
+
+  exitTextStyleLevel() {
+    const id = this.data.activeElementId;
+    if (!id) return;
+    const layer = this._getElementLayer(id);
+    this.setData({
+      textToolLevel: 'main',
+      toolboxTools: buildTextElementTools(layer),
+      toolboxActive: 'style',
+      ...this._closeTextStyleSheets(),
+    });
+  },
+
+  _closeTextStyleSheets() {
+    return {
+      textContentVisible: false,
+      textSizeVisible: false,
+      textFontVisible: false,
+      textColorVisible: false,
+      textBgVisible: false,
+      textWeightVisible: false,
+      textAlignVisible: false,
+    };
+  },
+
+  enterElementEdit(id, options = {}) {
     if (!id) {
       this.exitElementEdit();
       return;
     }
     const layer = this._getElementLayer(id);
+    const el = this._getElement(id);
+    const isText = el && el.type === 'text';
     this.setData({
       activeElementId: id,
       elementEditMode: 'position',
-      toolboxTools: buildElementTools(layer),
-      toolboxActive: 'position',
+      textToolLevel: 'main',
+      toolboxTools: this._toolsForElement(id, 'main'),
+      // 选中后画布上手势调位置/大小/角度；底栏默认不高亮变换项
+      toolboxActive: '',
       layerPanelVisible: false,
       layerPickerVisible: false,
       layerPickerValue: layer,
       layerPickerTargetId: '',
+      ...this._closeTextStyleSheets(),
     });
+    if (options.openContent && isText) {
+      this.openTextContentSheet();
+    }
   },
 
   /** 仅「完成」/删除后调用 */
@@ -154,10 +309,13 @@ Page({
     this.setData({
       activeElementId: '',
       elementEditMode: 'position',
+      textToolLevel: 'main',
       toolboxTools: INVITE_TOOLS,
       toolboxActive: '',
       layerPickerVisible: false,
       layerPickerTargetId: '',
+      keyboardHeight: 0,
+      ...this._closeTextStyleSheets(),
     });
   },
 
@@ -179,7 +337,7 @@ Page({
       layerPickerTargetId: '',
     };
     if (this.data.activeElementId) {
-      patch.toolboxActive = 'position';
+      patch.toolboxActive = 'layer';
       patch.elementEditMode = 'position';
     }
     this.setData(patch);
@@ -203,8 +361,13 @@ Page({
       layerPickerTargetId: '',
     };
     if (this.data.activeElementId === targetId) {
-      patch.toolboxTools = buildElementTools(n);
-      patch.toolboxActive = 'position';
+      const el = this._getElement(targetId);
+      const isText = el && el.type === 'text';
+      patch.textToolLevel = 'main';
+      patch.toolboxTools = isText
+        ? buildTextElementTools(n)
+        : buildElementTools(n);
+      patch.toolboxActive = 'layer';
       patch.elementEditMode = 'position';
     }
     this.setData(patch);
@@ -222,24 +385,89 @@ Page({
     if (!key) return;
 
     if (this.data.activeElementId) {
-      if (key === 'position' || key === 'size' || key === 'angle') {
-        this.setData({
-          toolboxActive: key,
-          elementEditMode: key,
-          layerPickerVisible: false,
-        });
-        return;
-      }
       if (key === 'layer') {
         this.openLayerPicker();
         return;
       }
       if (key === 'delete') {
-        this.onDeleteElement();
+        this.confirmDeleteElement();
         return;
       }
       if (key === 'done') {
         this.exitElementEdit();
+        return;
+      }
+      if (key === 'content') {
+        this.openTextContentSheet();
+        return;
+      }
+      if (key === 'style') {
+        this.enterTextStyleLevel();
+        return;
+      }
+      if (key === 'back') {
+        this.exitTextStyleLevel();
+        return;
+      }
+      if (key === 'fontSize') {
+        this.setData({
+          toolboxActive: key,
+          ...this._closeTextStyleSheets(),
+          textSizeVisible: true,
+        });
+        return;
+      }
+      if (key === 'fontFamily') {
+        const el = this._getElement(this.data.activeElementId);
+        this.setData({
+          toolboxActive: key,
+          ...this._closeTextStyleSheets(),
+          textFontVisible: true,
+          currentFontKey: (el && el.fontFamily) || 'sans',
+        });
+        return;
+      }
+      if (key === 'color') {
+        const el = this._getElement(this.data.activeElementId);
+        this.setData({
+          toolboxActive: key,
+          ...this._closeTextStyleSheets(),
+          textColorVisible: true,
+          textColorValue: (el && el.color) || '#3d2914',
+        });
+        return;
+      }
+      if (key === 'bg') {
+        this.setData({
+          toolboxActive: key,
+          ...this._closeTextStyleSheets(),
+          textBgVisible: true,
+        });
+        return;
+      }
+      if (key === 'weight') {
+        this.setData({
+          toolboxActive: key,
+          ...this._closeTextStyleSheets(),
+          textWeightVisible: true,
+        });
+        return;
+      }
+      if (key === 'align') {
+        const el = this._getElement(this.data.activeElementId);
+        this.setData({
+          toolboxActive: key,
+          ...this._closeTextStyleSheets(),
+          textAlignVisible: true,
+          currentAlign: (el && el.align) || 'center',
+          currentValign: (el && el.valign) || 'middle',
+        });
+        return;
+      }
+      if (key === 'reset') {
+        this.confirmResetText(
+          this.data.textToolLevel === 'style' ? 'style' : 'default',
+        );
         return;
       }
       return;
@@ -263,6 +491,10 @@ Page({
       this.openDecorSheet();
       return;
     }
+    if (key === 'font') {
+      this.onAddTextElement();
+      return;
+    }
     if (key === 'background') {
       this.openBgSheet();
       return;
@@ -278,16 +510,323 @@ Page({
     });
   },
 
+  onAddTextElement() {
+    const ensured = ensureEditablePage(
+      this.data.invitePages,
+      this.data.invitePageIndex,
+    );
+    if (!(ensured.pages && ensured.pages.length)) {
+      wx.showToast({ title: '请先选择模板', icon: 'none' });
+      this.setData({ toolboxActive: '' });
+      return;
+    }
+    const layer = Math.min(10, getMaxLayer(ensured.pages, ensured.pageIndex) + 1);
+    const element = createTextElement({ layer });
+    const invitePages = appendElement(
+      ensured.pages,
+      ensured.pageIndex,
+      element,
+    );
+    this.setData(
+      {
+        invitePages,
+        invitePageIndex: ensured.pageIndex,
+        toolboxActive: '',
+        decorSheetVisible: false,
+        bgSheetVisible: false,
+        layerPanelVisible: false,
+      },
+      () => {
+        this.enterElementEdit(element.id, { openContent: true });
+      },
+    );
+  },
+
+  patchActiveText(patch) {
+    const { activeElementId, invitePages, invitePageIndex } = this.data;
+    if (!activeElementId) return;
+    const el = this._getElement(activeElementId);
+    if (!el || el.type !== 'text') return;
+    const next = updateElement(
+      invitePages,
+      invitePageIndex,
+      activeElementId,
+      patch,
+    );
+    this.setData({ invitePages: next });
+  },
+
+  openTextContentSheet() {
+    const el = this._getElement(this.data.activeElementId);
+    if (!el || el.type !== 'text') return;
+    this.setData({
+      toolboxActive: 'content',
+      ...this._closeTextStyleSheets(),
+      textContentVisible: true,
+      textContentDraft: el.text || '',
+      keyboardHeight: 0,
+    });
+  },
+
+  closeTextContentSheet() {
+    this.setData({
+      textContentVisible: false,
+      toolboxActive: 'content',
+      keyboardHeight: 0,
+    });
+  },
+
+  onTextContentInput(e) {
+    this.setData({ textContentDraft: e.detail.value });
+  },
+
+  onTextKeyboardHeightChange(e) {
+    this.setData({ keyboardHeight: (e.detail && e.detail.height) || 0 });
+  },
+
+  confirmTextContentSheet() {
+    const text = String(this.data.textContentDraft || '').trim() || '请输入文案';
+    this.patchActiveText({ text, label: '文字' });
+    this.setData({
+      textContentVisible: false,
+      toolboxActive: 'content',
+      keyboardHeight: 0,
+    });
+  },
+
+  closeTextSizeSheet() {
+    this.setData({ textSizeVisible: false });
+  },
+
+  onPickFontSize(e) {
+    const size = Number(e.currentTarget.dataset.size);
+    if (!size) return;
+    this.patchActiveText({ fontSize: size });
+    this.setData({ textSizeVisible: false, toolboxActive: 'fontSize' });
+  },
+
+  closeTextFontSheet() {
+    this.setData({ textFontVisible: false });
+  },
+
+  onPickFontFamily(e) {
+    const key = e.currentTarget.dataset.key;
+    if (!key) return;
+    const font = (this.data.fontFamilies || []).find((f) => f.key === key);
+    // 预留：CDN 字体加载
+    if (font && font.fontUrl && typeof wx.loadFontFace === 'function') {
+      wx.loadFontFace({
+        family: key,
+        source: `url("${font.fontUrl}")`,
+        global: true,
+        fail() {},
+      });
+    }
+    this.patchActiveText({ fontFamily: key });
+    this.setData({
+      textFontVisible: false,
+      toolboxActive: 'fontFamily',
+      currentFontKey: key,
+    });
+  },
+
+  closeTextColorSheet() {
+    this.setData({ textColorVisible: false, toolboxActive: 'color' });
+  },
+
+  onTextColorChange(e) {
+    const color = e.detail && e.detail.color;
+    if (!color) return;
+    this.patchActiveText({ color });
+    this.setData({ textColorValue: color });
+  },
+
+  closeTextBgSheet() {
+    this.setData({ textBgVisible: false });
+  },
+
+  onPickTextBg(e) {
+    const color = e.currentTarget.dataset.color;
+    this.patchActiveText({ bgColor: color != null ? color : '' });
+    this.setData({ textBgVisible: false, toolboxActive: 'bg' });
+  },
+
+  closeTextWeightSheet() {
+    this.setData({ textWeightVisible: false });
+  },
+
+  onPickTextWeight(e) {
+    const key = e.currentTarget.dataset.key;
+    if (!key) return;
+    this.patchActiveText({ fontWeight: key });
+    this.setData({ textWeightVisible: false, toolboxActive: 'weight' });
+  },
+
+  closeTextAlignSheet() {
+    this.setData({ textAlignVisible: false });
+  },
+
+  onPickTextAlign(e) {
+    const key = e.currentTarget.dataset.key;
+    if (!key) return;
+    this.patchActiveText({ align: key });
+    this.setData({ currentAlign: key, toolboxActive: 'align' });
+  },
+
+  onPickTextValign(e) {
+    const key = e.currentTarget.dataset.key;
+    if (!key) return;
+    this.patchActiveText({ valign: key });
+    this.setData({ currentValign: key, toolboxActive: 'align' });
+  },
+
+  openDialog(patch) {
+    this.setData({
+      dialog: {
+        visible: true,
+        mode: 'confirm',
+        title: '',
+        content: '',
+        confirmText: '确定',
+        danger: false,
+        action: '',
+        ...patch,
+      },
+    });
+  },
+
+  closeDialog() {
+    this.setData({ 'dialog.visible': false });
+  },
+
+  onDialogCancel() {
+    this.closeDialog();
+  },
+
+  onDialogConfirm() {
+    const { action } = this.data.dialog;
+    // 先关弹窗，下一帧再改画布，避免渲染层 FLOW_CREATE_NODE
+    this.setData({ 'dialog.visible': false }, () => {
+      setTimeout(() => {
+        if (action === 'deleteElement') {
+          this.onDeleteElement();
+          return;
+        }
+        if (action === 'resetTextDefault') {
+          this.resetActiveTextToDefault();
+          return;
+        }
+        if (action === 'resetTextStyle') {
+          this.resetActiveTextStyle();
+        }
+      }, 32);
+    });
+  },
+
+  confirmDeleteElement() {
+    if (!this.data.activeElementId) return;
+    const el = this._getElement(this.data.activeElementId);
+    const name = el && el.type === 'text' ? '文字' : '元素';
+    this.openDialog({
+      title: '删除确认',
+      content: `确定删除该${name}吗？删除后无法恢复。`,
+      confirmText: '删除',
+      danger: true,
+      action: 'deleteElement',
+    });
+  },
+
+  confirmResetText(kind) {
+    const el = this._getElement(this.data.activeElementId);
+    if (!el || el.type !== 'text') return;
+    if (kind === 'style') {
+      this.openDialog({
+        title: '重置样式',
+        content: '确定将字号、字体、颜色、背景、字重、排版恢复为默认吗？文案不会改动。',
+        confirmText: '重置',
+        danger: false,
+        action: 'resetTextStyle',
+      });
+      return;
+    }
+    this.openDialog({
+      title: '重置确认',
+      content:
+        '确定恢复为新建时的默认状态吗？位置、大小、旋转和样式会重置，文案不会改动。',
+      confirmText: '重置',
+      danger: false,
+      action: 'resetTextDefault',
+    });
+  },
+
+  /** 一级重置：回到新建文字默认态（居中框 + 默认样式；文案/层级不动） */
+  resetActiveTextToDefault() {
+    const id = this.data.activeElementId;
+    const el = this._getElement(id);
+    if (!el || el.type !== 'text') return;
+    const invitePages = updateElement(
+      this.data.invitePages,
+      this.data.invitePageIndex,
+      id,
+      {
+        ...DEFAULT_TEXT_STYLE,
+        ...DEFAULT_TEXT_LAYOUT,
+      },
+    );
+    this.setData({
+      invitePages,
+      layoutRev: (this.data.layoutRev || 0) + 1,
+      toolboxActive: 'reset',
+      toolboxTools: this._toolsForElement(id, 'main'),
+      elementEditMode: 'position',
+      ...this._closeTextStyleSheets(),
+      textColorValue: DEFAULT_TEXT_STYLE.color,
+      currentFontKey: DEFAULT_TEXT_STYLE.fontFamily,
+      currentAlign: DEFAULT_TEXT_STYLE.align,
+      currentValign: DEFAULT_TEXT_STYLE.valign,
+    });
+  },
+
+  /** 二级重置：样式回到默认值（文案与位置/大小/旋转/层级不动） */
+  resetActiveTextStyle() {
+    const el = this._getElement(this.data.activeElementId);
+    if (!el || el.type !== 'text') return;
+    this.patchActiveText({ ...DEFAULT_TEXT_STYLE });
+    this.setData({
+      toolboxActive: 'reset',
+      ...this._closeTextStyleSheets(),
+      textColorValue: DEFAULT_TEXT_STYLE.color,
+      currentFontKey: DEFAULT_TEXT_STYLE.fontFamily,
+      currentAlign: DEFAULT_TEXT_STYLE.align,
+      currentValign: DEFAULT_TEXT_STYLE.valign,
+    });
+  },
+
   /** 预览：写入缓存后打开浏览页（草稿模式，无留言/现场） */
   openPreview() {
     this.setData({ toolboxActive: '' });
+    const id = this.data.inviteId || TEMP_INVITE_ID;
+    const page = this.data.invitePageIndex || 0;
+    const pages = (this.data.invitePages || []).map((p) => {
+      if (!p || typeof p !== 'object') return p;
+      const next = { ...p };
+      delete next.src;
+      return next;
+    });
     this.persistDraft().then(() => {
-      const id = this.data.inviteId || TEMP_INVITE_ID;
-      const page = this.data.invitePageIndex || 0;
+      writeDraftPreviewSnap({ inviteId: id, pages, pageIndex: page });
       wx.navigateTo({
-        url: `/pages/wedding_invitation/view/index?mode=draft&id=${id}&module=invite&page=${page}`,
+        url: `/pages/wedding_invitation/view/index?mode=draft&id=${encodeURIComponent(id)}&module=invite&page=${page}`,
+        success(res) {
+          if (res.eventChannel && typeof res.eventChannel.emit === 'function') {
+            res.eventChannel.emit('previewDraft', {
+              inviteId: id,
+              pages,
+              pageIndex: page,
+            });
+          }
+        },
       });
-
     });
   },
 
@@ -391,12 +930,16 @@ Page({
       element,
     );
 
-    this.setData({
-      invitePages,
-      invitePageIndex: ensured.pageIndex,
-      decorSheetVisible: false,
-    });
-    this.enterElementEdit(element.id);
+    this.setData(
+      {
+        invitePages,
+        invitePageIndex: ensured.pageIndex,
+        decorSheetVisible: false,
+      },
+      () => {
+        this.enterElementEdit(element.id);
+      },
+    );
   },
 
   onSelectElement(e) {
@@ -437,6 +980,9 @@ Page({
       id,
       patch,
     );
-    this.setData({ invitePages, activeElementId: id });
+    // 不重复写 activeElementId，减少无关 setData
+    this.setData({ invitePages });
   },
+
+  noop() {},
 });

@@ -8,6 +8,7 @@
     "photo-layout-picker": "/pages/wedding_invitation/components/photo-layout-picker/index",
     "edit-dialog": "/pages/wedding_invitation/components/edit-dialog/index",
     "photo-viewer": "/pages/wedding_invitation/components/photo-viewer/index",
+    "photo-cover-editor": "/pages/wedding_invitation/components/photo-cover-editor/index",
     "t-icon": "tdesign-miniprogram/icon/icon"
   }
 }

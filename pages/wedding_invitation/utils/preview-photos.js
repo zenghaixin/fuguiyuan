@@ -34,8 +34,9 @@ function closeViewer() {
 /**
  * @param {Array<{src?: string, id?: string}>} photos
  * @param {number} index
- * @param {{ fail?: (err: any) => void, showIndex?: boolean }} [opts]
- *        showIndex：是否显示顶部序号，默认 true；由调用方传参决定，预览内不可切换
+ * @param {{ fail?: (err: any) => void, showIndex?: boolean, swipeable?: boolean }} [opts]
+ *        showIndex：顶部序号，默认 true
+ *        swipeable：是否可左右滑切图，默认 true（杂志单图预览传 false）
  * @returns {boolean}
  */
 function previewPhotos(photos, index, opts = {}) {
@@ -49,14 +50,17 @@ function previewPhotos(photos, index, opts = {}) {
     return !!_viewer.open({
       photos: list,
       index: safeIndex,
-      // 仅 open 时配置；预览页不再提供显隐开关
       showIndex: opts.showIndex !== false,
+      swipeable: opts.swipeable !== false,
     });
   }
 
-  // 回退：官方预览
-  const urls = list.map((p) => p.src);
-  const current = urls[safeIndex];
+  // 回退：官方预览（无法关滑动时只传当前一张）
+  const urls =
+    opts.swipeable === false
+      ? [list[safeIndex].src]
+      : list.map((p) => p.src);
+  const current = opts.swipeable === false ? urls[0] : urls[safeIndex];
   wx.previewImage({
     urls,
     current,
@@ -68,6 +72,15 @@ function previewPhotos(photos, index, opts = {}) {
 }
 
 module.exports = {
+  previewPhotos,
+  bindViewer,
+  unbindViewer,
+  getViewer,
+  isViewerOpen,
+  closeViewer,
+};
+
+export {
   previewPhotos,
   bindViewer,
   unbindViewer,

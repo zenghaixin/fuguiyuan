@@ -56,6 +56,15 @@ function normalizeDraft(inviteId, draft) {
         title: (p && p.title) || `第${i + 1}页`,
       }))
     : [];
+  const storyRaw = draft.storyLine;
+  let storyLine = { style: 'chapters', chapters: [] };
+  if (storyRaw && typeof storyRaw === 'object') {
+    const chapters = Array.isArray(storyRaw.chapters) ? storyRaw.chapters : [];
+    storyLine = {
+      style: storyRaw.style || 'chapters',
+      chapters: chapters.slice(0, 12),
+    };
+  }
   return {
     inviteId,
     title: draft.title || '未命名喜帖',
@@ -63,8 +72,11 @@ function normalizeDraft(inviteId, draft) {
     pages,
     photoWall: Array.isArray(draft.photoWall) ? draft.photoWall : [],
     photoWallLayout: draft.photoWallLayout || 'carousel',
+    storyLine,
     pageIndex: draft.pageIndex != null ? draft.pageIndex : 0,
     designAspect: Number(draft.designAspect) > 0 ? Number(draft.designAspect) : 0,
+    /** 第 1 页封面截图本地路径 */
+    coverThumbSrc: draft.coverThumbSrc || '',
     meta: draft.meta || {},
   };
 }
@@ -120,11 +132,17 @@ export function saveInviteDraft(payload = {}) {
       payload.photoWallLayout != null
         ? payload.photoWallLayout
         : prev.photoWallLayout || 'carousel',
+    storyLine:
+      payload.storyLine != null ? payload.storyLine : prev.storyLine || null,
     pageIndex: payload.pageIndex != null ? payload.pageIndex : prev.pageIndex || 0,
     designAspect:
       payload.designAspect != null && Number(payload.designAspect) > 0
         ? Number(payload.designAspect)
         : prev.designAspect || 0,
+    coverThumbSrc:
+      payload.coverThumbSrc != null
+        ? payload.coverThumbSrc
+        : prev.coverThumbSrc || '',
     meta: { ...(prev.meta || {}), ...(payload.meta || {}) },
   };
   store[inviteId] = next;
@@ -162,6 +180,7 @@ export function listInviteWorks() {
         coverBgColor: (cover && cover.bgColor) || '#f7f0ea',
         coverBgSrc: (cover && cover.bgSrc) || '',
         coverElements: (cover && cover.elements) || [],
+        coverThumbSrc: d.coverThumbSrc || '',
       };
     })
     .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
@@ -182,6 +201,7 @@ export function createInviteWork(options = {}) {
     pages,
     photoWall: [],
     photoWallLayout: 'carousel',
+    storyLine: { style: 'chapters', chapters: [] },
     pageIndex: 0,
     meta: { mode: options.mode || 'custom' },
   }).then((draft) => {

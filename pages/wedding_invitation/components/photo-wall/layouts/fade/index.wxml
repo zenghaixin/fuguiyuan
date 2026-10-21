@@ -1,0 +1,72 @@
+<view
+  class="pw-fade"
+  style="height: {{height}}px;"
+  catchtouchstart="onTouchStart"
+  catchtouchmove="onTouchMove"
+  catchtouchend="onTouchEnd"
+  catchtouchcancel="onTouchEnd"
+>
+  <view class="pw-fade__stage">
+    <view
+      class="pw-fade__layer"
+      style="opacity: {{opacityA}}; z-index: {{activeSlot === 'a' ? 2 : 1}};"
+    >
+      <view class="pw-fade__frame">
+        <image
+          wx:if="{{slotA.useCrop}}"
+          class="pw-fade__img pw-fade__img--crop"
+          src="{{slotA.src}}"
+          mode="scaleToFill"
+          style="{{slotA.imgBoxStyle}}"
+        />
+        <image
+          wx:elif="{{slotA.src}}"
+          class="pw-fade__img pw-fade__img--fit"
+          src="{{slotA.src}}"
+          mode="aspectFill"
+        />
+      </view>
+    </view>
+
+    <view
+      class="pw-fade__layer"
+      style="opacity: {{opacityB}}; z-index: {{activeSlot === 'b' ? 2 : 1}};"
+    >
+      <view class="pw-fade__frame">
+        <image
+          wx:if="{{slotB.useCrop}}"
+          class="pw-fade__img pw-fade__img--crop"
+          src="{{slotB.src}}"
+          mode="scaleToFill"
+          style="{{slotB.imgBoxStyle}}"
+        />
+        <image
+          wx:elif="{{slotB.src}}"
+          class="pw-fade__img pw-fade__img--fit"
+          src="{{slotB.src}}"
+          mode="aspectFill"
+        />
+      </view>
+    </view>
+
+    <view
+      wx:if="{{editable && topId}}"
+      class="pw-fade__del"
+      data-id="{{topId}}"
+      catchtap="onDelete"
+    >
+      <t-icon name="close" size="28rpx" color="#fff" />
+    </view>
+
+    <view class="pw-fade__caption" wx:if="{{caption}}">{{caption}}</view>
+  </view>
+
+  <view class="pw-fade__dots" wx:if="{{dotCount > 1}}">
+    <view
+      class="pw-fade__dot {{innerCurrent === index ? 'pw-fade__dot--on' : ''}}"
+      wx:for="{{dotList}}"
+      wx:key="*this"
+      wx:for-index="index"
+    />
+  </view>
+</view>

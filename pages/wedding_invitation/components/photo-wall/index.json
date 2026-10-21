@@ -2,7 +2,10 @@
   "component": true,
   "usingComponents": {
     "t-icon": "tdesign-miniprogram/icon/icon",
+    "pw-fade": "./layouts/fade/index",
+    "pw-thumbs": "./layouts/thumbs/index",
     "pw-grid": "./layouts/grid/index",
+    "pw-magazine": "./layouts/magazine/index",
     "pw-stack": "./layouts/stack/index"
   }
 }

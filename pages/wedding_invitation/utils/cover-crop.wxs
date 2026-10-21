@@ -1,0 +1,9 @@
+/** @deprecated use components/photo-wall/cover-crop.wxs */
+module.exports = {
+  hasCrop: function () {
+    return false;
+  },
+  imgBoxStyle: function () {
+    return '';
+  }
+};

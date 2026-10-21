@@ -8,10 +8,22 @@
     circular="{{false}}"
     duration="{{280}}"
   >
-    <swiper-item wx:for="{{photos}}" wx:key="id">
+    <swiper-item wx:for="{{viewPhotos}}" wx:key="id">
       <view class="pw-column__slide" data-index="{{index}}" bindtap="onPreview">
         <view class="pw-column__frame">
-          <image class="pw-column__img" src="{{item.src}}" mode="aspectFit" />
+          <image
+            wx:if="{{item.useCrop}}"
+            class="pw-column__img pw-column__img--crop"
+            src="{{item.src}}"
+            mode="scaleToFill"
+            style="{{item.imgBoxStyle}}"
+          />
+          <image
+            wx:else
+            class="pw-column__img pw-column__img--fit"
+            src="{{item.src}}"
+            mode="aspectFill"
+          />
           <view
             wx:if="{{editable}}"
             class="pw-column__del"
@@ -26,10 +38,10 @@
     </swiper-item>
   </swiper>
 
-  <view class="pw-column__dots" wx:if="{{photos.length > 1}}">
+  <view class="pw-column__dots" wx:if="{{viewPhotos.length > 1}}">
     <view
       class="pw-column__dot {{innerCurrent === index ? 'pw-column__dot--on' : ''}}"
-      wx:for="{{photos}}"
+      wx:for="{{viewPhotos}}"
       wx:key="id"
       wx:for-index="index"
     />

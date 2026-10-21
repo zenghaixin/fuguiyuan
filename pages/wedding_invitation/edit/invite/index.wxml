@@ -12,6 +12,7 @@
     page-index="{{invitePageIndex}}"
     active-element-id="{{activeElementId}}"
     element-edit-mode="{{elementEditMode}}"
+    layout-rev="{{layoutRev}}"
     window-height="{{windowHeight}}"
     window-width="{{windowWidth}}"
     status-bar-height="{{statusBarHeight}}"
@@ -60,5 +61,184 @@
     value="{{layerPickerValue}}"
     bind:close="closeLayerPicker"
     bind:select="onLayerPick"
+  />
+
+  <!-- 文字：文案（键盘顶起，同祝福留言 sheet） -->
+  <view class="text-sheet" wx:if="{{textContentVisible}}" catchtouchmove="noop">
+    <view class="text-sheet__mask" catchtap="closeTextContentSheet" />
+    <view
+      class="text-sheet__panel text-sheet__panel--form {{keyboardHeight > 0 ? 'text-sheet__panel--kb' : ''}}"
+      style="bottom: {{keyboardHeight}}px;"
+      catchtouchmove="noop"
+    >
+      <view class="text-sheet__bar" />
+      <view class="text-sheet__head">
+        <view class="text-sheet__title">编辑文案</view>
+        <view class="text-sheet__done" catchtap="confirmTextContentSheet">完成</view>
+      </view>
+      <textarea
+        class="text-sheet__area"
+        value="{{textContentDraft}}"
+        maxlength="80"
+        focus="{{textContentVisible}}"
+        fixed
+        disable-default-padding
+        show-confirm-bar="{{false}}"
+        cursor-spacing="32"
+        adjust-position="{{false}}"
+        hold-keyboard
+        placeholder="请输入文案"
+        bindinput="onTextContentInput"
+        bindkeyboardheightchange="onTextKeyboardHeightChange"
+      />
+    </view>
+  </view>
+
+  <!-- 文字：字号 -->
+  <view class="text-sheet" wx:if="{{textSizeVisible}}" catchtouchmove="noop">
+    <view class="text-sheet__mask" catchtap="closeTextSizeSheet" />
+    <view class="text-sheet__panel">
+      <view class="text-sheet__bar" />
+      <view class="text-sheet__title">字号</view>
+      <view class="text-sheet__chips">
+        <view
+          class="text-sheet__chip"
+          wx:for="{{fontSizes}}"
+          wx:key="*this"
+          data-size="{{item}}"
+          bindtap="onPickFontSize"
+        >{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 文字：字体（素材式预览，后续 CDN 填 previewSrc / fontUrl） -->
+  <view class="text-sheet" wx:if="{{textFontVisible}}" catchtouchmove="noop">
+    <view class="text-sheet__mask" catchtap="closeTextFontSheet" />
+    <view class="text-sheet__panel">
+      <view class="text-sheet__bar" />
+      <view class="text-sheet__title">选择字体</view>
+      <view class="text-sheet__hint">点选预览效果，不必记字体名</view>
+      <scroll-view scroll-y class="text-sheet__scroll" enhanced show-scrollbar="{{false}}">
+        <view class="text-sheet__font-grid">
+          <view
+            class="text-sheet__font-item {{currentFontKey === item.key ? 'text-sheet__font-item--on' : ''}}"
+            wx:for="{{fontFamilies}}"
+            wx:key="id"
+            data-key="{{item.key}}"
+            bindtap="onPickFontFamily"
+          >
+            <view class="text-sheet__font-swatch">
+              <image
+                wx:if="{{item.previewSrc}}"
+                class="text-sheet__font-img"
+                src="{{item.previewSrc}}"
+                mode="aspectFit"
+              />
+              <text
+                wx:else
+                class="text-sheet__font-sample"
+                style="font-family: {{item.css}};"
+              >{{item.sample || '字'}}</text>
+            </view>
+            <text class="text-sheet__font-name">{{item.label}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 文字：颜色（上选色板 + 下常用色） -->
+  <edit-color-picker
+    visible="{{textColorVisible}}"
+    value="{{textColorValue}}"
+    presets="{{textColors}}"
+    title="文字颜色"
+    bind:close="closeTextColorSheet"
+    bind:change="onTextColorChange"
+  />
+
+  <!-- 文字：背景 -->
+  <view class="text-sheet" wx:if="{{textBgVisible}}" catchtouchmove="noop">
+    <view class="text-sheet__mask" catchtap="closeTextBgSheet" />
+    <view class="text-sheet__panel">
+      <view class="text-sheet__bar" />
+      <view class="text-sheet__title">文字背景</view>
+      <view class="text-sheet__colors">
+        <view
+          class="text-sheet__swatch {{!item.color ? 'text-sheet__swatch--none' : ''}}"
+          wx:for="{{textBgColors}}"
+          wx:key="id"
+          style="background: {{item.color || '#fff'}};"
+          data-color="{{item.color}}"
+          bindtap="onPickTextBg"
+        >
+          <text class="text-sheet__swatch-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 文字：字重 -->
+  <view class="text-sheet" wx:if="{{textWeightVisible}}" catchtouchmove="noop">
+    <view class="text-sheet__mask" catchtap="closeTextWeightSheet" />
+    <view class="text-sheet__panel">
+      <view class="text-sheet__bar" />
+      <view class="text-sheet__title">字重</view>
+      <view class="text-sheet__opts">
+        <view
+          class="text-sheet__opt"
+          wx:for="{{fontWeights}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="onPickTextWeight"
+        >
+          <view
+            class="text-sheet__opt-name"
+            style="font-weight: {{item.value}};"
+          >{{item.label}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 文字：排版（水平 + 垂直） -->
+  <view class="text-sheet" wx:if="{{textAlignVisible}}" catchtouchmove="noop">
+    <view class="text-sheet__mask" catchtap="closeTextAlignSheet" />
+    <view class="text-sheet__panel">
+      <view class="text-sheet__bar" />
+      <view class="text-sheet__title">排版</view>
+      <view class="text-sheet__section-label">水平</view>
+      <view class="text-sheet__chips text-sheet__chips--3">
+        <view
+          class="text-sheet__chip {{currentAlign === item.key ? 'text-sheet__chip--on' : ''}}"
+          wx:for="{{textAligns}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="onPickTextAlign"
+        >{{item.label}}</view>
+      </view>
+      <view class="text-sheet__section-label">垂直</view>
+      <view class="text-sheet__chips text-sheet__chips--3">
+        <view
+          class="text-sheet__chip {{currentValign === item.key ? 'text-sheet__chip--on' : ''}}"
+          wx:for="{{textValigns}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="onPickTextValign"
+        >{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <edit-dialog
+    visible="{{dialog.visible}}"
+    mode="{{dialog.mode}}"
+    title="{{dialog.title}}"
+    content="{{dialog.content}}"
+    confirm-text="{{dialog.confirmText}}"
+    danger="{{dialog.danger}}"
+    bind:cancel="onDialogCancel"
+    bind:confirm="onDialogConfirm"
   />
 </view>

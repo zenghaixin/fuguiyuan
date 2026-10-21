@@ -17,7 +17,21 @@
       class="pw-stack__card {{item.isTop ? 'pw-stack__card--top' : 'pw-stack__card--behind'}} {{rising ? 'pw-stack__card--rise' : ''}}"
       style="{{item.isTop && topStyle ? topStyle : item.layerStyle}}"
     >
-      <image class="pw-stack__img" src="{{item.src}}" mode="aspectFill" />
+      <view class="pw-stack__img-wrap">
+        <image
+          wx:if="{{item.useCrop}}"
+          class="pw-stack__img pw-stack__img--crop"
+          src="{{item.src}}"
+          mode="scaleToFill"
+          style="{{item.imgBoxStyle}}"
+        />
+        <image
+          wx:else
+          class="pw-stack__img pw-stack__img--fit"
+          src="{{item.src}}"
+          mode="aspectFill"
+        />
+      </view>
       <view class="pw-stack__caption" wx:if="{{item.caption && item.isTop}}">{{item.caption}}</view>
     </view>
 
@@ -26,7 +40,21 @@
       class="pw-stack__card pw-stack__card--ghost"
       style="{{flyGhost.style}}"
     >
-      <image class="pw-stack__img" src="{{flyGhost.src}}" mode="aspectFill" />
+      <view class="pw-stack__img-wrap">
+        <image
+          wx:if="{{flyGhost.useCrop}}"
+          class="pw-stack__img pw-stack__img--crop"
+          src="{{flyGhost.src}}"
+          mode="scaleToFill"
+          style="{{flyGhost.imgBoxStyle}}"
+        />
+        <image
+          wx:else
+          class="pw-stack__img pw-stack__img--fit"
+          src="{{flyGhost.src}}"
+          mode="aspectFill"
+        />
+      </view>
     </view>
 
     <!--

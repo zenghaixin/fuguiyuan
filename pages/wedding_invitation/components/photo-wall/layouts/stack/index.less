@@ -64,14 +64,30 @@
 
 }
 
-.pw-stack__img {
+.pw-stack__img-wrap {
+  position: relative;
   width: 100%;
   height: 100%;
-  display: block;
+  overflow: hidden;
   border-radius: 24rpx;
   background: #1a0c10;
   box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.35);
+}
+
+.pw-stack__img {
+  display: block;
   pointer-events: none;
+}
+
+.pw-stack__img--fit {
+  width: 100%;
+  height: 100%;
+}
+
+.pw-stack__img--crop {
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 
 /* 与顶牌同 transform，挂在 button 内才能点到 */

@@ -1,0 +1,284 @@
+.pce {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100010;
+  background: #000;
+  overflow: hidden;
+}
+
+.pce__stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.pce__img {
+  position: absolute;
+  display: block;
+  z-index: 1;
+}
+
+.pce__mask {
+  position: absolute;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.62);
+  pointer-events: none;
+}
+
+.pce__frame {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  border: 4rpx solid #fff;
+  box-shadow: 0 0 0 2rpx rgba(0, 0, 0, 0.45);
+}
+
+.pce__grid {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.pce__grid-h,
+.pce__grid-v {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.pce__grid-h {
+  left: 0;
+  right: 0;
+  height: 1rpx;
+  top: 33.333%;
+}
+
+.pce__grid-h--2 {
+  top: 66.666%;
+}
+
+.pce__grid-v {
+  top: 0;
+  bottom: 0;
+  width: 1rpx;
+  left: 33.333%;
+}
+
+.pce__grid-v--2 {
+  left: 66.666%;
+}
+
+/* 边线热区：加粗便于拖缩放 */
+.pce__edge {
+  position: absolute;
+  z-index: 4;
+}
+
+.pce__edge--n,
+.pce__edge--s {
+  left: 56rpx;
+  right: 56rpx;
+  height: 56rpx;
+}
+
+.pce__edge--n {
+  top: -28rpx;
+}
+
+.pce__edge--s {
+  bottom: -28rpx;
+}
+
+.pce__edge--w,
+.pce__edge--e {
+  top: 56rpx;
+  bottom: 56rpx;
+  width: 56rpx;
+}
+
+.pce__edge--w {
+  left: -28rpx;
+}
+
+.pce__edge--e {
+  right: -28rpx;
+}
+
+.pce__edge-bar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 4rpx;
+  background: #fff;
+  box-shadow: 0 0 0 2rpx rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.pce__edge-bar--h {
+  width: 72rpx;
+  height: 8rpx;
+  margin: -4rpx 0 0 -36rpx;
+}
+
+.pce__edge-bar--v {
+  width: 8rpx;
+  height: 72rpx;
+  margin: -36rpx 0 0 -4rpx;
+}
+
+/* 四角：扩大热区 + 中心小方块 */
+.pce__corner {
+  position: absolute;
+  z-index: 5;
+  width: 56rpx;
+  height: 56rpx;
+  margin: -28rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pce__corner--nw {
+  left: 0;
+  top: 0;
+}
+
+.pce__corner--ne {
+  right: 0;
+  top: 0;
+}
+
+.pce__corner--sw {
+  left: 0;
+  bottom: 0;
+}
+
+.pce__corner--se {
+  right: 0;
+  bottom: 0;
+}
+
+.pce__corner-dot {
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 4rpx;
+  background: #fff;
+  border: 4rpx solid #1a1a1a;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.pce__chrome {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.pce__chrome--on {
+  opacity: 1;
+}
+
+.pce__chrome--on .pce__top,
+.pce__chrome--on .pce__tools,
+.pce__chrome--on .pce__tip {
+  pointer-events: auto;
+}
+
+.pce__top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 24rpx 24rpx;
+  box-sizing: border-box;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent);
+}
+
+.pce__close,
+.pce__top-spacer {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pce__title {
+  flex: 1;
+  text-align: center;
+  color: #fff;
+  font-size: 30rpx;
+  letter-spacing: 2rpx;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.45);
+}
+
+.pce__tip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 180rpx;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 22rpx;
+  padding: 0 32rpx;
+  pointer-events: none;
+}
+
+.pce__tools {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 28rpx 24rpx 48rpx;
+  box-sizing: border-box;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
+}
+
+.pce__tool {
+  min-width: 100rpx;
+  margin: 0 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12rpx 20rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.pce__tool--primary {
+  background: rgba(185, 28, 58, 0.92);
+}
+
+.pce__tool--hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.pce__tool--primary.pce__tool--hover {
+  background: rgba(185, 28, 58, 1);
+}
+
+.pce__tool-label {
+  margin-top: 8rpx;
+  color: #fff;
+  font-size: 20rpx;
+}

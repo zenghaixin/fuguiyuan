@@ -69,40 +69,40 @@
   box-sizing: border-box;
 }
 
-.pages-hub__grid {
+.pages-hub__list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 24rpx 24rpx;
-  /* 给右上角删除钮留出空间，避免被标题区/滚动裁切挡住 */
-  padding: 16rpx 12rpx 24rpx 0;
+  flex-direction: column;
+  gap: 20rpx;
+  padding-bottom: 24rpx;
 }
 
-.page-card {
-  position: relative;
-  width: calc((100% - 24rpx) / 2);
+.mod-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx;
+  border-radius: 20rpx;
+  background: #fffcf8;
+  box-shadow: 0 8rpx 24rpx rgba(61, 41, 20, 0.06);
 
-  &__media {
+  &__cover {
     position: relative;
-  }
-
-  &__thumb {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 9 / 19.5;
-    border-radius: 16rpx;
+    width: 88rpx;
+    height: 120rpx;
+    border-radius: 12rpx;
     overflow: hidden;
+    flex-shrink: 0;
     background: #f7f0ea;
-    box-shadow: 0 8rpx 24rpx rgba(61, 41, 20, 0.08);
-    border: 2rpx solid rgba(201, 184, 168, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    &--add {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12rpx;
-      background: #fffcf8;
-      border-style: dashed;
+    &--story {
+      background: linear-gradient(160deg, #fce8ec 0%, #f8e8e6 100%);
+    }
+
+    &--photo {
+      background: linear-gradient(160deg, #f5ecd8 0%, #efe6d2 100%);
     }
   }
 
@@ -115,88 +115,53 @@
 
   &__el {
     position: absolute;
-    border-radius: 4rpx;
+    border-radius: 2rpx;
     box-sizing: border-box;
-    transform-origin: center center;
-  }
-
-  &__empty {
-    position: absolute;
-    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+  }
+
+  &__el-text {
+    width: 100%;
+    line-height: 1.1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__cover-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: 30rpx;
+    font-weight: 700;
+    color: @gy1;
+    margin-bottom: 8rpx;
+  }
+
+  &__meta {
     font-size: 22rpx;
-    color: #b5a394;
+    color: @gy2;
   }
 
-  &__order {
-    position: absolute;
-    left: 12rpx;
-    bottom: 12rpx;
-    z-index: 30;
-    padding: 4rpx 12rpx;
-    border-radius: 8rpx;
-    background: rgba(61, 41, 20, 0.72);
-    color: #fff;
-    font-size: 20rpx;
-    font-weight: 600;
-    pointer-events: none;
-  }
-
-  &__add-text {
-    font-size: 22rpx;
-    color: #8a7464;
-    font-weight: 500;
-  }
-
-  &__del {
-    position: absolute;
-    top: -8rpx;
-    right: -8rpx;
-    z-index: 31;
+  &__go {
+    flex-shrink: 0;
     width: 48rpx;
     height: 48rpx;
-    border-radius: 50%;
-    background: #fffcf8;
-    box-shadow: 0 4rpx 12rpx rgba(61, 41, 20, 0.12);
     display: flex;
     align-items: center;
     justify-content: center;
   }
-
-  &--add &__del,
-  &--add &__order {
-    display: none;
-  }
-}
-
-
-.pages-hub__empty {
-  padding: 48rpx 0;
-}
-
-.pages-hub__empty-card {
-  height: 360rpx;
-  border-radius: 20rpx;
-  border: 3rpx dashed #c9b8a8;
-  background: #fffcf8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-}
-
-.pages-hub__empty-tip {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #8a7464;
-}
-
-.pages-hub__empty-desc {
-  font-size: 22rpx;
-  color: #b5a394;
 }
 
 .pages-hub__foot {
@@ -205,30 +170,14 @@
   background: #f3efe9;
 }
 
-.pages-hub__actions {
-  display: flex;
-  gap: 16rpx;
-}
-
-.pages-hub__photo,
 .pages-hub__preview {
-  flex: 1;
   height: 88rpx;
   border-radius: 44rpx;
+  background: @brand7-normal;
+  color: #fff;
   font-size: 28rpx;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.pages-hub__photo {
-  border: 2rpx solid rgba(185, 28, 58, 0.35);
-  color: @brand7-normal;
-  background: rgba(255, 252, 248, 0.9);
-}
-
-.pages-hub__preview {
-  background: @brand7-normal;
-  color: #fff;
 }

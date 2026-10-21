@@ -1,0 +1,59 @@
+function toNum(v, fallback) {
+  if (v === undefined || v === null || v === '') return fallback;
+  var n = +v;
+  if (n !== n) return fallback;
+  return n;
+}
+
+function normalizeCoverCrop(crop) {
+  if (!crop) return null;
+  var x = toNum(crop.x, 0);
+  var y = toNum(crop.y, 0);
+  var w = toNum(crop.w, 0);
+  var h = toNum(crop.h, 0);
+  if (w < 0.05) w = 0.05;
+  if (h < 0.05) h = 0.05;
+  if (x < 0) x = 0;
+  if (y < 0) y = 0;
+  if (x > 1) x = 1;
+  if (y > 1) y = 1;
+  if (w > 1) w = 1;
+  if (h > 1) h = 1;
+  if (x + w > 1) x = 1 - w;
+  if (y + h > 1) y = 1 - h;
+  if (x < 0) x = 0;
+  if (y < 0) y = 0;
+  return { x: x, y: y, w: w, h: h };
+}
+
+/** 接近整图的裁剪窗视为「未裁剪」，避免 scaleToFill 把图拉变形 */
+function isFullCrop(c) {
+  if (!c) return true;
+  return c.x <= 0.02 && c.y <= 0.02 && c.w >= 0.96 && c.h >= 0.96;
+}
+
+function hasCrop(crop) {
+  var c = normalizeCoverCrop(crop);
+  if (!c) return false;
+  if (isFullCrop(c)) return false;
+  return true;
+}
+
+function imgBoxStyle(crop) {
+  var c = normalizeCoverCrop(crop);
+  if (!c || isFullCrop(c)) return '';
+  var w = c.w;
+  var h = c.h;
+  if (w < 0.05) w = 0.05;
+  if (h < 0.05) h = 0.05;
+  var widthPct = 100 / w;
+  var heightPct = 100 / h;
+  var leftPct = (-c.x / w) * 100;
+  var topPct = (-c.y / h) * 100;
+  return 'position:absolute;width:' + widthPct + '%;height:' + heightPct + '%;left:' + leftPct + '%;top:' + topPct + '%;';
+}
+
+module.exports = {
+  hasCrop: hasCrop,
+  imgBoxStyle: imgBoxStyle
+};

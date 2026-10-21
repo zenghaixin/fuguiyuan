@@ -1,0 +1,83 @@
+<view class="pce" wx:if="{{visible}}" catchtouchmove="noop">
+  <view class="pce__stage" catchtap="onStageTap">
+    <image
+      class="pce__img"
+      src="{{src}}"
+      mode="scaleToFill"
+      style="{{imgStyle}}"
+      show-menu-by-longpress="{{false}}"
+    ></image>
+
+    <!-- 遮罩：框外变暗 -->
+    <view class="pce__mask" style="{{maskTop}}"></view>
+    <view class="pce__mask" style="{{maskBottom}}"></view>
+    <view class="pce__mask" style="{{maskLeft}}"></view>
+    <view class="pce__mask" style="{{maskRight}}"></view>
+
+    <!-- 可视裁剪框 -->
+    <view
+      class="pce__frame"
+      style="{{frameStyle}}"
+      catchtouchstart="onTouchStart"
+      catchtouchmove="onTouchMove"
+      catchtouchend="onTouchEnd"
+      catchtouchcancel="onTouchEnd"
+    >
+      <view class="pce__grid">
+        <view class="pce__grid-h"></view>
+        <view class="pce__grid-h pce__grid-h--2"></view>
+        <view class="pce__grid-v"></view>
+        <view class="pce__grid-v pce__grid-v--2"></view>
+      </view>
+
+      <view class="pce__edge pce__edge--n" data-handle="n" catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd" catchtouchcancel="onTouchEnd">
+        <view class="pce__edge-bar pce__edge-bar--h"></view>
+      </view>
+      <view class="pce__edge pce__edge--s" data-handle="s" catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd" catchtouchcancel="onTouchEnd">
+        <view class="pce__edge-bar pce__edge-bar--h"></view>
+      </view>
+      <view class="pce__edge pce__edge--w" data-handle="w" catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd" catchtouchcancel="onTouchEnd">
+        <view class="pce__edge-bar pce__edge-bar--v"></view>
+      </view>
+      <view class="pce__edge pce__edge--e" data-handle="e" catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd" catchtouchcancel="onTouchEnd">
+        <view class="pce__edge-bar pce__edge-bar--v"></view>
+      </view>
+
+      <view class="pce__corner pce__corner--nw" data-handle="nw" catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd" catchtouchcancel="onTouchEnd">
+        <view class="pce__corner-dot"></view>
+      </view>
+      <view class="pce__corner pce__corner--ne" data-handle="ne" catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd" catchtouchcancel="onTouchEnd">
+        <view class="pce__corner-dot"></view>
+      </view>
+      <view class="pce__corner pce__corner--sw" data-handle="sw" catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd" catchtouchcancel="onTouchEnd">
+        <view class="pce__corner-dot"></view>
+      </view>
+      <view class="pce__corner pce__corner--se" data-handle="se" catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd" catchtouchcancel="onTouchEnd">
+        <view class="pce__corner-dot"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="pce__chrome {{chromeOn ? 'pce__chrome--on' : ''}}">
+    <view class="pce__top" style="padding-top: {{statusBarHeight}}px;">
+      <view class="pce__close" catchtap="onClose">
+        <t-icon name="close" size="40rpx" color="#fff"></t-icon>
+      </view>
+      <view class="pce__title">调整画面</view>
+      <view class="pce__top-spacer"></view>
+    </view>
+
+    <view class="pce__tip">{{tipText}}</view>
+
+    <view class="pce__tools">
+      <view class="pce__tool" catchtap="onReset" hover-class="pce__tool--hover">
+        <t-icon name="refresh" size="44rpx" color="#fff"></t-icon>
+        <view class="pce__tool-label">重置</view>
+      </view>
+      <view class="pce__tool pce__tool--primary" catchtap="onConfirm" hover-class="pce__tool--hover">
+        <t-icon name="check" size="44rpx" color="#fff"></t-icon>
+        <view class="pce__tool-label">完成</view>
+      </view>
+    </view>
+  </view>
+</view>

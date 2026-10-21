@@ -34,9 +34,20 @@
 
 
   &__img {
+    display: block;
+  }
+
+  /* 未裁剪：铺满画框、保持比例（不拉伸） */
+  &__img--fit {
     width: 100%;
     height: 100%;
-    display: block;
+  }
+
+  /* 已裁剪：尺寸由 coverCrop 内联样式写入 */
+  &__img--crop {
+    position: absolute;
+    left: 0;
+    top: 0;
   }
 
 

@@ -21,10 +21,25 @@
       left-behind="{{moduleIndex > 0}}"
       has-next-module="{{hasNextAfterCover}}"
       start-page-index="{{coverStartPage}}"
+      full-bleed="{{!enableSafeGuide}}"
       bind:moduledrag="onModuleDrag"
     />
 
-    <!-- ② 照片墙：有数据才显示 -->
+    <!-- ② 故事线：有章节才显示 -->
+    <story-line
+      wx:if="{{showStory}}"
+      chapters="{{storyChapters}}"
+      window-height="{{windowHeight}}"
+      window-width="{{windowWidth}}"
+      status-bar-height="{{statusBarHeight}}"
+      active="{{moduleIndex === storyModuleIndex}}"
+      left-behind="{{moduleIndex > storyModuleIndex}}"
+      has-next-module="{{hasNextAfterStory}}"
+      start-index="{{storyStartIndex}}"
+      bind:moduledrag="onModuleDrag"
+    />
+
+    <!-- ③ 照片墙：有数据才显示 -->
     <photo-wall
       wx:if="{{showPhotoWall}}"
       id="photoWall"
@@ -40,11 +55,7 @@
       bind:moduledrag="onModuleDrag"
     />
 
-
-
-
-
-    <!-- ③ 留言/婚礼现场：仅正式请帖 -->
+    <!-- ④ 留言/婚礼现场：仅正式请帖 -->
     <bless-board
       wx:if="{{showGuestModules}}"
       id="blessBoard"

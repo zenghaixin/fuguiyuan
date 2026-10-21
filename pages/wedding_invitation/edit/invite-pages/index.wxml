@@ -1,3 +1,4 @@
+<wxs src="../../utils/element-style.wxs" module="elStyle" />
 <view class="pages-hub">
   <view
     class="pages-hub__back"
@@ -14,77 +15,97 @@
         <t-icon name="edit" size="32rpx" color="#8a7464" />
       </view>
     </view>
-    <view class="pages-hub__sub">点击缩略图编辑页面；下方可进照片墙</view>
+    <view class="pages-hub__sub">选择模块继续编辑，或预览整份喜帖</view>
   </view>
 
   <scroll-view class="pages-hub__scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="pages-hub__grid" wx:if="{{pages.length}}">
+    <view class="pages-hub__list">
       <view
-        class="page-card"
-        wx:for="{{pages}}"
-        wx:key="id"
-        data-index="{{index}}"
-        bindtap="onOpenPage"
+        class="mod-card"
+        wx:for="{{modules}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="onOpenModule"
       >
-        <view class="page-card__media">
+        <!-- 喜帖：优先封面截图，否则实时拼元素 -->
+        <view
+          wx:if="{{item.key === 'invite' && coverThumbSrc}}"
+          class="mod-card__cover"
+        >
+          <image class="mod-card__bg" src="{{coverThumbSrc}}" mode="aspectFill" />
+        </view>
+        <view
+          wx:elif="{{item.key === 'invite' && coverPage}}"
+          class="mod-card__cover"
+          style="background: {{coverPage.bgColor || '#f7f0ea'}};"
+        >
+          <image
+            wx:if="{{coverPage.bgSrc}}"
+            class="mod-card__bg"
+            src="{{coverPage.bgSrc}}"
+            mode="aspectFill"
+          />
           <view
-            class="page-card__thumb"
-            style="background: {{item.bgColor || '#f7f0ea'}};"
+            wx:for="{{coverPage.elements}}"
+            wx:for-item="el"
+            wx:key="id"
+            class="mod-card__el"
+            style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; background: {{elStyle.boxBg(el)}}; transform: rotate({{el.rotate || 0}}deg); z-index: {{el.layer || 1}}; {{elStyle.isText(el) ? elStyle.textLayoutStyle(el) : ''}}"
           >
-            <image
-              wx:if="{{item.bgSrc}}"
-              class="page-card__bg"
-              src="{{item.bgSrc}}"
-              mode="aspectFill"
-            />
-            <view
-              wx:for="{{item.elements}}"
-              wx:for-item="el"
-              wx:key="id"
-              class="page-card__el"
-              style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; background: {{el.color}}; transform: rotate({{el.rotate || 0}}deg); z-index: {{el.layer || 1}};"
-            />
-            <view class="page-card__empty" wx:if="{{!item.elements.length && !item.bgSrc}}">空白页</view>
-          </view>
-          <view class="page-card__order">第{{index + 1}}页</view>
-          <view
-            class="page-card__del"
-            data-index="{{index}}"
-            catchtap="onDeletePage"
-          >
-            <t-icon name="delete" size="32rpx" color="#b91c3a" />
+            <text
+              wx:if="{{elStyle.thumbText(el)}}"
+              class="mod-card__el-text"
+              style="color: {{elStyle.boxColor(el)}}; font-size: {{elStyle.fontSizeOnCanvas(el, thumbBoardW)}}; font-weight: {{elStyle.fontWeightCss(el)}};{{elStyle.textInnerStyle(el)}}"
+            >{{elStyle.thumbText(el)}}</text>
           </view>
         </view>
-      </view>
-
-      <view
-        class="page-card page-card--add"
-        wx:if="{{pages.length < maxPages}}"
-        bindtap="onAddPage"
-      >
-        <view class="page-card__media">
-          <view class="page-card__thumb page-card__thumb--add">
-            <t-icon name="add" size="56rpx" color="#b5a394" />
-            <text class="page-card__add-text">新增页面</text>
-          </view>
+        <view
+          wx:elif="{{item.key === 'invite'}}"
+          class="mod-card__cover"
+        >
+          <t-icon name="mail" size="36rpx" color="#b5a394" />
         </view>
-      </view>
-    </view>
 
-    <view class="pages-hub__empty" wx:else>
-      <view class="pages-hub__empty-card" bindtap="onAddPage">
-        <t-icon name="add" size="64rpx" color="#b5a394" />
-        <view class="pages-hub__empty-tip">添加第1页</view>
-        <view class="pages-hub__empty-desc">可继续添加第2页、第3页…</view>
+        <!-- 故事线 -->
+        <view
+          wx:elif="{{item.key === 'story'}}"
+          class="mod-card__cover mod-card__cover--story"
+        >
+          <t-icon name="heart" size="40rpx" color="#b91c3a" />
+        </view>
+
+        <!-- 照片墙 -->
+        <view
+          wx:else
+          class="mod-card__cover mod-card__cover--photo"
+        >
+          <image
+            wx:if="{{photoCoverSrc}}"
+            class="mod-card__bg"
+            src="{{photoCoverSrc}}"
+            mode="aspectFill"
+          />
+          <t-icon
+            wx:else
+            name="image"
+            size="40rpx"
+            color="#c4a574"
+          />
+        </view>
+
+        <view class="mod-card__main">
+          <view class="mod-card__name">{{item.name}}</view>
+          <view class="mod-card__meta">{{item.meta}}</view>
+        </view>
+        <view class="mod-card__go">
+          <t-icon name="chevron-right" size="40rpx" color="#b5a394" />
+        </view>
       </view>
     </view>
   </scroll-view>
 
   <view class="pages-hub__foot">
-    <view class="pages-hub__actions">
-      <view class="pages-hub__photo" bindtap="onEditPhotoWall">照片墙</view>
-      <view class="pages-hub__preview" bindtap="onPreviewAll">预览喜帖</view>
-    </view>
+    <view class="pages-hub__preview" bindtap="onPreviewAll">预览喜帖</view>
   </view>
 
   <edit-dialog

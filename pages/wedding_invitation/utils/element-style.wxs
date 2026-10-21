@@ -1,0 +1,195 @@
+/** 画布元素预览样式（编辑 / 缩略图 / 浏览共用）
+ * WXS 勿用 Number()/String()/箭头函数/默认参数
+ *
+ * 缩略图约定：
+ * - 文字块有文案 → 显示文字，底透明（或自设 bgColor）
+ * - 修饰占位（玫瑰等仅 label）→ 只出色块，不展示字
+ */
+
+function fontWeight(key) {
+  if (key === 'bold') return 700;
+  if (key === 'medium') return 500;
+  return 400;
+}
+
+function isText(el) {
+  if (!el) return false;
+  if (el.type === 'text') return true;
+  if (el.text != null && el.text !== '' && !el.assetId) return true;
+  return false;
+}
+
+/** 是否有真实内容（修饰有图 / 文字有文案） */
+function hasContent(el) {
+  if (!el) return false;
+  if (isText(el)) {
+    if (!el.text) return false;
+    return ('' + el.text).length > 0;
+  }
+  if (el.src) return true;
+  if (el.photo && el.photo.src) return true;
+  return false;
+}
+
+function boxBg(el) {
+  if (!el) return 'transparent';
+  if (isText(el)) {
+    if (el.bgColor) return el.bgColor;
+    if (hasContent(el)) return 'transparent';
+    return 'rgba(61,41,20,0.06)';
+  }
+  // 修饰占位：保留色块
+  if (hasContent(el)) return 'transparent';
+  if (el.color) return el.color;
+  return 'transparent';
+}
+
+function boxColor(el) {
+  if (!el) return '#3d2914';
+  if (isText(el)) {
+    if (el.color) return el.color;
+    return '#3d2914';
+  }
+  if (hasContent(el)) {
+    if (el.color) return el.color;
+    return '#3d2914';
+  }
+  return '#ffffff';
+}
+
+/**
+ * 设计字号基准：数值按「画布宽 750」定义（与 rpx 设计宽一致）
+ * 必须用画布实际像素宽换算，不能直接写 rpx——否则框跟画布走、字跟屏幕走，真机易偏大
+ */
+function resolveFontNum(el) {
+  if (!el) return 28;
+  if (isText(el)) {
+    var fs = parseFloat(el.fontSize);
+    if (fs > 0) return fs;
+    return 28;
+  }
+  return 22;
+}
+
+function fontSize(el) {
+  return resolveFontNum(el) + 'rpx';
+}
+
+/**
+ * 按画布/缩略图实际宽度换算字号（px）
+ * 设计约定：fontSize 数值 = 在宽 750 的画布上的大小；缩略图必须用缩略图宽换算。
+ * 禁止回退成 rpx：小图上 rpx 会相对框显得巨大，且看不出编辑里调过的字号。
+ * @param canvasWidthPx 画板或缩略图内容区宽度（px）
+ * @param fallbackWidthPx 可选，canvasWidth 无效时的备用宽度
+ */
+function fontSizeOnCanvas(el, canvasWidthPx, fallbackWidthPx) {
+  var fs = resolveFontNum(el);
+  var cw = parseFloat(canvasWidthPx);
+  if (!(cw > 0)) cw = parseFloat(fallbackWidthPx);
+  if (!(cw > 0)) cw = 375;
+  var px = (fs / 750) * cw;
+  // 仅避免 0；不要抬高下限，否则 20/28/36 在小图上会被抹成一样大
+  if (px < 1) px = 1;
+  return px + 'px';
+}
+
+/**
+ * @deprecated 兼容旧调用；请改用 fontSizeOnCanvas(el, 实际宽度px)
+ * scale ≈ 缩略图宽 / 750
+ */
+function thumbFontSize(el, scale) {
+  var s = parseFloat(scale);
+  if (!(s > 0)) s = 0.2;
+  if (s > 1) s = 1;
+  return fontSizeOnCanvas(el, 750 * s, 0);
+}
+
+function fontWeightCss(el) {
+  if (!el) return 600;
+  if (!isText(el)) return 600;
+  return fontWeight(el.fontWeight);
+}
+
+/** 编辑/正式预览：文字出文案，修饰可出 label */
+function displayText(el) {
+  if (!el) return '';
+  if (isText(el)) {
+    if (el.text) return '' + el.text;
+    return '';
+  }
+  if (el.label) return '' + el.label;
+  return '';
+}
+
+/** 缩略图：仅有内容的元素出字；占位修饰不出字只出色块 */
+function thumbText(el) {
+  if (!el) return '';
+  if (isText(el)) {
+    if (el.text) return '' + el.text;
+    return '';
+  }
+  // 修饰占位不展示 label
+  return '';
+}
+
+/** 水平对齐 → text-align / align-items */
+function textAlign(el) {
+  if (!el || !el.align) return 'center';
+  if (el.align === 'left' || el.align === 'right' || el.align === 'center') {
+    return el.align;
+  }
+  return 'center';
+}
+
+function alignItems(el) {
+  var a = textAlign(el);
+  if (a === 'left') return 'flex-start';
+  if (a === 'right') return 'flex-end';
+  return 'center';
+}
+
+/** 垂直对齐 → justify-content */
+function justifyContent(el) {
+  if (!el || !el.valign) return 'center';
+  if (el.valign === 'top') return 'flex-start';
+  if (el.valign === 'bottom') return 'flex-end';
+  return 'center';
+}
+
+/** 文字容器排版 style 片段（竖直用 flex，水平靠子节点 text-align） */
+function textLayoutStyle(el) {
+  return (
+    'display:flex;flex-direction:column;' +
+    'justify-content:' +
+    justifyContent(el) +
+    ';' +
+    'align-items:stretch;' +
+    'text-align:' +
+    textAlign(el) +
+    ';'
+  );
+}
+
+/** 内层文案节点：小程序 text 不继承父级 text-align，必须写在自身 */
+function textInnerStyle(el) {
+  return 'width:100%;text-align:' + textAlign(el) + ';';
+}
+
+module.exports = {
+  isText: isText,
+  hasContent: hasContent,
+  boxBg: boxBg,
+  boxColor: boxColor,
+  fontSize: fontSize,
+  fontSizeOnCanvas: fontSizeOnCanvas,
+  thumbFontSize: thumbFontSize,
+  fontWeightCss: fontWeightCss,
+  displayText: displayText,
+  thumbText: thumbText,
+  fontWeight: fontWeight,
+  textAlign: textAlign,
+  alignItems: alignItems,
+  justifyContent: justifyContent,
+  textLayoutStyle: textLayoutStyle,
+  textInnerStyle: textInnerStyle,
+};

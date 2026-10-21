@@ -1,3 +1,5 @@
+import { snapToGrid } from '../../utils/snap-grid';
+
 const MIN_W = 0.06;
 const MIN_H = 0.06;
 const MOVE_THRESHOLD = 4;
@@ -39,22 +41,6 @@ function formatAngle(deg) {
   return `${displayAngle(deg)}°`;
 }
 
-/** 一周刻度：每 10° 小刻度，30/60/90… 长刻度带数字 */
-function buildAngleTicks() {
-  const ticks = [];
-  for (let deg = 0; deg < 360; deg += 10) {
-    const major = deg % 30 === 0;
-    ticks.push({
-      deg,
-      major,
-      label: major ? String(deg) : '',
-    });
-  }
-  return ticks;
-}
-
-const ANGLE_TICKS = buildAngleTicks();
-
 function touchAngle(t0, t1) {
   return (
     (Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX) * 180) /
@@ -85,6 +71,12 @@ Component({
     canvasLeft: { type: Number, value: 0 },
     canvasTop: { type: Number, value: 0 },
     lockRatio: { type: Boolean, value: false },
+    /** 与 edit-invite 共用网格吸附；本地预览也要吸，否则手势中 observer 不同步 */
+    snapEnabled: { type: Boolean, value: false },
+    snapCols: { type: Number, value: 12 },
+    snapRows: { type: Number, value: 12 },
+    /** 外部强制与 props 对齐（重置位置/大小/旋转时用） */
+    layoutRev: { type: Number, value: 0 },
   },
 
   data: {
@@ -94,9 +86,6 @@ Component({
     dh: 0.2,
     drotate: 0,
     angleText: '0°',
-    ringW: 180,
-    ringH: 180,
-    angleTicks: ANGLE_TICKS,
     angleHudVisible: false,
   },
 
@@ -106,9 +95,13 @@ Component({
       this._live = { x, y, w, h, rotate };
       this._syncView();
     },
-    'editMode, canvasWidth, canvasHeight, selected': function () {
-      if (this._gesturing) return;
-      this._syncRing();
+    layoutRev(rev) {
+      // 外部重置位置/大小/旋转时强制对齐本地预览
+      if (!rev) return;
+      this._gesturing = false;
+      const { x, y, w, h, rotate } = this.data;
+      this._live = { x, y, w, h, rotate };
+      this._syncView();
     },
   },
 
@@ -123,36 +116,25 @@ Component({
   methods: {
     _syncView() {
       const { x, y, w, h, rotate } = this._live || this.data;
+      const angleText = formatAngle(rotate);
+      const cur = this.data;
+      if (
+        cur.dx === x &&
+        cur.dy === y &&
+        cur.dw === w &&
+        cur.dh === h &&
+        cur.drotate === rotate &&
+        cur.angleText === angleText
+      ) {
+        return;
+      }
       this.setData({
         dx: x,
         dy: y,
         dw: w,
         dh: h,
         drotate: rotate,
-        angleText: formatAngle(rotate),
-      });
-      this._syncRing();
-    },
-
-    _syncRing() {
-      const live = this._live || this.data;
-      const cw = this.data.canvasWidth;
-      const ch = this.data.canvasHeight;
-      if (!cw || !ch || !live.w || !live.h) return;
-      const W = live.w * cw;
-      const H = live.h * ch;
-      // 按旋转后外接圆（对角线）+ 固定 28px 间隙，保证角点不压进环带
-      const GAP = 28;
-      const winW =
-        (typeof wx.getWindowInfo === 'function'
-          ? wx.getWindowInfo().windowWidth
-          : 375) || 375;
-      const BAND = (56 / 750) * winW; // 与 less 中 @angle-band: 56rpx 一致
-      const halfDiag = Math.hypot(W / 2, H / 2);
-      const S = (halfDiag + GAP + BAND) * 2;
-      this.setData({
-        ringW: (S / W) * 100,
-        ringH: (S / H) * 100,
+        angleText,
       });
     },
 
@@ -190,19 +172,62 @@ Component({
         drotate: rotate,
         angleText: formatAngle(rotate),
       });
-      if (partial.w != null || partial.h != null) this._syncRing();
     },
 
+    _snapPartial(partial) {
+      if (!this.data.snapEnabled || !partial) return partial;
+      const hasBox =
+        partial.x != null ||
+        partial.y != null ||
+        partial.w != null ||
+        partial.h != null;
+      if (!hasBox) return partial;
+
+      const live = this._live || this.data;
+      const box = {
+        x: partial.x != null ? partial.x : live.x,
+        y: partial.y != null ? partial.y : live.y,
+        w: partial.w != null ? partial.w : live.w,
+        h: partial.h != null ? partial.h : live.h,
+      };
+      const resizing = partial.w != null || partial.h != null;
+      const mode = resizing ? 'resize' : 'move';
+      const result = snapToGrid(box, {
+        cols: this.data.snapCols,
+        rows: this.data.snapRows,
+        thresholdPx: 6,
+        canvasWidth: this.data.canvasWidth,
+        mode,
+        minW: MIN_W,
+        minH: MIN_H,
+      });
+      const next = { ...partial };
+      if (mode === 'move') {
+        if (partial.x != null) next.x = result.box.x;
+        if (partial.y != null) next.y = result.box.y;
+      } else {
+        if (partial.x != null || partial.w != null) next.x = result.box.x;
+        if (partial.y != null || partial.h != null) next.y = result.box.y;
+        if (partial.w != null) next.w = result.box.w;
+        if (partial.h != null) next.h = result.box.h;
+      }
+      return next;
+    },
+
+    /**
+     * 拖动中只改本地 dx/dy（跟手）；松手再 change 回写父级，避免每帧 setData 整页卡半拍。
+     */
     _emit(partial, ended) {
       if (partial && Object.keys(partial).length) {
-        this._applyLocal(partial);
-        this.triggerEvent('change', { id: this.data.elId, ...partial });
+        const snapped = this._snapPartial(partial);
+        this._applyLocal(snapped);
+        // 手势进行中不冒泡；仅本地预览
+        if (!ended) return;
       }
       if (ended) {
-        this.triggerEvent('changeend', {
-          id: this.data.elId,
-          ...this._live,
-        });
+        const live = this._live || {};
+        this.triggerEvent('change', { id: this.data.elId, ...live });
+        this.triggerEvent('changeend', { id: this.data.elId, ...live });
       }
     },
 
@@ -241,16 +266,7 @@ Component({
       if (!t) return;
       this.triggerEvent('select', { id: this.data.elId });
 
-      if (this.data.editMode === 'angle') {
-        this.onRotateStart(e);
-        return;
-      }
-
-      if (this.data.editMode === 'size') {
-        this._mode = '';
-        return;
-      }
-
+      // 统一手势：拖主体 = 移动（角点/半圆另绑 resize / rotate）
       this._freezeCanvas();
       this._gesturing = true;
       this._mode = 'pending';
@@ -283,7 +299,6 @@ Component({
       const c = this._canvas;
       if (!t || !c || !this._startTouch || !this._origin) return;
       if (this._mode === 'pinch-rotate') return;
-      if (this.data.editMode !== 'position') return;
 
       const dxPx = t.clientX - this._startTouch.x;
       const dyPx = t.clientY - this._startTouch.y;
@@ -315,7 +330,6 @@ Component({
     },
 
     onResizeStart(e) {
-      if (this.data.editMode !== 'size') return;
       const t = e.touches[0];
       if (!t) return;
       this._freezeCanvas();

@@ -1,3 +1,5 @@
+import { isMagazineLayout } from '~/services/invite-photo-local';
+
 Component({
   properties: {
     photos: { type: Array, value: [] },
@@ -8,27 +10,45 @@ Component({
     backSize: { type: Number, value: 32 },
     /** 轮播当前页 */
     current: { type: Number, value: 0 },
-    /** 排版：carousel | column | grid4 | … */
+    /** 排版：carousel | column | grid4 | magazine* | … */
     layout: { type: String, value: 'carousel' },
+    /** 网格裁剪调焦 */
+    coverPan: { type: Boolean, value: false },
   },
 
   data: {
     stageHeight: 400,
     gridCols: 2,
     isGrid: false,
+    isMagazine: false,
+    subText: '添加你们的合影与瞬间',
   },
 
   observers: {
     'windowHeight, windowWidth, backTop, backSize, photos, layout': function () {
       this.scheduleMeasure();
     },
-    layout: function (layout) {
-      const key = layout === 'grid' ? 'grid4' : layout;
+    'photos, layout': function (photos, layout) {
+      const key = layout === 'grid' ? 'grid4' : layout || this.data.layout;
       const isGrid = key === 'grid4' || key === 'grid9';
+      const isMagazine = isMagazineLayout(key);
+      const n = (photos && photos.length) || 0;
+      let subText = '添加你们的合影与瞬间';
+      if (n > 0) {
+        subText = isGrid || isMagazine
+          ? `已添加 ${n} 张，可点空位继续添加`
+          : `已添加 ${n} 张，可继续添加`;
+      } else if (isGrid || isMagazine) {
+        subText = '点击空位或下方按钮添加照片';
+      }
       this.setData({
         isGrid,
+        isMagazine,
         gridCols: key === 'grid9' ? 3 : 2,
+        subText,
       });
+    },
+    layout: function () {
       // 切叠放等排版时子组件刚挂载，补测高度避免舞台为 0 不显示
       this.scheduleMeasure(32);
       this.scheduleMeasure(120);
@@ -93,7 +113,40 @@ Component({
     onReorder(e) {
       this.triggerEvent('reorder', e.detail || {});
     },
+
+    onFramesEnsure(e) {
+      this.triggerEvent('framesensure', e.detail || {});
+    },
+
+    onFrameChange(e) {
+      this.triggerEvent('framechange', e.detail || {});
+    },
+
+    onCoverFocus(e) {
+      this.triggerEvent('coverfocus', e.detail || {});
+    },
+
+    onSelect(e) {
+      this.triggerEvent('select', e.detail || {});
+    },
+
+    /** 透传杂志布局的裁剪打开参数（含真实格子宽高比） */
+    getCropPayload(photoId) {
+      const mag = this.selectComponent('#magLayout');
+      if (mag && typeof mag.getCropPayload === 'function') {
+        return mag.getCropPayload(photoId);
+      }
+      return null;
+    },
+
+    /** 非网格排版：舞台可视区宽高比（裁剪框比例） */
+    getViewportAspect() {
+      const w = Math.max(1, Number(this.data.windowWidth) || 375);
+      const h = Math.max(1, Number(this.data.stageHeight) || 400);
+      return w / h;
+    },
   },
 });
+
 
 

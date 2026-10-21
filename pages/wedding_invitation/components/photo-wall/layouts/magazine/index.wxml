@@ -1,0 +1,68 @@
+<view class="pw-mag" style="height: {{height}}px;">
+  <view
+    class="pw-mag__stage {{showGrid ? 'pw-mag__stage--grid' : ''}}"
+    style="{{showGrid ? gridBgStyle : ''}}"
+    catchtap="onStageTap"
+    catchtouchstart="onStageTouchStart"
+    catchtouchmove="onStageTouchMove"
+    catchtouchend="onStageTouchEnd"
+    catchtouchcancel="onStageTouchEnd"
+  >
+    <view
+      class="pw-mag__tile {{selectedId === item.id ? 'pw-mag__tile--on' : ''}}"
+      wx:for="{{tiles}}"
+      wx:key="id"
+      style="{{item.tileStyle}}"
+      data-id="{{item.id}}"
+      data-index="{{item.photoIndex}}"
+      catchtouchstart="onTileTouchStart"
+      catchtouchmove="onTileTouchMove"
+      catchtouchend="onTileTouchEnd"
+      catchtouchcancel="onTileTouchEnd"
+      catchtap="onTileTap"
+    >
+      <image
+        wx:if="{{item.useCrop}}"
+        class="pw-mag__img pw-mag__img--crop"
+        src="{{item.src}}"
+        mode="scaleToFill"
+        style="{{item.imgBoxStyle}}"
+        show-menu-by-longpress="{{false}}"
+      />
+      <view wx:else class="pw-mag__img" style="{{item.imgStyle}}" />
+      <view
+        wx:if="{{editable && !coverPanOn}}"
+        class="pw-mag__del"
+        data-id="{{item.id}}"
+        catchtap="onDelete"
+      >
+        <t-icon name="close" size="22rpx" color="#fff" />
+      </view>
+      <view
+        wx:if="{{editable && selectedId === item.id && !coverPanOn}}"
+        class="pw-mag__span"
+      >{{item.spanLabel}}</view>
+      <view
+        wx:if="{{editable && coverPanOn && selectedId === item.id}}"
+        class="pw-mag__span"
+      >拖动画布</view>
+      <view
+        wx:if="{{editable && selectedId === item.id && !coverPanOn}}"
+        class="pw-mag__handle"
+        data-id="{{item.id}}"
+        catchtouchstart="onResizeStart"
+        catchtouchmove="onResizeMove"
+        catchtouchend="onResizeEnd"
+        catchtouchcancel="onResizeEnd"
+      />
+    </view>
+
+    <view class="pw-mag__meta" wx:if="{{editable && freeHint}}">{{freeHint}}</view>
+    <view class="pw-mag__hint" wx:if="{{editable && !tiles.length}}">
+      先添加照片，再按格拖动、放大
+    </view>
+    <view class="pw-mag__hint pw-mag__hint--soft" wx:elif="{{editable}}">
+      拖格排版；点选后点「裁剪」可全屏调整画面
+    </view>
+  </view>
+</view>

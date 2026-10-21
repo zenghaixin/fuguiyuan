@@ -1,4 +1,20 @@
-const { previewPhotos } = require('../../../../utils/preview-photos');
+import { photoCropDisplayForCell } from '../../../../utils/cover-crop';
+import { previewPhotos } from '../../../../utils/preview-photos';
+
+function readViewportWidth() {
+  try {
+    if (typeof wx.getWindowInfo === 'function') {
+      return wx.getWindowInfo().windowWidth || 375;
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  try {
+    return wx.getSystemInfoSync().windowWidth || 375;
+  } catch (e2) {
+    return 375;
+  }
+}
 
 const DIR_LOCK = 10;
 const TAP_SLOP = 28;
@@ -69,6 +85,7 @@ Component({
     flyGhost: {
       show: false,
       src: '',
+      coverCrop: null,
       style: '',
     },
   },
@@ -148,7 +165,7 @@ Component({
         ...patch,
         topStyle: '',
         rising: false,
-        flyGhost: { show: false, src: '', style: '' },
+        flyGhost: { show: false, src: '', coverCrop: null, style: '' },
       });
     },
 
@@ -265,16 +282,23 @@ Component({
 
       this.ensureInitialAngles(order);
 
+      const vw = readViewportWidth();
+      const stageH = Number(this.properties.height) || 400;
+      const cellAspect = Math.max(0.4, (vw - 48) / Math.max(1, stageH - 40));
+
       const cards = [];
       for (let i = order.length - 1; i >= 0; i -= 1) {
         const { p, photoIndex, depth, abs } = order[i];
         if (!p) continue;
         const rot = this._angleByAbs[abs] || 0;
         const style = layerTransform(rot, depth, show);
+        const disp = photoCropDisplayForCell(p, cellAspect) || {};
         cards.push({
           id: `k-${abs}`,
           photoId: p.id,
           src: p.src,
+          useCrop: !!disp.useCrop,
+          imgBoxStyle: disp.imgBoxStyle || '',
           caption: p.caption || '',
           photoIndex,
           isTop: depth === 0,
@@ -532,11 +556,23 @@ Component({
           {
             innerCurrent: next,
             ...patch,
-            flyGhost: {
-              show: true,
-              src: photo.src,
-              style: `transform: translate3d(${startX}px, 0, 0) rotate(${startRot}deg);`,
-            },
+            flyGhost: (() => {
+              const vw = readViewportWidth();
+              const stageH = Number(this.properties.height) || 400;
+              const cellAspect = Math.max(
+                0.4,
+                (vw - 48) / Math.max(1, stageH - 40)
+              );
+              const disp = photoCropDisplayForCell(photo, cellAspect);
+              return {
+                show: true,
+                src: photo.src,
+                coverCrop: photo.coverCrop || null,
+                useCrop: disp.useCrop,
+                imgBoxStyle: disp.imgBoxStyle,
+                style: `transform: translate3d(${startX}px, 0, 0) rotate(${startRot}deg);`,
+              };
+            })(),
           },
           () => {
             clearTimeout(this._flyKick);
@@ -555,7 +591,7 @@ Component({
         this._flying = false;
         this.setData({
           rising: false,
-          flyGhost: { show: false, src: '', style: '' },
+          flyGhost: { show: false, src: '', coverCrop: null, style: '' },
           ...patch,
         });
         this.triggerEvent('change', { current: next });

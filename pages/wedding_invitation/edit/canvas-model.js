@@ -89,6 +89,64 @@ export function createDecorElement(asset, size = {}) {
   };
 }
 
+/**
+ * 在画布正中创建文字块（可拖拽容器 + 文案样式）
+ * @param {{ text?: string, w?: number, h?: number, layer?: number }} [opts]
+ */
+/** 文字样式默认值（重置 / 新建共用） */
+export const DEFAULT_TEXT_STYLE = {
+  fontSize: 28,
+  fontFamily: 'sans',
+  color: '#3d2914',
+  bgColor: '',
+  fontWeight: 'normal',
+  /** 水平：left | center | right */
+  align: 'center',
+  /** 垂直：top | middle | bottom */
+  valign: 'middle',
+};
+
+/** 新建文字默认框：画布居中，与 createTextElement 一致 */
+export const DEFAULT_TEXT_LAYOUT = {
+  w: 0.56,
+  h: 0.12,
+  x: 0.5 - 0.56 / 2,
+  y: 0.5 - 0.12 / 2,
+  rotate: 0,
+};
+
+export function createTextElement(opts = {}) {
+  const w = opts.w != null ? opts.w : DEFAULT_TEXT_LAYOUT.w;
+  const h = opts.h != null ? opts.h : DEFAULT_TEXT_LAYOUT.h;
+  const layer =
+    opts.layer != null
+      ? Math.max(1, Math.min(10, Math.round(Number(opts.layer) || 1)))
+      : 1;
+  return {
+    id: uid('el'),
+    type: 'text',
+    text: opts.text != null ? String(opts.text) : '请输入文案',
+    fontSize:
+      opts.fontSize != null
+        ? Number(opts.fontSize) || DEFAULT_TEXT_STYLE.fontSize
+        : DEFAULT_TEXT_STYLE.fontSize,
+    fontFamily: opts.fontFamily || DEFAULT_TEXT_STYLE.fontFamily,
+    color: opts.color || DEFAULT_TEXT_STYLE.color,
+    bgColor:
+      opts.bgColor != null ? opts.bgColor : DEFAULT_TEXT_STYLE.bgColor,
+    fontWeight: opts.fontWeight || DEFAULT_TEXT_STYLE.fontWeight,
+    align: opts.align || DEFAULT_TEXT_STYLE.align,
+    valign: opts.valign || DEFAULT_TEXT_STYLE.valign,
+    label: '文字',
+    x: opts.x != null ? opts.x : 0.5 - w / 2,
+    y: opts.y != null ? opts.y : 0.5 - h / 2,
+    w,
+    h,
+    rotate: opts.rotate != null ? Number(opts.rotate) || 0 : DEFAULT_TEXT_LAYOUT.rotate,
+    layer,
+  };
+}
+
 /** 更新当前页背景（全铺，不受内容区虚线限制） */
 export function updatePageBackground(pages, pageIndex, patch) {
   const list = pages.slice();
@@ -162,6 +220,9 @@ export function listLayers(pages, pageIndex) {
     .map((el) => ({
       ...el,
       layer: Number(el.layer) || 1,
-      title: el.label || el.type || '未命名',
+      title:
+        el.type === 'text'
+          ? (el.text && String(el.text).slice(0, 12)) || '文字'
+          : el.label || el.type || '未命名',
     }));
 }

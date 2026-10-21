@@ -7,11 +7,13 @@ import {
 import {
   chooseAndPersistPhotos,
   removeLocalImage,
+  pruneMissingLocalPhotos,
   MAX_PHOTO_WALL,
   DEFAULT_PHOTO_LAYOUT,
   normalizePhotoLayout,
   layoutSortCols,
   layoutGridMax,
+  layoutDisplayName,
 } from '~/services/invite-photo-local';
 const { previewPhotos, closeViewer } = require('../../utils/preview-photos');
 
@@ -57,6 +59,8 @@ Page({
 
 
     toolboxActive: '',
+    /** 网格裁剪：当前选中的照片 id */
+    selectedPhotoId: '',
     uploading: false,
     carouselIndex: 0,
     sortVisible: false,
@@ -76,12 +80,26 @@ Page({
   },
 
 
+  /** 草稿只存路径；清缓存后文件可能丢，这里校验并剔除失效项 */
+  applyPhotoWall(rawList, opts = {}) {
+    const { list, removed } = pruneMissingLocalPhotos(rawList || []);
+    if (removed > 0 && opts.notify !== false) {
+      wx.showToast({
+        title: `${removed} 张本地图已失效，请重新添加`,
+        icon: 'none',
+        duration: 2500,
+      });
+    }
+    return { list, removed };
+  },
+
   onLoad(query) {
     const { statusBarHeight, windowHeight, windowWidth } = wx.getWindowInfo();
     const menu = wx.getMenuButtonBoundingClientRect();
     const inviteId = (query && query.id) || TEMP_INVITE_ID;
     const draft = loadInviteDraft(inviteId);
-    const photoWall = (draft && draft.photoWall) || [];
+    const pruned = this.applyPhotoWall((draft && draft.photoWall) || []);
+    const photoWall = pruned.list;
     let photoWallLayout = normalizePhotoLayout(
       (draft && draft.photoWallLayout) || DEFAULT_PHOTO_LAYOUT
     );
@@ -110,7 +128,10 @@ Page({
         sortCols
       ),
     });
-    if (draft && draft.photoWallLayout && draft.photoWallLayout !== photoWallLayout) {
+    if (
+      pruned.removed > 0 ||
+      (draft && draft.photoWallLayout && draft.photoWallLayout !== photoWallLayout)
+    ) {
       this.persistDraft();
     }
   },
@@ -120,7 +141,12 @@ Page({
     if (this.data.uploading) return;
     const draft = loadInviteDraft(this.data.inviteId);
     if (!draft) return;
-    const photoWall = draft.photoWall || [];
+    const pruned = this.applyPhotoWall(draft.photoWall || [], {
+      // onLoad 已提示过则 onShow 静默（同一次进页）
+      notify: !this._prunedNotified,
+    });
+    if (pruned.removed > 0) this._prunedNotified = true;
+    const photoWall = pruned.list;
     const max = Math.max(photoWall.length - 1, 0);
     let photoWallLayout = normalizePhotoLayout(
       draft.photoWallLayout || DEFAULT_PHOTO_LAYOUT
@@ -135,6 +161,7 @@ Page({
       sortCols: layoutSortCols(photoWallLayout),
       carouselIndex: Math.min(this.data.carouselIndex || 0, max),
     });
+    if (pruned.removed > 0) this.persistDraft();
   },
 
 
@@ -190,12 +217,143 @@ Page({
       this.openSortSheet();
       return;
     }
-
+    if (key === 'crop') {
+      this.openCoverEditor();
+      return;
+    }
 
     wx.showToast({
       title: `${(tool && tool.label) || key}（稍后接）`,
       icon: 'none',
     });
+  },
+
+  onMagazineSelect(e) {
+    const id = e.detail && e.detail.id;
+    if (!id) return;
+    this.setData({ selectedPhotoId: id });
+  },
+
+  /**
+   * 全屏裁剪：
+   * - 网格：当前点选的那张，框比=占格真实宽高比
+   * - 其它排版：当前看到的那张（carouselIndex），框比=舞台可视区
+   */
+  openCoverEditor() {
+    const list = this.data.photoWall || [];
+    if (!list.length) {
+      wx.showToast({ title: '请先添加照片', icon: 'none' });
+      this.setData({ toolboxActive: '' });
+      return;
+    }
+
+    const wall = this.selectComponent('#editPhotoWall');
+    const isGrid = layoutGridMax(this.data.photoWallLayout) > 0;
+    let payload = null;
+
+    if (isGrid) {
+      let id = this.data.selectedPhotoId;
+      if (!id && list.length === 1 && list[0]) {
+        id = list[0].id;
+        this.setData({ selectedPhotoId: id });
+      }
+      if (!id) {
+        wx.showToast({ title: '请先点选一张照片', icon: 'none' });
+        this.setData({ toolboxActive: '' });
+        return;
+      }
+      payload =
+        wall && typeof wall.getCropPayload === 'function'
+          ? wall.getCropPayload(id)
+          : null;
+      if (!payload || !payload.src) {
+        const photo = list.find((p) => p && p.id === id);
+        if (!photo || !photo.src) {
+          wx.showToast({ title: '请先点选一张照片', icon: 'none' });
+          this.setData({ toolboxActive: '' });
+          return;
+        }
+        payload = {
+          id: photo.id,
+          src: photo.src,
+          cellAspect: 1,
+          coverCrop: photo.coverCrop,
+          coverFocus: photo.coverFocus,
+        };
+      }
+      // 网格族：裁剪框锁定格子比例，禁止自由拉框
+      if (payload) payload.lockAspect = true;
+    } else {
+      const idx = Math.max(
+        0,
+        Math.min(list.length - 1, Number(this.data.carouselIndex) || 0)
+      );
+      const photo = list[idx];
+      if (!photo || !photo.src) {
+        wx.showToast({ title: '当前没有可裁剪的照片', icon: 'none' });
+        this.setData({ toolboxActive: '' });
+        return;
+      }
+      let cellAspect = 0.75;
+      if (wall && typeof wall.getViewportAspect === 'function') {
+        cellAspect = wall.getViewportAspect() || cellAspect;
+      } else {
+        const w = this.data.windowWidth || 375;
+        const h = Math.max(1, (this.data.windowHeight || 667) * 0.55);
+        cellAspect = w / h;
+      }
+      payload = {
+        id: photo.id,
+        src: photo.src,
+        cellAspect,
+        coverCrop: photo.coverCrop,
+        coverFocus: photo.coverFocus,
+        lockAspect: false,
+      };
+      this.setData({ selectedPhotoId: photo.id });
+    }
+
+    const editor = this.selectComponent('#coverEditor');
+    if (!editor || typeof editor.open !== 'function') {
+      wx.showToast({ title: '裁剪组件未就绪', icon: 'none' });
+      this.setData({ toolboxActive: '' });
+      return;
+    }
+    editor.open(payload);
+    this.setData({ toolboxActive: 'crop' });
+  },
+
+  onCoverEditorConfirm(e) {
+    const d = e.detail || {};
+    const id = d.id;
+    if (!id || !d.coverCrop) {
+      this.setData({ toolboxActive: '' });
+      return;
+    }
+    const coverCrop = {
+      x: Number(d.coverCrop.x),
+      y: Number(d.coverCrop.y),
+      w: Number(d.coverCrop.w),
+      h: Number(d.coverCrop.h),
+    };
+    const coverFocus = d.coverFocus
+      ? { x: Number(d.coverFocus.x), y: Number(d.coverFocus.y) }
+      : undefined;
+    const list = (this.data.photoWall || []).map((p) => {
+      if (!p || p.id !== id) return p;
+      return {
+        ...p,
+        coverCrop,
+        coverFocus: coverFocus || p.coverFocus,
+        imgRatio: Number(d.imgRatio) > 0 ? Number(d.imgRatio) : p.imgRatio,
+      };
+    });
+    this.setData({ photoWall: list, toolboxActive: '' });
+    Promise.resolve(this.persistDraft()).catch(() => {});
+  },
+
+  onCoverEditorCancel() {
+    this.setData({ toolboxActive: '' });
   },
 
   openSortSheet() {
@@ -268,14 +426,11 @@ Page({
     const layout = normalizePhotoLayout(
       (e.detail && e.detail.layout) || DEFAULT_PHOTO_LAYOUT
     );
-    if (layout === this.data.photoWallLayout) {
-      this.closeLayoutSheet();
-      return;
-    }
+    const prevLayout = this.data.photoWallLayout;
     const count = (this.data.photoWall || []).length;
     const gridMax = layoutGridMax(layout);
     if (gridMax > 0 && count > gridMax) {
-      const name = layout === 'grid9' ? '九宫格' : '四宫格';
+      const name = layoutDisplayName(layout);
       this.setData({
         alertDialog: {
           visible: true,
@@ -287,10 +442,29 @@ Page({
       return;
     }
 
+    // 网格族风格：清掉旧 frame，按该风格默认模板重排
+    const isGridFamily =
+      layoutGridMax(layout) > 0;
+    let photoWall = this.data.photoWall || [];
+    if (isGridFamily) {
+      photoWall = photoWall.map((p) => {
+        if (!p) return p;
+        const next = { ...p };
+        delete next.frame;
+        return next;
+      });
+    }
+
+    if (layout === prevLayout && !isGridFamily) {
+      this.closeLayoutSheet();
+      return;
+    }
 
     const sortCols = layoutSortCols(layout);
     this.setData({
       photoWallLayout: layout,
+      photoWall,
+      selectedPhotoId: '',
       sortCols,
       sortGridHeight: calcSortGridHeight(
         this.data.windowWidth,
@@ -312,8 +486,17 @@ Page({
   noop() {},
 
   /** 轮播 / 排序：点击查看大图（与预览态叠放同一套） */
-  previewPhotosAt(index) {
-    previewPhotos(this.data.photoWall || [], index);
+  previewPhotosAt(index, opts = {}) {
+    const list = this.data.photoWall || [];
+    if (opts.single) {
+      const p = list[index];
+      previewPhotos(p ? [p] : [], 0, {
+        showIndex: false,
+        swipeable: false,
+      });
+      return;
+    }
+    previewPhotos(list, index, opts);
   },
 
   onStripSelect(e) {
@@ -329,7 +512,75 @@ Page({
   onCarouselPreview(e) {
     const index = Number(e.detail && e.detail.index);
     if (Number.isNaN(index) || index < 0) return;
-    this.previewPhotosAt(index);
+    const d = e.detail || {};
+    this.previewPhotosAt(index, {
+      showIndex: d.showIndex,
+      swipeable: d.swipeable,
+      single: d.single,
+    });
+  },
+
+  /** 杂志主图：补默认占位 frame */
+  onMagazineFramesEnsure(e) {
+    const photos = (e.detail && e.detail.photos) || [];
+    if (!photos.length) return;
+    const prev = this.data.photoWall || [];
+    // 占格没变就别 setData，避免和子组件互刷触发渲染层错误
+    if (
+      prev.length === photos.length &&
+      prev.every((p, i) => {
+        const q = photos[i];
+        const a = p && p.frame;
+        const b = q && q.frame;
+        return (
+          p &&
+          q &&
+          p.id === q.id &&
+          a &&
+          b &&
+          a.c === b.c &&
+          a.r === b.r &&
+          a.cs === b.cs &&
+          a.rs === b.rs
+        );
+      })
+    ) {
+      return;
+    }
+    this.setData({ photoWall: photos });
+    Promise.resolve(this.persistDraft()).catch(() => {});
+  },
+
+  /** 杂志主图：拖动/缩放后写回 frame */
+  onMagazineFrameChange(e) {
+    const id = e.detail && e.detail.id;
+    const frame = e.detail && e.detail.frame;
+    if (!id || !frame) return;
+    const list = (this.data.photoWall || []).map((p) => {
+      if (!p || p.id !== id) return p;
+      return { ...p, frame: { ...frame } };
+    });
+    this.setData({ photoWall: list });
+    Promise.resolve(this.persistDraft()).catch(() => {});
+  },
+
+  /** 网格：格内画面焦点（解决头被裁掉等） */
+  onMagazineCoverFocus(e) {
+    const id = e.detail && e.detail.id;
+    const coverFocus = e.detail && e.detail.coverFocus;
+    if (!id || !coverFocus) return;
+    const list = (this.data.photoWall || []).map((p) => {
+      if (!p || p.id !== id) return p;
+      return {
+        ...p,
+        coverFocus: {
+          x: Number(coverFocus.x),
+          y: Number(coverFocus.y),
+        },
+      };
+    });
+    this.setData({ photoWall: list });
+    Promise.resolve(this.persistDraft()).catch(() => {});
   },
 
   /** 排序弹层：只改草稿；宫格台上长按：直接改 photoWall */
@@ -376,12 +627,14 @@ Page({
 
   openPreview() {
     this.setData({ toolboxActive: '' });
-    this.persistDraft().then(() => {
-      const id = this.data.inviteId || TEMP_INVITE_ID;
-      wx.navigateTo({
-        url: `/pages/wedding_invitation/view/index?mode=draft&id=${id}&module=photo`,
+    Promise.resolve(this.persistDraft())
+      .catch(() => {})
+      .then(() => {
+        const id = this.data.inviteId || TEMP_INVITE_ID;
+        wx.navigateTo({
+          url: `/pages/wedding_invitation/view/index?mode=draft&id=${id}&module=photo`,
+        });
       });
-    });
   },
 
 
@@ -396,7 +649,7 @@ Page({
     if (gridMax > 0) {
       remain = Math.min(remain, gridMax - cur.length);
       if (remain <= 0) {
-        const name = layout === 'grid9' ? '九宫格' : '四宫格';
+        const name = layoutDisplayName(layout);
         wx.showToast({
           title: `${name}最多 ${gridMax} 张，请先删除`,
           icon: 'none',

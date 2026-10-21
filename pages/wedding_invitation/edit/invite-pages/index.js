@@ -1,22 +1,13 @@
 import {
-  createBlankPage,
-  appendBlankPage,
-  removePageAt,
-  MAX_INVITE_PAGES,
-} from '../canvas-model';
-import {
   loadInviteDraft,
   saveInviteDraft,
   renameInviteWork,
   TEMP_INVITE_ID,
 } from '~/services/invite-draft';
 import { DESIGN_ASPECT } from '~/services/invite-canvas';
+import { writeDraftPreviewSnap } from '~/services/invite-preview';
 import { navigateBackToRoute, WORKS_ROUTE, WORKS_URL } from '../nav-route';
-
-
-function pageLabel(index) {
-  return `第${index + 1}页`;
-}
+import { normalizeStoryLine } from '../../utils/story-line';
 
 Page({
   data: {
@@ -25,8 +16,12 @@ Page({
     backSize: 32,
     inviteId: TEMP_INVITE_ID,
     workTitle: '未命名喜帖',
-    pages: [],
-    maxPages: MAX_INVITE_PAGES,
+    modules: [],
+    coverPage: null,
+    coverThumbSrc: '',
+    photoCoverSrc: '',
+    /** 模块封面小图宽 88rpx → px */
+    thumbBoardW: 44,
     dialog: {
       visible: false,
       mode: 'prompt',
@@ -37,12 +32,11 @@ Page({
       confirmText: '确定',
       danger: false,
       action: '',
-      targetIndex: -1,
     },
   },
 
   onLoad(query) {
-    const { statusBarHeight } = wx.getWindowInfo();
+    const { statusBarHeight, windowWidth } = wx.getWindowInfo();
     const menu = wx.getMenuButtonBoundingClientRect();
     const inviteId = (query && query.id) || TEMP_INVITE_ID;
     this.setData({
@@ -50,43 +44,94 @@ Page({
       backTop: menu.top || statusBarHeight + 6,
       backSize: menu.height || 32,
       inviteId,
+      thumbBoardW: Math.max(40, (88 / 750) * windowWidth),
     });
   },
 
   onShow() {
-    this.reloadPages();
+    this.reloadHub();
+    this.measureThumbBoard();
   },
 
-  reloadPages() {
+  measureThumbBoard() {
+    wx.nextTick(() => {
+      this.createSelectorQuery()
+        .select('.mod-card__cover')
+        .boundingClientRect((rect) => {
+          if (!rect || !(rect.width > 0)) return;
+          if (Math.abs(rect.width - (this.data.thumbBoardW || 0)) < 0.5) return;
+          this.setData({ thumbBoardW: rect.width });
+        })
+        .exec();
+    });
+  },
+
+  reloadHub() {
     const draft = loadInviteDraft(this.data.inviteId);
+    const pages = (draft && draft.pages) || [];
+    const photos = (draft && draft.photoWall) || [];
+    const chapters =
+      (normalizeStoryLine(draft && draft.storyLine).chapters) || [];
+    const coverPage = pages[0] || null;
+    const photoCoverSrc =
+      (photos[0] && photos[0].src) || '';
+
+    const modules = [
+      {
+        key: 'invite',
+        name: '喜帖',
+        meta: pages.length ? `${pages.length} 页` : '尚未添加页面',
+        tone: 'red',
+        icon: 'mail',
+      },
+      {
+        key: 'story',
+        name: '故事线',
+        meta: chapters.length
+          ? `${chapters.length} 章`
+          : '可选 · 讲述你们的故事',
+        tone: 'rose',
+        icon: 'heart',
+      },
+      {
+        key: 'photo',
+        name: '照片墙',
+        meta: photos.length
+          ? `${photos.length} 张`
+          : '可选 · 合影与瞬间',
+        tone: 'gold',
+        icon: 'image',
+      },
+    ];
+
     this.setData({
       workTitle: (draft && draft.title) || '未命名喜帖',
-      pages: (draft && draft.pages) || [],
+      modules,
+      coverPage,
+      coverThumbSrc: (draft && draft.coverThumbSrc) || '',
+      photoCoverSrc,
+      pageCount: pages.length,
     });
   },
 
-  persist(pages, pageIndex) {
+  persistPagesHint() {
+    const draft = loadInviteDraft(this.data.inviteId) || {};
     return saveInviteDraft({
+      ...draft,
       inviteId: this.data.inviteId,
       title: this.data.workTitle,
-      pages,
-      pageIndex: pageIndex != null ? pageIndex : 0,
+      pages: draft.pages || [],
+      photoWall: draft.photoWall || [],
+      photoWallLayout: draft.photoWallLayout || 'carousel',
+      pageIndex: draft.pageIndex || 0,
       designAspect: DESIGN_ASPECT,
-      meta: { source: 'edit/invite-pages' },
+      meta: { ...(draft.meta || {}), source: 'edit/invite-pages' },
     });
   },
 
-  /**
-   * 固定回到「我的喜帖」。
-   * 优先 navigateBack 到栈里已有的作品列表（保留首页/我的在栈底）；
-   * 找不到再 reLaunch，避免新建链路上一页是选模板。
-   */
   onBack() {
     navigateBackToRoute(WORKS_ROUTE, WORKS_URL);
   },
-
-
-
 
   openDialog(patch) {
     this.setData({
@@ -100,7 +145,6 @@ Page({
         confirmText: '确定',
         danger: false,
         action: '',
-        targetIndex: -1,
         ...patch,
       },
     });
@@ -122,88 +166,71 @@ Page({
     });
   },
 
-  onOpenPage(e) {
-    const index = Number(e.currentTarget.dataset.index);
-    if (Number.isNaN(index) || index < 0) return;
-    this.persist(this.data.pages, index).then(() => {
-      wx.navigateTo({
-        url: `/pages/wedding_invitation/edit/invite/index?id=${this.data.inviteId}&page=${index}`,
-      });
-    });
-  },
-
-  onAddPage() {
-    const cur = this.data.pages || [];
-    if (cur.length >= MAX_INVITE_PAGES) {
-      wx.showToast({ title: `最多 ${MAX_INVITE_PAGES} 页`, icon: 'none' });
-      return;
-    }
-    const pages = cur.length
-      ? appendBlankPage(cur)
-      : [createBlankPage({ title: pageLabel(0) })];
-    const pageIndex = pages.length - 1;
-    this.persist(pages, pageIndex).then(() => {
-      this.setData({ pages });
-      wx.navigateTo({
-        url: `/pages/wedding_invitation/edit/invite/index?id=${this.data.inviteId}&page=${pageIndex}`,
-      });
-    });
-  },
-
-  onDeletePage(e) {
-    const index = Number(e.currentTarget.dataset.index);
-    if (Number.isNaN(index) || index < 0) return;
-    this.openDialog({
-      mode: 'confirm',
-      title: '删除页面',
-      content: `确定删除「${pageLabel(index)}」吗？`,
-      confirmText: '删除',
-      danger: true,
-      action: 'deletePage',
-      targetIndex: index,
-    });
-  },
-
   onDialogCancel() {
     this.closeDialog();
   },
 
   onDialogConfirm(e) {
-    const { action, targetIndex } = this.data.dialog;
+    const { action } = this.data.dialog;
     const value = (e.detail && e.detail.value) || '';
     this.closeDialog();
-
     if (action === 'renameWork') {
       renameInviteWork(this.data.inviteId, value).then((draft) => {
         this.setData({ workTitle: draft.title });
       });
-      return;
-    }
-
-    if (action === 'deletePage') {
-      const pages = removePageAt(this.data.pages, targetIndex);
-      const pageIndex = Math.max(0, Math.min(pages.length - 1, targetIndex - 1));
-      this.persist(pages, pageIndex).then(() => {
-        this.setData({ pages });
-      });
     }
   },
 
-  onEditPhotoWall() {
-    wx.navigateTo({
-      url: `/pages/wedding_invitation/edit/photo-wall/index?id=${this.data.inviteId}`,
-    });
+  onOpenModule(e) {
+    const key = e.currentTarget.dataset.key;
+    const id = this.data.inviteId;
+    if (key === 'invite') {
+      wx.navigateTo({
+        url: `/pages/wedding_invitation/edit/invite-sheet/index?id=${id}`,
+      });
+      return;
+    }
+    if (key === 'story') {
+      wx.navigateTo({
+        url: `/pages/wedding_invitation/edit/story-line/index?id=${id}`,
+      });
+      return;
+    }
+    if (key === 'photo') {
+      wx.navigateTo({
+        url: `/pages/wedding_invitation/edit/photo-wall/index?id=${id}`,
+      });
+    }
   },
 
   onPreviewAll() {
-    if (!(this.data.pages || []).length) {
+    if (!this.data.pageCount) {
       wx.showToast({ title: '请先添加喜帖页', icon: 'none' });
       return;
     }
-    this.persist(this.data.pages, 0).then(() => {
+    const id = this.data.inviteId;
+    this.persistPagesHint().then(() => {
+      const draft = loadInviteDraft(id);
+      const pages = (draft && draft.pages) || [];
+      writeDraftPreviewSnap({
+        inviteId: id,
+        pages,
+        pageIndex: 0,
+      });
       wx.navigateTo({
-        url: `/pages/wedding_invitation/view/index?mode=draft&id=${this.data.inviteId}`,
+        url: `/pages/wedding_invitation/view/index?mode=draft&id=${encodeURIComponent(id)}&module=invite`,
+        success(res) {
+          if (res.eventChannel && typeof res.eventChannel.emit === 'function') {
+            res.eventChannel.emit('previewDraft', {
+              inviteId: id,
+              pages,
+              pageIndex: 0,
+            });
+          }
+        },
       });
     });
   },
+
+  noop() {},
 });

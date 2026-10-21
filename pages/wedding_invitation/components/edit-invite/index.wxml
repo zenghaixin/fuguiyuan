@@ -1,9 +1,10 @@
+<wxs src="../../utils/element-style.wxs" module="elStyle" />
 <view class="edit-invite">
   <view class="edit-invite__head" style="padding-top: {{backTop}}px;">
     <view class="edit-invite__nav" style="height: {{backSize}}px;">
       <view class="edit-invite__title">编辑喜帖</view>
     </view>
-    <view class="edit-invite__sub">{{pages.length ? (activeElementId ? '调整中，点「完成」结束编辑' : '虚线内为安全区，重要内容请放虚线内') : '从模板开始制作喜帖'}}</view>
+    <view class="edit-invite__sub">{{pages.length ? (activeElementId ? '拖动移动 · 四角缩放 · 外侧半圆旋转 · 点「完成」结束' : '虚线内为安全区，重要内容请放虚线内') : '从模板开始制作喜帖'}}</view>
   </view>
 
   <view class="edit-invite__body">
@@ -41,6 +42,22 @@
           catchtap="onPageTap"
         >
           <view class="stage__clip">
+            <!-- 网格吸附参考线：仅拖动/缩放时显示 -->
+            <view class="stage__snap" wx:if="{{snapActive && snapEnabled}}">
+              <view
+                class="stage__snap-v {{item.on ? 'stage__snap-v--on' : ''}}"
+                wx:for="{{snapGridV}}"
+                wx:key="pos"
+                style="left: {{item.pos}}%;"
+              />
+              <view
+                class="stage__snap-h {{item.on ? 'stage__snap-h--on' : ''}}"
+                wx:for="{{snapGridH}}"
+                wx:key="pos"
+                style="top: {{item.pos}}%;"
+              />
+            </view>
+
             <edit-transform
               wx:for="{{pages[pageIndex].elements}}"
               wx:key="id"
@@ -58,11 +75,32 @@
               canvas-height="{{canvasHeight}}"
               canvas-left="{{canvasLeft}}"
               canvas-top="{{canvasTop}}"
+              snap-enabled="{{snapEnabled}}"
+              snap-cols="{{snapCols}}"
+              snap-rows="{{snapRows}}"
+              layout-rev="{{activeElementId === item.id ? layoutRev : 0}}"
               bind:select="onSelectElement"
               bind:change="onElementChange"
+              bind:changestart="onSnapStart"
+              bind:changeend="onSnapEnd"
             >
-              <view class="stage__el-body" style="background: {{item.color}};">
-                <text class="stage__el-label" wx:if="{{item.label}}">{{item.label}}</text>
+              <view
+                wx:if="{{item.type === 'text'}}"
+                class="stage__text stage__text--{{item.fontFamily || 'sans'}}"
+                style="color: {{elStyle.boxColor(item)}}; background: {{elStyle.boxBg(item)}}; font-size: {{elStyle.fontSizeOnCanvas(item, canvasWidth)}}; font-weight: {{elStyle.fontWeightCss(item)}};{{elStyle.textLayoutStyle(item)}}"
+              >
+                <text class="stage__text-inner" style="{{elStyle.textInnerStyle(item)}}">{{item.text || '请输入文案'}}</text>
+              </view>
+              <view
+                wx:else
+                class="stage__el-body {{elStyle.hasContent(item) ? 'stage__el-body--plain' : ''}}"
+                style="background: {{elStyle.boxBg(item)}};"
+              >
+                <text
+                  class="stage__el-label"
+                  style="color: {{elStyle.boxColor(item)}};"
+                  wx:if="{{item.label}}"
+                >{{item.label}}</text>
               </view>
             </edit-transform>
           </view>

@@ -1,8 +1,8 @@
 <view
-  class="tf {{selected ? 'tf--on' : ''}} tf--{{editMode}}"
+  class="tf {{selected ? 'tf--on' : ''}}"
   style="left: {{dx * 100}}%; top: {{dy * 100}}%; width: {{dw * 100}}%; height: {{dh * 100}}%; z-index: {{zIndex}}; pointer-events: {{locked && !selected ? 'none' : 'auto'}};"
 >
-  <!-- 内容 + 选框/大小手柄：一起跟随角度旋转 -->
+  <!-- 内容 + 选框/手柄：一起跟随角度旋转 -->
   <view
     class="tf__spin"
     style="transform: rotate({{drotate}}deg);"
@@ -17,9 +17,10 @@
 
     <block wx:if="{{selected}}">
       <view class="tf__frame" />
-      <!-- 四角标记：选中即显示；大小模式可拖 -->
+
+      <!-- 四角：拖动手柄改大小 -->
       <view
-        class="tf__handle tf__handle--nw {{editMode === 'size' ? 'tf__handle--active' : ''}}"
+        class="tf__handle tf__handle--nw"
         data-corner="nw"
         catchtouchstart="onResizeStart"
         catchtouchmove="onResizeMove"
@@ -27,7 +28,7 @@
         catchtouchcancel="onGestureEnd"
       />
       <view
-        class="tf__handle tf__handle--ne {{editMode === 'size' ? 'tf__handle--active' : ''}}"
+        class="tf__handle tf__handle--ne"
         data-corner="ne"
         catchtouchstart="onResizeStart"
         catchtouchmove="onResizeMove"
@@ -35,7 +36,7 @@
         catchtouchcancel="onGestureEnd"
       />
       <view
-        class="tf__handle tf__handle--sw {{editMode === 'size' ? 'tf__handle--active' : ''}}"
+        class="tf__handle tf__handle--sw"
         data-corner="sw"
         catchtouchstart="onResizeStart"
         catchtouchmove="onResizeMove"
@@ -43,52 +44,48 @@
         catchtouchcancel="onGestureEnd"
       />
       <view
-        class="tf__handle tf__handle--se {{editMode === 'size' ? 'tf__handle--active' : ''}}"
+        class="tf__handle tf__handle--se"
         data-corner="se"
         catchtouchstart="onResizeStart"
         catchtouchmove="onResizeMove"
         catchtouchend="onGestureEnd"
         catchtouchcancel="onGestureEnd"
       />
+
+      <!-- 四角外侧半圆：拖动改角度 -->
+      <view
+        class="tf__rot tf__rot--nw"
+        catchtouchstart="onRotateStart"
+        catchtouchmove="onRotateMove"
+        catchtouchend="onGestureEnd"
+        catchtouchcancel="onGestureEnd"
+      />
+      <view
+        class="tf__rot tf__rot--ne"
+        catchtouchstart="onRotateStart"
+        catchtouchmove="onRotateMove"
+        catchtouchend="onGestureEnd"
+        catchtouchcancel="onGestureEnd"
+      />
+      <view
+        class="tf__rot tf__rot--sw"
+        catchtouchstart="onRotateStart"
+        catchtouchmove="onRotateMove"
+        catchtouchend="onGestureEnd"
+        catchtouchcancel="onGestureEnd"
+      />
+      <view
+        class="tf__rot tf__rot--se"
+        catchtouchstart="onRotateStart"
+        catchtouchmove="onRotateMove"
+        catchtouchend="onGestureEnd"
+        catchtouchcancel="onGestureEnd"
+      />
     </block>
   </view>
 
-  <!-- 角度：有宽度的圆环，刻度与当前角度标识都在环带内 -->
-  <view
-    wx:if="{{selected && editMode === 'angle'}}"
-    class="tf__angle"
-    style="width: {{ringW}}%; height: {{ringH}}%;"
-    catchtouchstart="onRotateStart"
-    catchtouchmove="onRotateMove"
-    catchtouchend="onGestureEnd"
-    catchtouchcancel="onGestureEnd"
-  >
-    <!-- 环带本体 -->
-    <view class="tf__angle-band" />
-
-    <!-- 环内刻度 -->
-    <view
-      class="tf__tick {{item.major ? 'tf__tick--major' : ''}}"
-      wx:for="{{angleTicks}}"
-      wx:key="deg"
-      style="transform: rotate({{item.deg}}deg);"
-    >
-      <view class="tf__tick-line" />
-      <text
-        class="tf__tick-label"
-        wx:if="{{item.label}}"
-        style="transform: translate(-50%, -50%) rotate({{ -item.deg }}deg);"
-      >{{item.label}}</text>
-    </view>
-
-    <!-- 环内当前角度标识（读数保持正向） -->
-    <view class="tf__marker" style="transform: rotate({{drotate}}deg);">
-      <view
-        class="tf__marker-badge {{angleHudVisible ? 'tf__marker-badge--on' : ''}}"
-        style="transform: translate(-50%, -50%) rotate({{ -drotate }}deg);"
-      >
-        <text>{{angleText}}</text>
-      </view>
-    </view>
+  <!-- 角度读数放在旋转层外，保持正向不跟着转 -->
+  <view class="tf__angle-hud" wx:if="{{selected && angleHudVisible}}">
+    <text>{{angleText}}</text>
   </view>
 </view>

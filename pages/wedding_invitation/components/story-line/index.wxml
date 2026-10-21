@@ -1,0 +1,93 @@
+<view
+  class="story-wall"
+  style="height: {{windowHeight}}px;"
+  catchtouchstart="onTouchStart"
+  catchtouchmove="onTouchMove"
+  catchtouchend="onTouchEnd"
+  catchtouchcancel="onTouchEnd"
+>
+  <view
+    class="story-wall__head"
+    style="padding-top: {{statusBarHeight + 12}}px;"
+  >
+    <view class="story-wall__title">我们的故事</view>
+    <view class="story-wall__sub" wx:if="{{pageText}}">{{pageText}}</view>
+  </view>
+
+  <swiper
+    class="story-wall__swiper"
+    style="height: {{windowHeight - statusBarHeight - 120}}px;"
+    current="{{current}}"
+    bindchange="onSwiperChange"
+    duration="280"
+  >
+    <swiper-item wx:for="{{chapters}}" wx:key="id">
+      <view class="story-chapter story-chapter--{{item.layout}}">
+        <!-- 纯文 -->
+        <block wx:if="{{item.layout === 'text'}}">
+          <view
+            class="story-chapter__bg"
+            style="background: {{item.bgColor || '#f7f0ea'}};"
+          >
+            <image
+              wx:if="{{item.bgSrc}}"
+              class="story-chapter__bg-img"
+              src="{{item.bgSrc}}"
+              mode="aspectFill"
+            />
+          </view>
+          <view class="story-chapter__text story-chapter__text--solo">
+            <view class="story-chapter__date" wx:if="{{item.date}}">{{item.date}}</view>
+            <view class="story-chapter__name">{{item.title || '未命名'}}</view>
+            <view class="story-chapter__body" wx:if="{{item.body}}">{{item.body}}</view>
+          </view>
+        </block>
+
+        <!-- 纯图 -->
+        <block wx:elif="{{item.layout === 'photo'}}">
+          <image
+            wx:if="{{item.photo.src}}"
+            class="story-chapter__full-img"
+            src="{{item.photo.src}}"
+            mode="aspectFill"
+          />
+          <view class="story-chapter__photo-empty" wx:else>暂无照片</view>
+        </block>
+
+        <!-- 图文 -->
+        <block wx:else>
+          <view class="story-chapter__media">
+            <image
+              wx:if="{{item.photo.src}}"
+              class="story-chapter__img"
+              src="{{item.photo.src}}"
+              mode="aspectFill"
+            />
+            <view class="story-chapter__photo-empty" wx:else>暂无照片</view>
+          </view>
+          <view class="story-chapter__text">
+            <view class="story-chapter__date" wx:if="{{item.date}}">{{item.date}}</view>
+            <view class="story-chapter__name">{{item.title || '未命名'}}</view>
+            <view class="story-chapter__body" wx:if="{{item.body}}">{{item.body}}</view>
+          </view>
+        </block>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <view class="story-wall__hint" wx:if="{{hintText}}">
+    <t-icon
+      wx:if="{{hintBack}}"
+      name="chevron-up"
+      size="28rpx"
+      color="rgba(243,234,210,0.85)"
+    />
+    <text>{{hintText}}</text>
+    <t-icon
+      wx:if="{{!hintBack}}"
+      name="chevron-down"
+      size="28rpx"
+      color="rgba(243,234,210,0.85)"
+    />
+  </view>
+</view>

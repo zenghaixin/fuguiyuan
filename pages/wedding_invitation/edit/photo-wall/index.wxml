@@ -8,6 +8,7 @@
   </view>
 
   <edit-photo-wall
+    id="editPhotoWall"
     photos="{{photoWall}}"
     window-height="{{windowHeight}}"
     window-width="{{windowWidth}}"
@@ -21,6 +22,16 @@
     bind:change="onCarouselChange"
     bind:preview="onCarouselPreview"
     bind:reorder="onStripReorder"
+    bind:framesensure="onMagazineFramesEnsure"
+    bind:framechange="onMagazineFrameChange"
+    bind:coverfocus="onMagazineCoverFocus"
+    bind:select="onMagazineSelect"
+  />
+
+  <photo-cover-editor
+    id="coverEditor"
+    bind:confirm="onCoverEditorConfirm"
+    bind:cancel="onCoverEditorCancel"
   />
 
 

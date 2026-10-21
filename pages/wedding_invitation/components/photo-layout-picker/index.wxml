@@ -3,19 +3,68 @@
   <view class="layout-sheet__panel">
     <view class="layout-sheet__bar" />
     <view class="layout-sheet__head">
-      <view class="layout-sheet__title">选择排版</view>
-      <view class="layout-sheet__done" catchtap="onClose">完成</view>
-    </view>
-    <view class="layout-sheet__tip">透明白光边卡片示意照片位置</view>
-
-    <scroll-view class="layout-sheet__scroll" scroll-y enhanced show-scrollbar="{{false}}">
-      <view class="layout-sheet__grid">
+      <view class="layout-sheet__side">
         <view
-          class="layout-opt {{value === item.key ? 'layout-opt--on' : ''}}"
-          wx:for="{{options}}"
+          class="layout-sheet__back"
+          wx:if="{{step === 'style'}}"
+          catchtap="onBack"
+        >
+          <t-icon name="chevron-left" size="40rpx" color="#3d2914" />
+        </view>
+      </view>
+      <view class="layout-sheet__title">{{title}}</view>
+      <view class="layout-sheet__side"></view>
+    </view>
+    <view class="layout-sheet__tip" wx:if="{{tip}}">{{tip}}</view>
+
+    <scroll-view
+      class="layout-sheet__scroll {{listReady ? '' : 'layout-sheet__scroll--pending'}}"
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+      scroll-with-animation="{{false}}"
+      scroll-into-view="{{scrollIntoView}}"
+    >
+      <!-- 第一步：排版族 -->
+      <view class="layout-sheet__grid" wx:if="{{step === 'family'}}">
+        <view
+          class="layout-opt {{item.selected ? 'layout-opt--on' : ''}}"
+          wx:for="{{familyCards}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onPickFamily"
+        >
+          <view class="layout-opt__stage layout-opt__stage--{{item.preview}}">
+            <block wx:if="{{item.preview === 'carousel'}}">
+              <view class="ghost ghost--main" />
+              <view class="ghost ghost--peek" />
+            </block>
+            <block wx:elif="{{item.preview === 'grid4'}}">
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+              <view class="ghost ghost--g" />
+            </block>
+            <block wx:elif="{{item.preview === 'stack'}}">
+              <view class="ghost ghost--s3" />
+              <view class="ghost ghost--s2" />
+              <view class="ghost ghost--s1" />
+            </block>
+          </view>
+          <view class="layout-opt__label">{{item.label}}</view>
+          <view class="layout-opt__desc">{{item.desc}}</view>
+        </view>
+      </view>
+
+      <!-- 第二步：风格 -->
+      <view class="layout-sheet__grid" wx:else>
+        <view
+          id="layout-style-{{item.key}}"
+          class="layout-opt {{item.selected ? 'layout-opt--on' : ''}}"
+          wx:for="{{styleCards}}"
           wx:key="key"
           data-key="{{item.key}}"
-          bindtap="onPick"
+          bindtap="onPickStyle"
         >
           <view class="layout-opt__stage layout-opt__stage--{{item.key}}">
             <block wx:if="{{item.key === 'carousel'}}">
@@ -26,6 +75,19 @@
               <view class="ghost ghost--row" />
               <view class="ghost ghost--row" />
               <view class="ghost ghost--row ghost--row-dim" />
+            </block>
+            <block wx:elif="{{item.key === 'fade'}}">
+              <view class="ghost ghost--fade-back" />
+              <view class="ghost ghost--fade-front" />
+            </block>
+            <block wx:elif="{{item.key === 'thumbs'}}">
+              <view class="ghost ghost--thumbs-main" />
+              <view class="ghost ghost--thumbs-rail">
+                <view class="ghost ghost--thumbs-cell" />
+                <view class="ghost ghost--thumbs-cell ghost--thumbs-cell-on" />
+                <view class="ghost ghost--thumbs-cell" />
+                <view class="ghost ghost--thumbs-cell" />
+              </view>
             </block>
             <block wx:elif="{{item.key === 'grid4'}}">
               <view class="ghost ghost--g" />
@@ -43,6 +105,30 @@
               <view class="ghost ghost--g" />
               <view class="ghost ghost--g" />
               <view class="ghost ghost--g" />
+            </block>
+            <block wx:elif="{{item.key === 'magazine'}}">
+              <view class="ghost ghost--mag-hero" />
+              <view class="ghost ghost--mag-a" />
+              <view class="ghost ghost--mag-b" />
+              <view class="ghost ghost--mag-c" />
+            </block>
+            <block wx:elif="{{item.key === 'magazineTop'}}">
+              <view class="ghost ghost--mtop-hero" />
+              <view class="ghost ghost--mtop-a" />
+              <view class="ghost ghost--mtop-b" />
+              <view class="ghost ghost--mtop-c" />
+            </block>
+            <block wx:elif="{{item.key === 'magazineSplit'}}">
+              <view class="ghost ghost--msplit-hero" />
+              <view class="ghost ghost--msplit-a" />
+              <view class="ghost ghost--msplit-b" />
+              <view class="ghost ghost--msplit-c" />
+            </block>
+            <block wx:elif="{{item.key === 'magazineFocus'}}">
+              <view class="ghost ghost--mfocus-a" />
+              <view class="ghost ghost--mfocus-b" />
+              <view class="ghost ghost--mfocus-c" />
+              <view class="ghost ghost--mfocus-hero" />
             </block>
             <block wx:elif="{{item.key === 'stack'}}">
               <view class="ghost ghost--s3" />

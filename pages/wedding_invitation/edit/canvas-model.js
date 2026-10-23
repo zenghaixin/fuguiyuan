@@ -104,6 +104,8 @@ export const DEFAULT_TEXT_STYLE = {
   align: 'center',
   /** 垂直：top | middle | bottom */
   valign: 'middle',
+  /** 动效：'' | charPop | scrubLine … */
+  textAnim: '',
 };
 
 /** 新建文字默认框：画布居中，与 createTextElement 一致 */
@@ -137,6 +139,7 @@ export function createTextElement(opts = {}) {
     fontWeight: opts.fontWeight || DEFAULT_TEXT_STYLE.fontWeight,
     align: opts.align || DEFAULT_TEXT_STYLE.align,
     valign: opts.valign || DEFAULT_TEXT_STYLE.valign,
+    textAnim: opts.textAnim != null ? opts.textAnim : DEFAULT_TEXT_STYLE.textAnim,
     label: '文字',
     x: opts.x != null ? opts.x : 0.5 - w / 2,
     y: opts.y != null ? opts.y : 0.5 - h / 2,

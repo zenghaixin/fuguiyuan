@@ -1,5 +1,6 @@
 import {
   INVITE_TOOLS,
+  STORY_CANVAS_TOOLS,
   buildElementTools,
   buildTextElementTools,
   buildTextStyleTools,
@@ -14,6 +15,7 @@ import {
   TEXT_BG_COLORS,
   TEXT_ALIGNS,
   TEXT_VALIGNS,
+  TEXT_ANIMS,
 } from '../font-assets';
 import {
   ensureEditablePage,
@@ -42,7 +44,17 @@ import {
 } from '~/services/window-viewport';
 import { writeDraftPreviewSnap } from '~/services/invite-preview';
 import { captureCoverThumb } from '~/services/invite-cover-thumb';
-import { navigateBackToRoute, SHEET_ROUTE } from '../nav-route';
+import { chooseAndPersistPhotos } from '~/services/invite-photo-local';
+import {
+  navigateBackToRoute,
+  SHEET_ROUTE,
+  STORY_ROUTE,
+  STORY_URL,
+} from '../nav-route';
+import {
+  normalizeStoryLine,
+  STORY_STYLE_PAGES,
+} from '../../utils/story-line';
 
 const SHEET_URL = '/pages/wedding_invitation/edit/invite-sheet/index';
 
@@ -59,6 +71,9 @@ Page({
     activeElementId: '',
     elementEditMode: 'position',
     layoutRev: 0,
+    /** invite | story：故事线复用本页，工具箱为精简子集 */
+    editModule: 'invite',
+    editorTitle: '编辑喜帖',
     toolboxTools: INVITE_TOOLS,
     toolboxActive: '',
     /** 文字选中：main 一级 / style 二级样式 */
@@ -82,8 +97,10 @@ Page({
     textBgVisible: false,
     textWeightVisible: false,
     textAlignVisible: false,
+    textAnimVisible: false,
     currentAlign: 'center',
     currentValign: 'middle',
+    currentTextAnim: '',
     fontFamilies: FONT_FAMILIES,
     currentFontKey: 'sans',
     fontSizes: FONT_SIZES,
@@ -92,6 +109,7 @@ Page({
     textBgColors: TEXT_BG_COLORS,
     textAligns: TEXT_ALIGNS,
     textValigns: TEXT_VALIGNS,
+    textAnims: TEXT_ANIMS,
     dialog: {
       visible: false,
       mode: 'confirm',
@@ -103,22 +121,54 @@ Page({
     },
   },
 
-  onLoad(query) {
-    const viewport = readWindowViewport();
-    const inviteId = (query && query.id) || TEMP_INVITE_ID;
-    const draft = loadInviteDraft(inviteId);
+  _isStory() {
+    return this._editModule === 'story' || this.data.editModule === 'story';
+  },
+
+  _idleTools() {
+    return this._isStory() ? STORY_CANVAS_TOOLS : INVITE_TOOLS;
+  },
+
+  _loadPagesFromDraft(draft, queryPage) {
+    if (this._isStory()) {
+      const story = normalizeStoryLine(draft && draft.storyLine);
+      const pages = story.pages || [];
+      const fromQuery = queryPage != null ? Number(queryPage) : NaN;
+      const draftIndex = story.pageIndex != null ? story.pageIndex : 0;
+      const rawIndex = Number.isFinite(fromQuery) ? fromQuery : draftIndex;
+      const invitePageIndex = pages.length
+        ? Math.max(0, Math.min(pages.length - 1, rawIndex))
+        : 0;
+      return { pages, invitePageIndex };
+    }
     const pages = (draft && draft.pages) || [];
-    const fromQuery = query && query.page != null ? Number(query.page) : NaN;
+    const fromQuery = queryPage != null ? Number(queryPage) : NaN;
     const draftIndex = draft && draft.pageIndex != null ? draft.pageIndex : 0;
     const rawIndex = Number.isFinite(fromQuery) ? fromQuery : draftIndex;
     const invitePageIndex = pages.length
       ? Math.max(0, Math.min(pages.length - 1, rawIndex))
       : 0;
+    return { pages, invitePageIndex };
+  },
+
+  onLoad(query) {
+    const viewport = readWindowViewport();
+    const inviteId = (query && query.id) || TEMP_INVITE_ID;
+    const editModule = query && query.from === 'story' ? 'story' : 'invite';
+    this._editModule = editModule;
+    const draft = loadInviteDraft(inviteId);
+    const { pages, invitePageIndex } = this._loadPagesFromDraft(
+      draft,
+      query && query.page,
+    );
     this.setData({
       ...viewport,
       inviteId,
+      editModule,
+      editorTitle: editModule === 'story' ? '故事线' : '编辑喜帖',
       invitePages: pages,
       invitePageIndex,
+      toolboxTools: editModule === 'story' ? STORY_CANVAS_TOOLS : INVITE_TOOLS,
     });
     bindWindowResize(this, (next) => {
       this.setData(next);
@@ -138,17 +188,13 @@ Page({
     const inviteId = this.data.inviteId || TEMP_INVITE_ID;
     const draft = loadInviteDraft(inviteId);
     if (!draft) return;
-    const pages = draft.pages || [];
-    const rawIndex = draft.pageIndex != null ? draft.pageIndex : 0;
-    const invitePageIndex = pages.length
-      ? Math.max(0, Math.min(pages.length - 1, rawIndex))
-      : 0;
+    const { pages, invitePageIndex } = this._loadPagesFromDraft(draft, null);
     this.setData({
       invitePages: pages,
       invitePageIndex,
       activeElementId: '',
       elementEditMode: 'position',
-      toolboxTools: INVITE_TOOLS,
+      toolboxTools: this._idleTools(),
       toolboxActive: '',
       textToolLevel: 'main',
       textContentVisible: false,
@@ -161,21 +207,30 @@ Page({
     });
   },
 
-  /** 固定回到喜帖子列表（invite-sheet），避免和总控/子列表返回抢栈 */
+  /** 喜帖 → invite-sheet；故事线 → story-line 页列表 */
   onBack() {
     const id = this.data.inviteId || TEMP_INVITE_ID;
-    this.persistDraft()
-      .then(() => this.refreshCoverThumb())
-      .then(() => {
+    const go = () => {
+      if (this._isStory()) {
         navigateBackToRoute(
-          SHEET_ROUTE,
-          `${SHEET_URL}?id=${encodeURIComponent(id)}`
+          STORY_ROUTE,
+          `${STORY_URL}?id=${encodeURIComponent(id)}`,
         );
-      });
+        return;
+      }
+      navigateBackToRoute(
+        SHEET_ROUTE,
+        `${SHEET_URL}?id=${encodeURIComponent(id)}`,
+      );
+    };
+    this.persistDraft()
+      .then(() => (this._isStory() ? Promise.resolve('') : this.refreshCoverThumb()))
+      .then(go);
   },
 
   /** 只截第 1 页作封面小图（模块列表 / 作品列表） */
   refreshCoverThumb() {
+    if (this._isStory()) return Promise.resolve('');
     const id = this.data.inviteId || TEMP_INVITE_ID;
     const page = (this.data.invitePages || [])[0];
     if (!page) return Promise.resolve('');
@@ -192,8 +247,6 @@ Page({
     return true;
   },
 
-
-
   persistDraft() {
     // 画布页清掉误存的整页 src，避免预览被 demo 图盖住
     const pages = (this.data.invitePages || []).map((p) => {
@@ -202,8 +255,21 @@ Page({
       delete next.src;
       return next;
     });
+    const id = this.data.inviteId || TEMP_INVITE_ID;
+    if (this._isStory()) {
+      return saveInviteDraft({
+        inviteId: id,
+        storyLine: {
+          style: STORY_STYLE_PAGES,
+          pages,
+          pageIndex: this.data.invitePageIndex,
+        },
+        designAspect: DESIGN_ASPECT,
+        meta: { source: 'edit/invite?from=story' },
+      });
+    }
     return saveInviteDraft({
-      inviteId: this.data.inviteId || TEMP_INVITE_ID,
+      inviteId: id,
       pages,
       pageIndex: this.data.invitePageIndex,
       designAspect: DESIGN_ASPECT,
@@ -275,7 +341,38 @@ Page({
       textBgVisible: false,
       textWeightVisible: false,
       textAlignVisible: false,
+      textAnimVisible: false,
     };
+  },
+
+  openTextAnimSheet() {
+    const el = this._getElement(this.data.activeElementId);
+    if (!el || el.type !== 'text') return;
+    this.setData({
+      toolboxActive: 'anim',
+      ...this._closeTextStyleSheets(),
+      textAnimVisible: true,
+      currentTextAnim: el.textAnim || '',
+      layoutRev: (this.data.layoutRev || 0) + 1,
+    });
+  },
+
+  closeTextAnimSheet() {
+    this.setData({ textAnimVisible: false });
+  },
+
+  onPickTextAnim(e) {
+    const key = e.currentTarget.dataset.key;
+    const hit = TEXT_ANIMS.find((a) => a.key === key);
+    if (!hit) return;
+    const anim = hit.value || '';
+    this.patchActiveText({ textAnim: anim });
+    this.setData({
+      textAnimVisible: false,
+      toolboxActive: 'anim',
+      currentTextAnim: anim,
+      layoutRev: (this.data.layoutRev || 0) + 1,
+    });
   },
 
   enterElementEdit(id, options = {}) {
@@ -310,7 +407,7 @@ Page({
       activeElementId: '',
       elementEditMode: 'position',
       textToolLevel: 'main',
-      toolboxTools: INVITE_TOOLS,
+      toolboxTools: this._idleTools(),
       toolboxActive: '',
       layerPickerVisible: false,
       layerPickerTargetId: '',
@@ -405,6 +502,10 @@ Page({
         this.enterTextStyleLevel();
         return;
       }
+      if (key === 'anim') {
+        this.openTextAnimSheet();
+        return;
+      }
       if (key === 'back') {
         this.exitTextStyleLevel();
         return;
@@ -480,6 +581,7 @@ Page({
       return;
     }
     if (key === 'template') {
+      if (this._isStory()) return;
       this.onPickTemplate();
       return;
     }
@@ -488,6 +590,7 @@ Page({
       return;
     }
     if (key === 'decor') {
+      if (this._isStory()) return;
       this.openDecorSheet();
       return;
     }
@@ -496,6 +599,11 @@ Page({
       return;
     }
     if (key === 'background') {
+      // 故事线：上传图片作页背景；喜帖：色板背景
+      if (this._isStory()) {
+        this.onUploadPageBackground();
+        return;
+      }
       this.openBgSheet();
       return;
     }
@@ -537,7 +645,8 @@ Page({
         layerPanelVisible: false,
       },
       () => {
-        this.enterElementEdit(element.id, { openContent: true });
+        // 默认加上「请输入文案」并进入选中态，不弹底部编辑框
+        this.enterElementEdit(element.id);
       },
     );
   },
@@ -813,12 +922,20 @@ Page({
       delete next.src;
       return next;
     });
+    const isStory = this._isStory();
+    const moduleKey = isStory ? 'story' : 'invite';
     this.persistDraft().then(() => {
-      writeDraftPreviewSnap({ inviteId: id, pages, pageIndex: page });
+      if (!isStory) {
+        writeDraftPreviewSnap({ inviteId: id, pages, pageIndex: page });
+      }
       wx.navigateTo({
-        url: `/pages/wedding_invitation/view/index?mode=draft&id=${encodeURIComponent(id)}&module=invite&page=${page}`,
+        url: `/pages/wedding_invitation/view/index?mode=draft&id=${encodeURIComponent(id)}&module=${moduleKey}&page=${page}`,
         success(res) {
-          if (res.eventChannel && typeof res.eventChannel.emit === 'function') {
+          if (
+            !isStory &&
+            res.eventChannel &&
+            typeof res.eventChannel.emit === 'function'
+          ) {
             res.eventChannel.emit('previewDraft', {
               inviteId: id,
               pages,
@@ -837,6 +954,7 @@ Page({
   },
 
   onPickTemplate() {
+    if (this._isStory()) return;
     this.setData({ toolboxActive: 'template' });
     const id = this.data.inviteId || TEMP_INVITE_ID;
     wx.navigateTo({
@@ -855,6 +973,10 @@ Page({
   },
 
   openBgSheet() {
+    if (this._isStory()) {
+      this.onUploadPageBackground();
+      return;
+    }
     this.setData({
       toolboxActive: 'background',
       bgSheetVisible: true,
@@ -865,6 +987,42 @@ Page({
 
   closeBgSheet() {
     this.setData({ bgSheetVisible: false });
+  },
+
+  /** 故事线：选图并设为当前页背景 */
+  onUploadPageBackground() {
+    if (this._bgUploading) return;
+    this._bgUploading = true;
+    this.setData({ toolboxActive: 'background' });
+    chooseAndPersistPhotos({ count: 1 })
+      .then((added) => {
+        const photo = added && added[0];
+        if (!photo || !photo.src) {
+          this.setData({ toolboxActive: '' });
+          return;
+        }
+        const { pages, pageIndex } = ensureEditablePage(
+          this.data.invitePages,
+          this.data.invitePageIndex,
+        );
+        const invitePages = updatePageBackground(pages, pageIndex, {
+          bgSrc: photo.src,
+        });
+        this.setData({
+          invitePages,
+          invitePageIndex: pageIndex,
+          toolboxActive: '',
+          layoutRev: (this.data.layoutRev || 0) + 1,
+        });
+        return this.persistDraft();
+      })
+      .catch(() => {
+        wx.showToast({ title: '上传失败', icon: 'none' });
+        this.setData({ toolboxActive: '' });
+      })
+      .then(() => {
+        this._bgUploading = false;
+      });
   },
 
   onBgSelect(e) {

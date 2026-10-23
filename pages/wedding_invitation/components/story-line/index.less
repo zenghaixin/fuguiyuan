@@ -1,3 +1,5 @@
+@import '../../styles/text-anim.less';
+
 .story-wall {
   width: 100%;
   background: #140a0e;
@@ -9,10 +11,16 @@
 }
 
 .story-wall__head {
-  flex-shrink: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 5;
   text-align: center;
   padding: 0 32rpx 8rpx;
   color: #f3ead2;
+  pointer-events: none;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.35);
 }
 
 .story-wall__title {
@@ -23,58 +31,67 @@
 .story-wall__sub {
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: rgba(243, 234, 210, 0.65);
+  color: rgba(243, 234, 210, 0.75);
 }
 
-.story-wall__swiper {
-  width: 100%;
+.story-wall__viewport {
   flex: 1;
   min-height: 0;
-}
-
-.story-chapter {
-  height: 100%;
-  margin: 0 28rpx;
-  border-radius: 24rpx;
+  width: 100%;
   overflow: hidden;
   position: relative;
+}
+
+.story-wall__track {
+  width: 100%;
+  will-change: transform;
+
+  &--anim {
+    transition: transform 0.38s cubic-bezier(0.22, 0.8, 0.28, 1);
+  }
+}
+
+.story-block {
+  width: 100%;
   box-sizing: border-box;
-  background: #1a1210;
-  display: flex;
-  flex-direction: column;
-}
-
-.story-chapter__bg {
-  position: absolute;
-  inset: 0;
-}
-
-.story-chapter__bg-img {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.story-chapter__media {
-  flex: 1.15;
-  min-height: 0;
   position: relative;
-  background: #2a1218;
+  overflow: hidden;
+  opacity: 0.28;
+  transition: opacity 0.4s ease;
+
+  &--on {
+    opacity: 1;
+  }
 }
 
-.story-chapter__img,
-.story-chapter__full-img {
+.story-block__inner {
+  position: absolute;
+  left: 28rpx;
+  right: 28rpx;
+  top: 120rpx;
+  bottom: 100rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  &--photo {
+    background: #2a1218;
+  }
+
+  &--text {
+    padding: 0;
+  }
+}
+
+.story-block__img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
 }
 
-.story-chapter__full-img {
-  position: absolute;
-  inset: 0;
-}
-
-.story-chapter__photo-empty {
+.story-block__empty {
   position: absolute;
   inset: 0;
   display: flex;
@@ -84,63 +101,28 @@
   font-size: 26rpx;
 }
 
-.story-chapter__text {
-  flex: 0.85;
-  min-height: 0;
-  padding: 28rpx 32rpx 36rpx;
+.story-block__el {
+  position: absolute;
   box-sizing: border-box;
-  background: #fffcf8;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  overflow: hidden;
 
-  &--solo {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    background: transparent;
-    color: #3d2914;
-    text-align: center;
-    padding: 48rpx 40rpx;
+  &--plain {
+    background: transparent !important;
   }
 }
 
-.story-chapter__date {
-  font-size: 22rpx;
-  color: rgba(61, 41, 20, 0.55);
-  margin-bottom: 10rpx;
-  letter-spacing: 1rpx;
-}
-
-.story-chapter__name {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #3d2914;
-  margin-bottom: 16rpx;
-  line-height: 1.3;
-}
-
-.story-chapter__body {
-  font-size: 26rpx;
-  color: rgba(61, 41, 20, 0.78);
-  line-height: 1.65;
-  overflow: hidden;
-}
-
-.story-chapter--text .story-chapter__date,
-.story-chapter--text .story-chapter__name,
-.story-chapter--text .story-chapter__body {
-  color: #3d2914;
-}
-
-.story-chapter--text .story-chapter__date {
-  color: rgba(61, 41, 20, 0.55);
+.story-block__el-text {
+  width: 100%;
+  display: block;
+  word-break: break-word;
 }
 
 .story-wall__hint {
-  flex-shrink: 0;
-  height: 72rpx;
-  padding-bottom: env(safe-area-inset-bottom);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(36rpx + env(safe-area-inset-bottom));
+  z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -148,4 +130,43 @@
   gap: 2rpx;
   font-size: 22rpx;
   color: rgba(243, 234, 210, 0.85);
+  pointer-events: none;
+}
+
+.story-wall__bar {
+  position: absolute;
+  left: 48rpx;
+  right: 48rpx;
+  bottom: calc(16rpx + env(safe-area-inset-bottom));
+  height: 4rpx;
+  border-radius: 4rpx;
+  background: rgba(243, 234, 210, 0.18);
+  overflow: hidden;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.story-wall__bar-fill {
+  height: 100%;
+  background: rgba(243, 234, 210, 0.88);
+}
+
+.story-scrub {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.story-scrub__line {
+  opacity: 0;
+  transform: translate3d(0, 20rpx, 0);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 0.82, 0.28, 1);
+
+  &--on {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }

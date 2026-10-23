@@ -21,6 +21,7 @@ import {
   photoWall as mockPhotoWall,
   stagePhotos as mockStagePhotos,
 } from './mock';
+import { normalizeStoryLine } from '../utils/story-line';
 
 const SNAP_RATIO = 0.1;
 
@@ -46,7 +47,7 @@ Page({
     hasNextAfterCover: false,
     hasNextAfterStory: false,
     hasNextAfterPhoto: false,
-    storyChapters: [],
+    storyBlocks: [],
     storyStartIndex: 0,
     /** 草稿预览显示安全区虚线开关 */
     enableSafeGuide: false,
@@ -104,7 +105,7 @@ Page({
     let invitePages = [];
     let photoWall = [];
     let photoWallLayout = 'carousel';
-    let storyChapters = [];
+    let storyBlocks = [];
     let showCover = true;
     let showStory = false;
     let showPhotoWall = false;
@@ -131,10 +132,9 @@ Page({
       photoWall = (draft && draft.photoWall) || [];
       photoWallLayout = (draft && draft.photoWallLayout) || 'carousel';
       if (photoWallLayout === 'grid') photoWallLayout = 'grid4';
-      storyChapters =
-        (draft && draft.storyLine && draft.storyLine.chapters) || [];
+      storyBlocks = normalizeStoryLine(draft && draft.storyLine).blocks || [];
       const showPhotoWallDraft = photoWall.length > 0;
-      const showStoryDraft = storyChapters.length > 0;
+      const showStoryDraft = storyBlocks.length > 0;
 
       invitePages = this._coverFromEditPages(editPages, {
         hasStory: showStoryDraft,
@@ -236,7 +236,7 @@ Page({
       });
     } else if (mode === 'draft' && startModule === 'story') {
       showCover = false;
-      showStory = storyChapters.length > 0;
+      showStory = storyBlocks.length > 0;
       showPhotoWall = false;
       showGuestModules = false;
       moduleCount = showStory ? 1 : 0;
@@ -277,7 +277,7 @@ Page({
       invitePages,
       photoWall,
       photoWallLayout,
-      storyChapters,
+      storyBlocks,
       stagePhotos,
       blessings,
       showCover,

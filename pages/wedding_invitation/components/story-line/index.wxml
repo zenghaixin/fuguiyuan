@@ -1,3 +1,4 @@
+<wxs src="../../utils/element-style.wxs" module="elStyle" />
 <view
   class="story-wall"
   style="height: {{windowHeight}}px;"
@@ -14,80 +15,107 @@
     <view class="story-wall__sub" wx:if="{{pageText}}">{{pageText}}</view>
   </view>
 
-  <swiper
-    class="story-wall__swiper"
-    style="height: {{windowHeight - statusBarHeight - 120}}px;"
-    current="{{current}}"
-    bindchange="onSwiperChange"
-    duration="280"
-  >
-    <swiper-item wx:for="{{chapters}}" wx:key="id">
-      <view class="story-chapter story-chapter--{{item.layout}}">
-        <!-- 纯文 -->
-        <block wx:if="{{item.layout === 'text'}}">
-          <view
-            class="story-chapter__bg"
-            style="background: {{item.bgColor || '#f7f0ea'}};"
-          >
-            <image
-              wx:if="{{item.bgSrc}}"
-              class="story-chapter__bg-img"
-              src="{{item.bgSrc}}"
-              mode="aspectFill"
-            />
-          </view>
-          <view class="story-chapter__text story-chapter__text--solo">
-            <view class="story-chapter__date" wx:if="{{item.date}}">{{item.date}}</view>
-            <view class="story-chapter__name">{{item.title || '未命名'}}</view>
-            <view class="story-chapter__body" wx:if="{{item.body}}">{{item.body}}</view>
-          </view>
-        </block>
-
-        <!-- 纯图 -->
-        <block wx:elif="{{item.layout === 'photo'}}">
+  <view class="story-wall__viewport">
+    <view
+      class="story-wall__track {{animating ? 'story-wall__track--anim' : ''}}"
+      style="height: {{trackHeight}}px; transform: translate3d(0, {{translateY}}px, 0);"
+    >
+      <view
+        class="story-block story-block--{{item.type}} {{index === current ? 'story-block--on' : ''}}"
+        wx:for="{{list}}"
+        wx:key="id"
+        style="height: {{windowHeight}}px;"
+      >
+        <!-- 图片块 -->
+        <view class="story-block__inner story-block__inner--photo" wx:if="{{item.type === 'photo'}}">
           <image
             wx:if="{{item.photo.src}}"
-            class="story-chapter__full-img"
+            class="story-block__img"
             src="{{item.photo.src}}"
             mode="aspectFill"
           />
-          <view class="story-chapter__photo-empty" wx:else>暂无照片</view>
-        </block>
+          <view class="story-block__empty" wx:else>暂无照片</view>
+        </view>
 
-        <!-- 图文 -->
-        <block wx:else>
-          <view class="story-chapter__media">
-            <image
-              wx:if="{{item.photo.src}}"
-              class="story-chapter__img"
-              src="{{item.photo.src}}"
-              mode="aspectFill"
-            />
-            <view class="story-chapter__photo-empty" wx:else>暂无照片</view>
+        <!-- 文案块：喜帖同款画布 -->
+        <view
+          class="story-block__inner story-block__inner--text"
+          wx:else
+          style="background: {{item.bgColor || '#f7f0ea'}};"
+        >
+          <image
+            wx:if="{{item.bgSrc}}"
+            class="story-block__img"
+            src="{{item.bgSrc}}"
+            mode="aspectFill"
+          />
+          <view
+            class="story-block__el {{el.type === 'text' ? 'story-block__el--text' : ''}} {{elStyle.hasContent(el) ? 'story-block__el--plain' : ''}}"
+            wx:for="{{item.elements}}"
+            wx:for-item="el"
+            wx:key="id"
+            style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; z-index: {{el.layer || 1}}; transform: rotate({{el.rotate || 0}}deg); background: {{elStyle.boxBg(el)}}; color: {{elStyle.boxColor(el)}}; font-size: {{elStyle.fontSize(el)}}; font-weight: {{elStyle.fontWeightCss(el)}};{{elStyle.isText(el) ? elStyle.textLayoutStyle(el) : ''}}"
+          >
+            <block wx:if="{{el.type === 'text'}}">
+              <!-- 滑动出字：与底部进度条绑定 -->
+              <view
+                wx:if="{{el.scrubLines}}"
+                class="story-scrub story-block__el-text"
+                style="{{elStyle.textInnerStyle(el)}}"
+              >
+                <view
+                  class="story-scrub__line {{line.on ? 'story-scrub__line--on' : ''}}"
+                  wx:for="{{el.scrubLines}}"
+                  wx:for-item="line"
+                  wx:for-index="li"
+                  wx:key="li"
+                >{{line.text}}</view>
+              </view>
+              <view
+                wx:elif="{{index === current && elStyle.hasTextAnim(el)}}"
+                class="text-anim story-block__el-text"
+                style="{{elStyle.textInnerStyle(el)}}"
+              >
+                <block wx:for="{{elStyle.textChars(el)}}" wx:for-item="ch" wx:key="i">
+                  <view wx:if="{{ch.nl}}" class="text-anim__br" />
+                  <text
+                    wx:else
+                    class="text-anim__char text-anim__char--{{el.textAnim}}"
+                    style="{{elStyle.animDelay(ch.i, 70)}}"
+                  >{{ch.t}}</text>
+                </block>
+              </view>
+              <text
+                wx:else
+                class="story-block__el-text"
+                style="{{elStyle.textInnerStyle(el)}}"
+              >{{el.text || ''}}</text>
+            </block>
+            <text class="story-block__el-text" wx:elif="{{el.label}}">{{el.label}}</text>
           </view>
-          <view class="story-chapter__text">
-            <view class="story-chapter__date" wx:if="{{item.date}}">{{item.date}}</view>
-            <view class="story-chapter__name">{{item.title || '未命名'}}</view>
-            <view class="story-chapter__body" wx:if="{{item.body}}">{{item.body}}</view>
-          </view>
-        </block>
+        </view>
       </view>
-    </swiper-item>
-  </swiper>
+    </view>
+  </view>
 
   <view class="story-wall__hint" wx:if="{{hintText}}">
     <t-icon
       wx:if="{{hintBack}}"
+      name="chevron-down"
+      size="28rpx"
+      color="rgba(243,234,210,0.85)"
+    />
+    <t-icon
+      wx:else
       name="chevron-up"
       size="28rpx"
       color="rgba(243,234,210,0.85)"
     />
     <text>{{hintText}}</text>
-    <t-icon
-      wx:if="{{!hintBack}}"
-      name="chevron-down"
-      size="28rpx"
-      color="rgba(243,234,210,0.85)"
-    />
+  </view>
+
+  <!-- 故事线默认进度条：驱动 scrubLine 文字 -->
+  <view class="story-wall__bar">
+    <view class="story-wall__bar-fill" style="width: {{scrubProgress * 100}}%;" />
   </view>
 </view>

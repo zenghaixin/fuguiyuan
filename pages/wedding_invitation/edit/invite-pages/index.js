@@ -70,8 +70,8 @@ Page({
     const draft = loadInviteDraft(this.data.inviteId);
     const pages = (draft && draft.pages) || [];
     const photos = (draft && draft.photoWall) || [];
-    const chapters =
-      (normalizeStoryLine(draft && draft.storyLine).chapters) || [];
+    const storyPages =
+      (normalizeStoryLine(draft && draft.storyLine).pages) || [];
     const coverPage = pages[0] || null;
     const photoCoverSrc =
       (photos[0] && photos[0].src) || '';
@@ -87,8 +87,8 @@ Page({
       {
         key: 'story',
         name: '故事线',
-        meta: chapters.length
-          ? `${chapters.length} 章`
+        meta: storyPages.length
+          ? `${storyPages.length} 页`
           : '可选 · 讲述你们的故事',
         tone: 'rose',
         icon: 'heart',
@@ -201,6 +201,12 @@ Page({
         url: `/pages/wedding_invitation/edit/photo-wall/index?id=${id}`,
       });
     }
+  },
+
+  onOpenStoryScrubDemo() {
+    wx.navigateTo({
+      url: '/pages/wedding_invitation/demo/story-scrub/index',
+    });
   },
 
   onPreviewAll() {

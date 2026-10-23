@@ -1,0 +1,62 @@
+<view class="scrub-page" style="height: {{windowHeight}}px;">
+  <view
+    class="scrub"
+    style="height: {{windowHeight}}px;"
+    catchtouchstart="onTouchStart"
+    catchtouchmove="onTouchMove"
+    catchtouchend="onTouchEnd"
+    catchtouchcancel="onTouchEnd"
+  >
+    <view
+      class="scrub__back"
+      style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;"
+      catchtap="onBack"
+    >
+      <t-icon name="chevron-left" size="44rpx" color="#fff" />
+    </view>
+
+    <view class="scrub__badge" style="top: {{backTop + 6}}px;">
+      故事线 Demo · 第 {{chapterIndex + 1}}/{{chapters.length}} 趴
+    </view>
+
+    <view class="scrub__stage">
+      <block wx:for="{{chapters}}" wx:key="id">
+        <image
+          class="scrub__img {{index === chapterIndex ? 'scrub__img--on' : ''}}"
+          src="{{item.src}}"
+          mode="aspectFill"
+        />
+      </block>
+      <view class="scrub__veil" style="opacity: {{veilOpacity}};" />
+    </view>
+
+    <view class="scrub__copy" style="padding-top: {{statusBarHeight + 72}}px;">
+      <view
+        class="scrub__line {{item.on ? 'scrub__line--on' : ''}}"
+        wx:for="{{lineStates}}"
+        wx:for-index="li"
+        wx:key="li"
+      >{{item.text}}</view>
+    </view>
+
+    <view class="scrub__hint" wx:if="{{!atEnd}}">
+      <t-icon name="chevron-up" size="28rpx" color="rgba(255,252,248,0.85)" />
+      <text>上滑继续</text>
+    </view>
+
+    <view class="scrub__bar">
+      <view class="scrub__bar-fill" style="width: {{progress * 100}}%;" />
+    </view>
+  </view>
+
+  <!-- 大图预览入口：始终可见，只看当前趴 -->
+  <view
+    class="scrub__toggle"
+    style="bottom: calc(48rpx + env(safe-area-inset-bottom));"
+    bindtap="onPreviewPhoto"
+  >
+    <t-icon name="image" size="44rpx" color="#fffcf8" />
+  </view>
+
+  <photo-viewer />
+</view>

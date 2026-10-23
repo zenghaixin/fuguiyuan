@@ -93,3 +93,18 @@ export function resolveFontWeight(key) {
   const hit = FONT_WEIGHTS.find((w) => w.key === key);
   return (hit && hit.value) || '400';
 }
+
+/** 故事线跟手出字（与 progress 绑定，见 utils/story-scrub-bind） */
+export const TEXT_ANIM_SCRUB_LINE = 'scrubLine';
+
+/** 文字动效（value 写入元素 textAnim；key 用于列表选中） */
+export const TEXT_ANIMS = [
+  { key: 'none', value: '', label: '无', desc: '静止显示' },
+  { key: 'charPop', value: 'charPop', label: '逐字跳出', desc: '一个字一个字弹出来' },
+  {
+    key: 'scrubLine',
+    value: TEXT_ANIM_SCRUB_LINE,
+    label: '滑动出字',
+    desc: '故事线进度条驱动，逐行浮现',
+  },
+];

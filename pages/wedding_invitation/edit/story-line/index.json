@@ -4,7 +4,6 @@
   "disableSwipeBack": true,
   "usingComponents": {
     "t-icon": "tdesign-miniprogram/icon/icon",
-    "edit-toolbox": "/pages/wedding_invitation/components/edit-toolbox/index",
-    "edit-dialog": "/pages/wedding_invitation/components/edit-dialog/index"
+    "edit-dialog": "../../components/edit-dialog/index"
   }
 }

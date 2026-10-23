@@ -105,6 +105,7 @@
   </scroll-view>
 
   <view class="pages-hub__foot">
+    <view class="pages-hub__demo" bindtap="onOpenStoryScrubDemo">故事动效 Demo</view>
     <view class="pages-hub__preview" bindtap="onPreviewAll">预览喜帖</view>
   </view>
 

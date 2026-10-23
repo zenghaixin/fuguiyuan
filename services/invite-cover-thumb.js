@@ -1,6 +1,8 @@
 /**
- * 喜帖封面（第 1 页）截图 → 本地文件，供模块列表 / 作品列表小图使用
- * 用离屏 canvas 按页面数据重绘，避免 DOM 截图与字号失真
+ * 喜帖封面（第 1 页）截图
+ * - 产出 JPG，路径写入草稿字段 coverThumbSrc（与喜帖数据同存）
+ * - 本地先落 USER_DATA_PATH；对接接口后上传，把 coverThumbSrc 换成服务器 URL 即可
+ * - 用离屏 canvas 按页面数据重绘，避免 DOM 截图与字号失真
  */
 
 import { DESIGN_ASPECT } from './invite-canvas';

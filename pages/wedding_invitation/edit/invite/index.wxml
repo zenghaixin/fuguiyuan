@@ -18,6 +18,7 @@
     status-bar-height="{{statusBarHeight}}"
     back-top="{{backTop}}"
     back-size="{{backSize}}"
+    editor-title="{{editorTitle}}"
     bind:picktemplate="onPickTemplate"
     bind:selectelement="onSelectElement"
     bind:elementchange="onElementChange"
@@ -227,6 +228,26 @@
           data-key="{{item.key}}"
           bindtap="onPickTextValign"
         >{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="text-sheet" wx:if="{{textAnimVisible}}" catchtouchmove="noop">
+    <view class="text-sheet__mask" catchtap="closeTextAnimSheet" />
+    <view class="text-sheet__panel">
+      <view class="text-sheet__bar" />
+      <view class="text-sheet__title">文字动效</view>
+      <view class="text-sheet__opts">
+        <view
+          class="text-sheet__opt {{(currentTextAnim || '') === (item.value || '') ? 'text-sheet__opt--on' : ''}}"
+          wx:for="{{textAnims}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="onPickTextAnim"
+        >
+          <view class="text-sheet__opt-name">{{item.label}}</view>
+          <view class="text-sheet__opt-desc" wx:if="{{item.desc}}">{{item.desc}}</view>
+        </view>
       </view>
     </view>
   </view>

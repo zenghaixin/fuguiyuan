@@ -1,9 +1,14 @@
 /**
  * 喜帖草稿本地缓存
  * - 支持多份请帖作品（不同 inviteId）
- * - 每份含 title、pages（页可含 title）、photoWall
+ * - 每份含 title、pages（页可含 title）、photoWall、storyLine
  * - 后续对接：按真实 inviteId 读写 / 上传
  */
+
+import {
+  normalizeStoryLine,
+  emptyStoryLine,
+} from '../pages/wedding_invitation/utils/story-line';
 
 export const TEMP_INVITE_ID = 'draft_local';
 
@@ -56,15 +61,7 @@ function normalizeDraft(inviteId, draft) {
         title: (p && p.title) || `第${i + 1}页`,
       }))
     : [];
-  const storyRaw = draft.storyLine;
-  let storyLine = { style: 'chapters', chapters: [] };
-  if (storyRaw && typeof storyRaw === 'object') {
-    const chapters = Array.isArray(storyRaw.chapters) ? storyRaw.chapters : [];
-    storyLine = {
-      style: storyRaw.style || 'chapters',
-      chapters: chapters.slice(0, 12),
-    };
-  }
+  const storyLine = normalizeStoryLine(draft.storyLine);
   return {
     inviteId,
     title: draft.title || '未命名喜帖',
@@ -75,7 +72,12 @@ function normalizeDraft(inviteId, draft) {
     storyLine,
     pageIndex: draft.pageIndex != null ? draft.pageIndex : 0,
     designAspect: Number(draft.designAspect) > 0 ? Number(draft.designAspect) : 0,
-    /** 第 1 页封面截图本地路径 */
+    /**
+     * 作品封面图（第 1 页截图）
+     * - 跟喜帖草稿存在一起，字段随作品读写/上传
+     * - 本地阶段：USER_DATA_PATH 等本地路径
+     * - 对接接口后：改为服务器 URL，列表仍读同一字段
+     */
     coverThumbSrc: draft.coverThumbSrc || '',
     meta: draft.meta || {},
   };
@@ -133,7 +135,9 @@ export function saveInviteDraft(payload = {}) {
         ? payload.photoWallLayout
         : prev.photoWallLayout || 'carousel',
     storyLine:
-      payload.storyLine != null ? payload.storyLine : prev.storyLine || null,
+      payload.storyLine != null
+        ? normalizeStoryLine(payload.storyLine)
+        : normalizeStoryLine(prev.storyLine),
     pageIndex: payload.pageIndex != null ? payload.pageIndex : prev.pageIndex || 0,
     designAspect:
       payload.designAspect != null && Number(payload.designAspect) > 0
@@ -201,7 +205,7 @@ export function createInviteWork(options = {}) {
     pages,
     photoWall: [],
     photoWallLayout: 'carousel',
-    storyLine: { style: 'chapters', chapters: [] },
+    storyLine: emptyStoryLine(),
     pageIndex: 0,
     meta: { mode: options.mode || 'custom' },
   }).then((draft) => {

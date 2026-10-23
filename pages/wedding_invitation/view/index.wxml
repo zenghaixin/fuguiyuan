@@ -28,7 +28,7 @@
     <!-- ② 故事线：有章节才显示 -->
     <story-line
       wx:if="{{showStory}}"
-      chapters="{{storyChapters}}"
+      blocks="{{storyBlocks}}"
       window-height="{{windowHeight}}"
       window-width="{{windowWidth}}"
       status-bar-height="{{statusBarHeight}}"

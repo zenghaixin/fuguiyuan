@@ -2,9 +2,9 @@
 <view class="edit-invite">
   <view class="edit-invite__head" style="padding-top: {{backTop}}px;">
     <view class="edit-invite__nav" style="height: {{backSize}}px;">
-      <view class="edit-invite__title">编辑喜帖</view>
+      <view class="edit-invite__title">{{editorTitle || '编辑喜帖'}}</view>
     </view>
-    <view class="edit-invite__sub">{{pages.length ? (activeElementId ? '拖动移动 · 四角缩放 · 外侧半圆旋转 · 点「完成」结束' : '虚线内为安全区，重要内容请放虚线内') : '从模板开始制作喜帖'}}</view>
+    <view class="edit-invite__sub">{{editorSub || (pages.length ? (activeElementId ? '拖动移动 · 四角缩放 · 外侧半圆旋转 · 点「完成」结束' : '虚线内为安全区，重要内容请放虚线内') : '从模板开始制作喜帖')}}</view>
   </view>
 
   <view class="edit-invite__body">
@@ -30,16 +30,24 @@
         />
       </view>
 
+      <!-- 选中文字时拦住安全区外的横滑；安全区内仍由文字组件接拖拽 -->
+      <view
+        wx:if="{{lockOuterSwipe}}"
+        class="stage__lock"
+        catchtouchstart="noop"
+        catchtouchmove="noop"
+      />
+
       <view class="stage__frost" style="{{frostStyle}}" />
 
       <view class="stage__safe" style="{{safeStyle}}">
         <view
           class="stage__page"
-          catchtouchstart="onPageTouchStart"
-          catchtouchmove="onPageTouchMove"
-          catchtouchend="onPageTouchEnd"
-          catchtouchcancel="onPageTouchEnd"
-          catchtap="onPageTap"
+          bindtouchstart="onPageTouchStart"
+          bindtouchmove="onPageTouchMove"
+          bindtouchend="onPageTouchEnd"
+          bindtouchcancel="onPageTouchEnd"
+          bindtap="onPageTap"
         >
           <view class="stage__clip">
             <!-- 网格吸附参考线：仅拖动/缩放时显示 -->
@@ -89,7 +97,21 @@
                 class="stage__text stage__text--{{item.fontFamily || 'sans'}}"
                 style="color: {{elStyle.boxColor(item)}}; background: {{elStyle.boxBg(item)}}; font-size: {{elStyle.fontSizeOnCanvas(item, canvasWidth)}}; font-weight: {{elStyle.fontWeightCss(item)}};{{elStyle.textLayoutStyle(item)}}"
               >
-                <text class="stage__text-inner" style="{{elStyle.textInnerStyle(item)}}">{{item.text || '请输入文案'}}</text>
+                <view
+                  wx:if="{{elStyle.hasTextAnim(item)}}"
+                  class="text-anim stage__text-inner"
+                  style="{{elStyle.textInnerStyle(item)}}"
+                >
+                  <block wx:for="{{elStyle.textChars(item)}}" wx:for-item="ch" wx:key="i">
+                    <view wx:if="{{ch.nl}}" class="text-anim__br" />
+                    <text
+                      wx:else
+                      class="text-anim__char text-anim__char--{{item.textAnim}}"
+                      style="{{elStyle.animDelay(ch.i, 70)}}"
+                    >{{ch.t}}</text>
+                  </block>
+                </view>
+                <text wx:else class="stage__text-inner" style="{{elStyle.textInnerStyle(item)}}">{{item.text || '请输入文案'}}</text>
               </view>
               <view
                 wx:else

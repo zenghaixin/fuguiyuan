@@ -25,7 +25,7 @@ Page({
     ],
     quickEntries: [
       { id: 1, name: '编辑喜帖', icon: 'mail', tone: 'red' },
-      { id: 2, name: '现场互动', icon: 'play-circle', tone: 'gold' },
+      { id: 2, name: '故事动效', icon: 'play-circle', tone: 'gold' },
       { id: 3, name: '免费看场', icon: 'location', tone: 'wine' },
     ],
     featuredCases: [
@@ -79,6 +79,12 @@ Page({
     if (name === '编辑喜帖') {
       wx.navigateTo({
         url: '/pages/wedding_invitation/edit/invite-works/index?from=home',
+      });
+      return;
+    }
+    if (name === '故事动效') {
+      wx.navigateTo({
+        url: '/pages/wedding_invitation/demo/story-scrub/index',
       });
       return;
     }

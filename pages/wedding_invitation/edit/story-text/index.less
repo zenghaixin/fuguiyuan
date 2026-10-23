@@ -1,0 +1,284 @@
+/* 跟随窗口真实高度，避免 PC 拖拽后仍锁死旧 windowHeight */
+page {
+  height: 100%;
+}
+
+.page {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f3efe9;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.page-back {
+  position: fixed;
+  left: 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 4rpx 16rpx rgba(61, 41, 20, 0.08);
+}
+
+edit-invite {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 0; /* 配合 flex:1，避免子组件按 windowHeight 撑破 */
+}
+
+edit-toolbox {
+  display: block;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.text-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+
+  &__mask {
+    position: absolute;
+    inset: 0;
+    background: rgba(40, 24, 16, 0.35);
+  }
+
+  &__panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 16rpx 28rpx calc(28rpx + env(safe-area-inset-bottom));
+    background: #fffcf8;
+    border-radius: 28rpx 28rpx 0 0;
+    box-shadow: 0 -8rpx 32rpx rgba(61, 41, 20, 0.08);
+
+    &--form {
+      max-height: 70vh;
+    }
+
+    &--kb {
+      padding-bottom: 28rpx;
+    }
+  }
+
+  &__bar {
+    width: 64rpx;
+    height: 8rpx;
+    border-radius: 8rpx;
+    background: #e8ddd2;
+    margin: 0 auto 20rpx;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16rpx;
+  }
+
+  &__title {
+    font-size: 30rpx;
+    font-weight: 700;
+    color: #3d2914;
+    margin-bottom: 20rpx;
+  }
+
+  &__head &__title {
+    margin-bottom: 0;
+  }
+
+  &__done {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: #b91c3a;
+    padding: 8rpx 4rpx;
+  }
+
+  &__area {
+    width: 100%;
+    min-height: 180rpx;
+    box-sizing: border-box;
+    padding: 20rpx;
+    border-radius: 16rpx;
+    background: #f7f0ea;
+    font-size: 28rpx;
+    color: #3d2914;
+    line-height: 1.5;
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+
+    &--3 .text-sheet__chip {
+      width: calc((100% - 32rpx) / 3);
+    }
+  }
+
+  &__chip {
+    /* 每行 4 格铺满，避免不同机型右侧留白 */
+    width: calc((100% - 48rpx) / 4);
+    box-sizing: border-box;
+    height: 64rpx;
+    padding: 0;
+    border-radius: 12rpx;
+    background: #f7f0ea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26rpx;
+    font-weight: 600;
+    color: #3d2914;
+
+    &--on {
+      background: #fff8f6;
+      color: #b91c3a;
+      box-shadow: inset 0 0 0 2rpx #b91c3a;
+    }
+  }
+
+  &__section-label {
+    margin: 8rpx 0 12rpx;
+    font-size: 22rpx;
+    color: #9a8776;
+
+    &:first-of-type {
+      margin-top: 0;
+    }
+  }
+
+  &__hint {
+    margin: -8rpx 0 20rpx;
+    font-size: 22rpx;
+    color: #9a8776;
+  }
+
+  &__scroll {
+    max-height: 48vh;
+  }
+
+  &__font-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+  }
+
+  &__font-item {
+    width: calc((100% - 48rpx) / 4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10rpx;
+  }
+
+  &__font-swatch {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 18rpx;
+    background: #f7f0ea;
+    box-shadow: inset 0 0 0 1rpx rgba(61, 41, 20, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  &__font-item--on &__font-swatch {
+    box-shadow: inset 0 0 0 3rpx #b91c3a;
+    background: #fff8f6;
+  }
+
+  &__font-img {
+    width: 72%;
+    height: 72%;
+  }
+
+  &__font-sample {
+    font-size: 56rpx;
+    line-height: 1;
+    color: #3d2914;
+    font-weight: 500;
+  }
+
+  &__font-name {
+    font-size: 20rpx;
+    color: #6b5a4c;
+  }
+
+  &__opts {
+    display: flex;
+    flex-direction: column;
+    gap: 12rpx;
+  }
+
+  &__opt {
+    padding: 24rpx 20rpx;
+    border-radius: 16rpx;
+    background: #f7f0ea;
+
+    &--on {
+      background: #fff8f6;
+      box-shadow: inset 0 0 0 2rpx #b91c3a;
+    }
+  }
+
+  &__opt-name {
+    font-size: 30rpx;
+    color: #3d2914;
+    font-weight: 600;
+  }
+
+  &__opt-desc {
+    margin-top: 6rpx;
+    font-size: 22rpx;
+    color: #8a7464;
+  }
+
+  &__colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+  }
+
+  &__swatch {
+    width: calc((100% - 48rpx) / 4);
+    height: 88rpx;
+    border-radius: 14rpx;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 10rpx;
+    box-sizing: border-box;
+    box-shadow: inset 0 0 0 1rpx rgba(61, 41, 20, 0.08);
+
+    &--none {
+      background-image: linear-gradient(
+        45deg,
+        #eee 25%,
+        transparent 25%,
+        transparent 75%,
+        #eee 75%
+      );
+      background-size: 16rpx 16rpx;
+    }
+  }
+
+  &__swatch-label {
+    font-size: 20rpx;
+    color: rgba(61, 41, 20, 0.75);
+    background: rgba(255, 252, 248, 0.85);
+    padding: 2rpx 8rpx;
+    border-radius: 8rpx;
+  }
+}

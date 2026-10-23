@@ -175,7 +175,93 @@ function textInnerStyle(el) {
   return 'width:100%;text-align:' + textAlign(el) + ';';
 }
 
+/** 故事线跟手出字（由进度条驱动，不用逐字 CSS） */
+function isScrubLineAnim(el) {
+  if (!el || !isText(el)) return false;
+  return el.textAnim === 'scrubLine';
+}
+
+/** 是否启用入场类文字动效（charPop 等；不含 scrubLine） */
+function hasTextAnim(el) {
+  if (!el || !isText(el)) return false;
+  var a = el.textAnim;
+  if (!a || a === 'none' || a === 'scrubLine') return false;
+  return true;
+}
+
+/**
+ * 拆成逐字节点，供动效渲染
+ * 返回 [{ t, nl, i }]；空格用不换行空格避免塌陷
+ */
+function textChars(el) {
+  var raw = '';
+  if (el && el.text != null) raw = '' + el.text;
+  var out = [];
+  var n = 0;
+  var i = 0;
+  while (i < raw.length) {
+    var ch = raw.charAt(i);
+    if (ch === '\r') {
+      i = i + 1;
+      continue;
+    }
+    if (ch === '\n') {
+      out.push({ t: '', nl: true, i: n });
+      n = n + 1;
+      i = i + 1;
+      continue;
+    }
+    if (ch === ' ') ch = '\u00a0';
+    out.push({ t: ch, nl: false, i: n });
+    n = n + 1;
+    i = i + 1;
+  }
+  return out;
+}
+
+function animDelay(index, stepMs) {
+  var step = parseFloat(stepMs);
+  if (!(step > 0)) step = 70;
+  var i = parseFloat(index);
+  if (!(i >= 0)) i = 0;
+  return 'animation-delay:' + i * step + 'ms;';
+}
+
+/** 故事线邻页：按 0~1 的 x/y/w/h 铺在安全区上 */
+function frameStyle(el) {
+  var x = 0.22;
+  var y = 0.4;
+  var w = 0.56;
+  var h = 0.16;
+  if (el) {
+    var px = parseFloat(el.x);
+    var py = parseFloat(el.y);
+    var pw = parseFloat(el.w);
+    var ph = parseFloat(el.h);
+    if (px >= 0 || px < 0) x = px;
+    if (py >= 0 || py < 0) y = py;
+    if (pw > 0) w = pw;
+    if (ph > 0) h = ph;
+  }
+  return (
+    'position:absolute;left:' +
+    x * 100 +
+    '%;top:' +
+    y * 100 +
+    '%;width:' +
+    w * 100 +
+    '%;height:' +
+    h * 100 +
+    '%;'
+  );
+}
+
 module.exports = {
+  frameStyle: frameStyle,
+  hasTextAnim: hasTextAnim,
+  isScrubLineAnim: isScrubLineAnim,
+  textChars: textChars,
+  animDelay: animDelay,
   isText: isText,
   hasContent: hasContent,
   boxBg: boxBg,

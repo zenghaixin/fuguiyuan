@@ -13,6 +13,10 @@ export const WORKS_URL = '/pages/wedding_invitation/edit/invite-works/index';
 export const PAGES_ROUTE = 'pages/wedding_invitation/edit/invite-pages/index';
 export const SHEET_ROUTE = 'pages/wedding_invitation/edit/invite-sheet/index';
 export const INVITE_ROUTE = 'pages/wedding_invitation/edit/invite/index';
+export const STORY_ROUTE = 'pages/wedding_invitation/edit/story-line/index';
+export const STORY_URL = '/pages/wedding_invitation/edit/story-line/index';
+export const STORY_TEXT_ROUTE = 'pages/wedding_invitation/edit/story-text/index';
+export const STORY_TEXT_URL = '/pages/wedding_invitation/edit/story-text/index';
 
 export const HOME_TAB_URL = '/pages/home/index';
 export const MY_TAB_URL = '/pages/my/index';

@@ -1,0 +1,36 @@
+/** 文字动效（编辑画布 / 浏览预览共用） */
+
+@keyframes text-char-pop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0.55em, 0) scale(0.55);
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(0, -0.12em, 0) scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.text-anim {
+  width: 100%;
+}
+
+.text-anim__char {
+  display: inline-block;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.text-anim__char--charPop {
+  animation: text-char-pop 0.48s cubic-bezier(0.22, 1.2, 0.36, 1) forwards;
+}
+
+.text-anim__br {
+  display: block;
+  width: 100%;
+  height: 0;
+}

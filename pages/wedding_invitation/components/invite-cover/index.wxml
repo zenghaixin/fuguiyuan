@@ -41,11 +41,27 @@
           wx:key="id"
           style="left: {{el.x * 100}}%; top: {{el.y * 100}}%; width: {{el.w * 100}}%; height: {{el.h * 100}}%; z-index: {{el.layer || 1}}; transform: rotate({{el.rotate || 0}}deg); background: {{elStyle.boxBg(el)}}; color: {{elStyle.boxColor(el)}}; font-size: {{elStyle.fontSizeOnCanvas(el, frameW)}}; font-weight: {{elStyle.fontWeightCss(el)}};{{elStyle.isText(el) ? elStyle.textLayoutStyle(el) : ''}}"
         >
-          <text
-            wx:if="{{el.type === 'text'}}"
-            class="invite-cover__el-text"
-            style="{{elStyle.textInnerStyle(el)}}"
-          >{{el.text || ''}}</text>
+          <block wx:if="{{el.type === 'text'}}">
+            <view
+              wx:if="{{idx === pageIndex && elStyle.hasTextAnim(el)}}"
+              class="text-anim invite-cover__el-text"
+              style="{{elStyle.textInnerStyle(el)}}"
+            >
+              <block wx:for="{{elStyle.textChars(el)}}" wx:for-item="ch" wx:key="i">
+                <view wx:if="{{ch.nl}}" class="text-anim__br" />
+                <text
+                  wx:else
+                  class="text-anim__char text-anim__char--{{el.textAnim}}"
+                  style="{{elStyle.animDelay(ch.i, 70)}}"
+                >{{ch.t}}</text>
+              </block>
+            </view>
+            <text
+              wx:else
+              class="invite-cover__el-text"
+              style="{{elStyle.textInnerStyle(el)}}"
+            >{{el.text || ''}}</text>
+          </block>
           <text class="invite-cover__el-text" wx:elif="{{el.label}}">{{el.label}}</text>
         </view>
       </view>

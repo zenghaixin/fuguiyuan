@@ -1,13 +1,13 @@
 /** 编辑页工具箱配置（跟编辑页走） */
 
-/** 请帖工具 */
+/** 请帖工具（未选中元素） */
 export const INVITE_TOOLS = [
   { key: 'template', label: '模板', icon: 'file' },
   { key: 'layers', label: '图层', icon: 'layers' },
   { key: 'background', label: '背景', icon: 'image' },
   { key: 'decor', label: '修饰', icon: 'star' },
-  { key: 'font', label: '字体', icon: 'letters-a' },
-  { key: 'copy', label: '文案', icon: 'edit' },
+  /** 添加文字块；选中后再用「文案 / 样式」细分 */
+  { key: 'font', label: '文字', icon: 'letters-a' },
   { key: 'music', label: '音乐', icon: 'sound' },
   { key: 'effect', label: '开屏', icon: 'play-circle' },
   { key: 'save', label: '保存', icon: 'save' },
@@ -24,16 +24,34 @@ export const PHOTO_TOOLS = [
   { key: 'preview', label: '预览', icon: 'browse' },
 ];
 
-/** 故事线工具 */
-export const STORY_TOOLS = [
-  { key: 'add', label: '添加', icon: 'add' },
-  { key: 'layout', label: '版式', icon: 'view-list' },
-  { key: 'sort', label: '排序', icon: 'swap' },
-  { key: 'photo', label: '换图', icon: 'image' },
-  { key: 'text', label: '文案', icon: 'edit' },
-  { key: 'background', label: '背景', icon: 'palette' },
-  { key: 'delete', label: '删除', icon: 'delete' },
+/**
+ * 故事线画布工具（喜帖子集：无模板 / 修饰 / 音乐 / 开屏）
+ * 选中元素后仍走 ELEMENT / TEXT 工具
+ */
+export const STORY_CANVAS_TOOLS = [
+  { key: 'layers', label: '图层', icon: 'layers' },
+  { key: 'background', label: '上传', icon: 'image' },
+  { key: 'font', label: '文字', icon: 'letters-a' },
+  { key: 'save', label: '保存', icon: 'save' },
   { key: 'preview', label: '预览', icon: 'browse' },
+];
+
+/** @deprecated 旧分块工具，故事线已改为喜帖页流程 */
+export const STORY_TOOLS = STORY_CANVAS_TOOLS;
+
+/** @deprecated 旧故事文案页工具 */
+export const STORY_TEXT_TOOLS = STORY_CANVAS_TOOLS;
+
+/** 故事文案 · 选中文字（无图层面板，层级仍可在样式外调整可后续再加） */
+export const STORY_TEXT_ELEMENT_TOOLS = [
+  { key: 'addPhoto', label: '加图', icon: 'image' },
+  { key: 'addText', label: '加文', icon: 'letters-a' },
+  { key: 'content', label: '文案', icon: 'edit' },
+  { key: 'style', label: '样式', icon: 'palette' },
+  { key: 'anim', label: '动效', icon: 'play-circle' },
+  { key: 'reset', label: '重置', icon: 'rollback' },
+  { key: 'delete', label: '删除', icon: 'delete' },
+  { key: 'done', label: '完成', icon: 'check' },
 ];
 
 /** 选中元素后的工具（位置/大小/角度改为画布手势，底栏不再放） */
@@ -47,6 +65,7 @@ export const ELEMENT_TOOLS_BASE = [
 export const TEXT_ELEMENT_TOOLS_BASE = [
   { key: 'content', label: '文案', icon: 'edit' },
   { key: 'style', label: '样式', icon: 'palette' },
+  { key: 'anim', label: '动效', icon: 'play-circle' },
   { key: 'layer', label: '层级', icon: 'layers' },
   { key: 'reset', label: '重置', icon: 'rollback' },
   { key: 'delete', label: '删除', icon: 'delete' },
@@ -88,6 +107,11 @@ export function buildElementTools(layer = 1) {
 /** 选中文字块 · 一级工具条 */
 export function buildTextElementTools(layer = 1) {
   return withLayerBadge(TEXT_ELEMENT_TOOLS_BASE, layer);
+}
+
+/** 故事文案页 · 选中文字工具条（仅文字能力） */
+export function buildStoryTextElementTools() {
+  return STORY_TEXT_ELEMENT_TOOLS.map((tool) => ({ ...tool }));
 }
 
 /** 选中文字块 · 二级样式工具条 */

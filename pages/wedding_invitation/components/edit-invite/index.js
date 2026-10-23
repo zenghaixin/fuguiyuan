@@ -20,6 +20,12 @@ Component({
     statusBarHeight: { type: Number, value: 20 },
     backTop: { type: Number, value: 48 },
     backSize: { type: Number, value: 32 },
+    /** 顶栏标题，故事文案页可改为「编辑文案」 */
+    editorTitle: { type: String, value: '编辑喜帖' },
+    /** 顶栏副标题。故事线用来显示「第2/2块」，不传则用画布提示 */
+    editorSub: { type: String, value: '' },
+    /** 为 true 时拦截画布空白处滑动，避免带动外层故事线 swiper */
+    lockOuterSwipe: { type: Boolean, value: false },
     /** 网格吸附开关（暂关） */
     snapEnabled: { type: Boolean, value: false },
     snapCols: { type: Number, value: DEFAULT_COLS },
@@ -319,5 +325,7 @@ Component({
       this._snapGestureMode = '';
       this._setSnapActive(false);
     },
+
+    noop() {},
   },
 });

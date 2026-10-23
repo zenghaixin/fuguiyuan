@@ -4,6 +4,7 @@
     "pages/cases/index",
     "pages/wedding/index",
     "pages/my/index",
+    "pages/wedding_invitation/demo/story-scrub/index",
     "pages/wedding_invitation/view/index",
     "pages/wedding_invitation/edit/index",
     "pages/wedding_invitation/edit/invite-works/index",
@@ -13,6 +14,7 @@
     "pages/wedding_invitation/edit/invite-pages/index",
     "pages/wedding_invitation/edit/invite-sheet/index",
     "pages/wedding_invitation/edit/story-line/index",
+    "pages/wedding_invitation/edit/story-text/index",
     "pages/wedding_invitation/edit/invite/index",
     "pages/wedding_invitation/edit/photo-wall/index",
     "pages/wedding_invitation/demo/index"
